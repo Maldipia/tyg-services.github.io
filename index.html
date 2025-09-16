@@ -252,7 +252,14 @@
             background: #fff;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
+        }
+        
+        .service-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            transform: scale(1.02);
+            z-index: 20;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
         }
         
         .service-item::before {
@@ -310,6 +317,104 @@
             line-height: 1.4;
             position: relative;
             z-index: 1;
+        }
+        
+        /* Service Details Dropdown */
+        .service-details {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #eee;
+            border-top: 3px solid #667eea;
+            padding: 2rem;
+            margin-top: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 100;
+            text-align: left;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .service-item.active .service-details {
+            display: block;
+        }
+        
+        .service-details h4 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .service-details ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .service-details li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .service-details li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .close-details {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 30px;
+            height: 30px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .close-details:hover {
+            background: #667eea;
+            color: white;
+            transform: rotate(90deg);
+        }
+        
+        .expand-indicator {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+        
+        .service-item.active .expand-indicator {
+            transform: rotate(180deg);
         }
         
         /* Service Philosophy Section */
@@ -507,62 +612,6 @@
         .contact-button:hover {
             transform: scale(1.05);
             box-shadow: 0 10px 20px rgba(255,255,255,0.3);
-        }
-        
-        /* Testimonials Section */
-        .testimonials {
-            padding: 5rem 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            position: relative;
-        }
-        
-        .testimonials-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            text-align: center;
-        }
-        
-        .testimonials h2 {
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 1rem;
-        }
-        
-        .testimonials h3 {
-            font-size: 2.5rem;
-            color: white;
-            margin-bottom: 3rem;
-            font-weight: 600;
-        }
-        
-        .testimonial-card {
-            background: rgba(255,255,255,0.1);
-            padding: 2rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-        
-        .testimonial-card:hover {
-            background: rgba(255,255,255,0.15);
-            transform: scale(1.02);
-        }
-        
-        .testimonial-text {
-            font-size: 1.1rem;
-            color: white;
-            font-style: italic;
-            line-height: 1.8;
-            margin-bottom: 1rem;
-        }
-        
-        .testimonial-author {
-            color: rgba(255,255,255,0.9);
-            font-weight: 600;
         }
         
         /* Schedule Section */
@@ -874,7 +923,6 @@
                     </li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#team">Team</a></li>
-                    <li><a href="#testimonials">Testimonials</a></li>
                     <li><a href="#contact">Contact</a></li>
                     <li class="nav-cta">
                         <a href="#schedule">Get Started</a>
@@ -891,84 +939,244 @@
     <section class="main-services" id="services">
         <div class="services-container">
             <div class="services-grid">
-                <div class="service-item">
+                <div class="service-item" data-service="automation">
                     <div class="service-icon">
                         <i class="fas fa-robot"></i>
                     </div>
-                    <h3>Business Automation</h3>
+                    <h3>Business Automation <span class="expand-indicator">▼</span></h3>
                     <p>Complete automation solutions for streamlined operations</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Business Automation Services</h4>
+                        <ul>
+                            <li>CRM system setup and integration</li>
+                            <li>Email marketing automation</li>
+                            <li>Appointment scheduling systems</li>
+                            <li>Invoice and billing automation</li>
+                            <li>Inventory management systems</li>
+                            <li>Customer support chatbots</li>
+                            <li>Workflow automation</li>
+                            <li>Data entry automation</li>
+                            <li>Sales funnel automation</li>
+                            <li>Report generation systems</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="content">
                     <div class="service-icon">
                         <i class="fas fa-video"></i>
                     </div>
-                    <h3>Content Creation</h3>
+                    <h3>Content Creation <span class="expand-indicator">▼</span></h3>
                     <p>Professional photo, video, and drone production services</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Content Creation Services</h4>
+                        <ul>
+                            <li>Professional photography</li>
+                            <li>Video production and editing</li>
+                            <li>Drone aerial photography/videography</li>
+                            <li>360° virtual tours</li>
+                            <li>Product photography</li>
+                            <li>Corporate video production</li>
+                            <li>Social media content creation</li>
+                            <li>Podcast production</li>
+                            <li>Animation and motion graphics</li>
+                            <li>Live streaming services</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="property">
                     <div class="service-icon">
                         <i class="fas fa-home"></i>
                     </div>
-                    <h3>Property Management</h3>
+                    <h3>Property Management <span class="expand-indicator">▼</span></h3>
                     <p>Hassle-free and efficient property management service</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Property Management Services</h4>
+                        <ul>
+                            <li>Tenant screening and placement</li>
+                            <li>Rent collection and accounting</li>
+                            <li>Property maintenance coordination</li>
+                            <li>Property marketing and listings</li>
+                            <li>Lease agreement management</li>
+                            <li>Property inspections</li>
+                            <li>Utility management</li>
+                            <li>Emergency response coordination</li>
+                            <li>Airbnb management</li>
+                            <li>Property documentation</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="social">
                     <div class="service-icon">
                         <i class="fas fa-hashtag"></i>
                     </div>
-                    <h3>Social Media</h3>
+                    <h3>Social Media <span class="expand-indicator">▼</span></h3>
                     <p>Strategic social media management and growth</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Social Media Services</h4>
+                        <ul>
+                            <li>Social media strategy development</li>
+                            <li>Content calendar planning</li>
+                            <li>Daily posting and scheduling</li>
+                            <li>Community management</li>
+                            <li>Influencer outreach</li>
+                            <li>Social media advertising</li>
+                            <li>Analytics and reporting</li>
+                            <li>Hashtag research and optimization</li>
+                            <li>Story and reel creation</li>
+                            <li>Profile optimization</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="marketing">
                     <div class="service-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h3>Digital Marketing</h3>
+                    <h3>Digital Marketing <span class="expand-indicator">▼</span></h3>
                     <p>Data-driven marketing strategies for business growth</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Digital Marketing Services</h4>
+                        <ul>
+                            <li>SEO optimization</li>
+                            <li>Google Ads management</li>
+                            <li>Facebook & Instagram ads</li>
+                            <li>Email marketing campaigns</li>
+                            <li>Content marketing strategy</li>
+                            <li>Landing page optimization</li>
+                            <li>Marketing analytics</li>
+                            <li>Conversion rate optimization</li>
+                            <li>Retargeting campaigns</li>
+                            <li>Marketing automation setup</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="personal">
                     <div class="service-icon">
                         <i class="fas fa-user-tie"></i>
                     </div>
-                    <h3>Personal Assistance</h3>
+                    <h3>Personal Assistance <span class="expand-indicator">▼</span></h3>
                     <p>Comprehensive assistance for all your personal tasks</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Personal Assistance Services</h4>
+                        <ul>
+                            <li>Calendar and schedule management</li>
+                            <li>Travel planning and booking</li>
+                            <li>Personal shopping</li>
+                            <li>Bill payments and reminders</li>
+                            <li>Restaurant reservations</li>
+                            <li>Gift sourcing and delivery</li>
+                            <li>Document organization</li>
+                            <li>Research and information gathering</li>
+                            <li>Errand running</li>
+                            <li>Personal correspondence</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="event">
                     <div class="service-icon">
                         <i class="fas fa-glass-cheers"></i>
                     </div>
-                    <h3>Event Planning</h3>
+                    <h3>Event Planning <span class="expand-indicator">▼</span></h3>
                     <p>Intimate and meaningful celebrations put together for you</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Event Planning Services</h4>
+                        <ul>
+                            <li>Wedding planning and coordination</li>
+                            <li>Corporate event management</li>
+                            <li>Birthday party planning</li>
+                            <li>Venue sourcing and booking</li>
+                            <li>Catering coordination</li>
+                            <li>Entertainment booking</li>
+                            <li>Event design and decoration</li>
+                            <li>Guest list management</li>
+                            <li>Event photography/videography</li>
+                            <li>Virtual event production</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="business">
                     <div class="service-icon">
                         <i class="fas fa-briefcase"></i>
                     </div>
-                    <h3>Business Support</h3>
+                    <h3>Business Support <span class="expand-indicator">▼</span></h3>
                     <p>Virtual executive assistance and administrative services</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Business Support Services</h4>
+                        <ul>
+                            <li>Virtual executive assistance</li>
+                            <li>Meeting scheduling and coordination</li>
+                            <li>Presentation preparation</li>
+                            <li>Data entry and management</li>
+                            <li>Customer service support</li>
+                            <li>Bookkeeping assistance</li>
+                            <li>Project management support</li>
+                            <li>Business correspondence</li>
+                            <li>Market research</li>
+                            <li>Vendor management</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="design">
                     <div class="service-icon">
                         <i class="fas fa-palette"></i>
                     </div>
-                    <h3>Graphic Design</h3>
+                    <h3>Graphic Design <span class="expand-indicator">▼</span></h3>
                     <p>Professional branding and creative design solutions</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Graphic Design Services</h4>
+                        <ul>
+                            <li>Logo design and branding</li>
+                            <li>Business card design</li>
+                            <li>Marketing materials</li>
+                            <li>Social media graphics</li>
+                            <li>Website design</li>
+                            <li>Packaging design</li>
+                            <li>Infographic creation</li>
+                            <li>Banner and signage design</li>
+                            <li>Brand identity development</li>
+                            <li>Print and digital design</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="service-item">
+                <div class="service-item" data-service="technical">
                     <div class="service-icon">
                         <i class="fas fa-tools"></i>
                     </div>
-                    <h3>Technical Services</h3>
+                    <h3>Technical Services <span class="expand-indicator">▼</span></h3>
                     <p>IT support and technical solutions via Luntian.net</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Technical Services</h4>
+                        <ul>
+                            <li>Website development</li>
+                            <li>IT support and troubleshooting</li>
+                            <li>Cloud setup and migration</li>
+                            <li>Email setup and management</li>
+                            <li>Network configuration</li>
+                            <li>Data backup solutions</li>
+                            <li>Software installation and setup</li>
+                            <li>Security assessment</li>
+                            <li>Domain and hosting management</li>
+                            <li>Technical consulting</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1026,26 +1234,6 @@
                 <h4>Let's Talk!</h4>
                 <div class="phone-number">+63-917-XXX-XXXX</div>
                 <a href="#schedule" class="contact-button">Get Started Now</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="testimonials" id="testimonials">
-        <div class="testimonials-container">
-            <h2>What Our</h2>
-            <h3>Happy Clients Say</h3>
-            <div class="testimonial-card">
-                <p class="testimonial-text">"TYG Services revolutionized our restaurant operations. They automated our booking system, manage our social media with stunning content, and even handle our property maintenance. One team, complete solution!"</p>
-                <p class="testimonial-author">- Restaurant Owner, BGC</p>
-            </div>
-            <div class="testimonial-card">
-                <p class="testimonial-text">"As a real estate broker, TYG's drone photography and virtual tours helped me sell properties faster. Their lead automation system saves me hours daily. Highly professional service!"</p>
-                <p class="testimonial-author">- Real Estate Professional, Makati</p>
-            </div>
-            <div class="testimonial-card">
-                <p class="testimonial-text">"From managing my emails to creating content for my business, TYG handles everything. Their automation solutions transformed how I work. Best investment for any entrepreneur!"</p>
-                <p class="testimonial-author">- Tech Startup Founder</p>
             </div>
         </div>
     </section>
@@ -1124,59 +1312,137 @@
 
     <!-- JavaScript -->
     <script>
-        // Mobile Menu Toggle
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            document.getElementById('navMenu').classList.toggle('active');
-        });
-
-        // Header Scroll Effect
-        window.addEventListener('scroll', function() {
-            const header = document.getElementById('header');
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Mobile Menu Toggle
+            const menuToggle = document.getElementById('menuToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                });
             }
-        });
 
-        // Smooth Scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    const headerOffset = 100;
-                    const elementPosition = target.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            // Header Scroll Effect
+            window.addEventListener('scroll', function() {
+                const header = document.getElementById('header');
+                if (header && window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else if (header) {
+                    header.classList.remove('scrolled');
+                }
+            });
 
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
+            // Service Item Click Functionality - IMPROVED VERSION
+            const serviceItems = document.querySelectorAll('.service-item');
+            
+            serviceItems.forEach(item => {
+                // Remove any existing event listeners first
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
+            });
+            
+            // Re-select after cloning
+            document.querySelectorAll('.service-item').forEach(item => {
+                item.style.cursor = 'pointer';
+                
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    // Don't trigger if clicking close button
+                    if (e.target.classList.contains('close-details')) {
+                        this.classList.remove('active');
+                        return;
+                    }
+                    
+                    // Don't trigger if clicking within service details
+                    if (e.target.closest('.service-details')) {
+                        return;
+                    }
+                    
+                    // Close other active items
+                    document.querySelectorAll('.service-item.active').forEach(otherItem => {
+                        if (otherItem !== this) {
+                            otherItem.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle current item
+                    this.classList.toggle('active');
+                    
+                    // Log for debugging
+                    console.log('Service clicked:', this.dataset.service);
+                });
+            });
+            
+            // Close button functionality
+            document.querySelectorAll('.close-details').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const serviceItem = this.closest('.service-item');
+                    if (serviceItem) {
+                        serviceItem.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Close service details when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.service-item')) {
+                    document.querySelectorAll('.service-item.active').forEach(item => {
+                        item.classList.remove('active');
                     });
                 }
             });
-        });
 
-        // Active Menu Item on Scroll
-        window.addEventListener('scroll', function() {
-            let current = '';
-            const sections = document.querySelectorAll('section');
+            // Smooth Scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const target = document.querySelector(targetId);
+                    if (target) {
+                        const headerOffset = 100;
+                        const elementPosition = target.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // Active Menu Item on Scroll
+            window.addEventListener('scroll', function() {
+                let current = '';
+                const sections = document.querySelectorAll('section');
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= (sectionTop - 200)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                const navItems = document.querySelectorAll('.nav-menu > li');
+                navItems.forEach(li => {
+                    li.classList.remove('active');
+                    if (current && li.querySelector(`a[href="#${current}"]`)) {
+                        li.classList.add('active');
+                    }
+                });
+            });
             
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (pageYOffset >= (sectionTop - 200)) {
-                    current = section.getAttribute('id');
-                }
-            });
-
-            const navItems = document.querySelectorAll('.nav-menu > li');
-            navItems.forEach(li => {
-                li.classList.remove('active');
-                if (li.querySelector(`a[href="#${current}"]`)) {
-                    li.classList.add('active');
-                }
-            });
+            // Add visual feedback for debugging
+            console.log('TYG Services JavaScript loaded successfully');
+            console.log('Found', document.querySelectorAll('.service-item').length, 'service items');
         });
     </script>
 </body>

@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TYG Services - Case Studies</title>
+    <meta name="description" content="Concierge Services in Manila | TYG Services - Business Automation, Content Creation, Property Management">
+    <meta name="keywords" content="concierge services, business automation, content creation, property management, Manila, Philippines">
+    <title>Concierge Services in Manila | TYG Services, Inc.</title>
+    
+    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         * {
             margin: 0;
@@ -13,21 +18,21 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            background: #f5f5f5;
+            background: #fff;
         }
         
-        .case-study-nav {
+        /* Top Bar */
+        .top-bar {
             background: #2c3e50;
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            color: white;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
         }
         
-        .nav-container {
+        .top-bar-content {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
@@ -36,815 +41,1561 @@
             align-items: center;
         }
         
-        .nav-links {
+        .contact-info-top {
             display: flex;
             gap: 2rem;
+            align-items: center;
         }
         
-        .nav-links a {
+        .contact-info-top span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .contact-info-top i {
+            color: #52c234;
+        }
+        
+        .social-top {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-top a {
             color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: background 0.3s;
+            font-size: 1rem;
+            transition: color 0.3s;
         }
         
-        .nav-links a:hover,
-        .nav-links a.active {
-            background: #52c234;
+        .social-top a:hover {
+            color: #52c234;
         }
         
-        .back-btn {
-            background: #52c234;
-            color: white;
-            padding: 0.5rem 1.5rem;
-            text-decoration: none;
-            border-radius: 25px;
+        /* Main Header */
+        header {
+            background: #fff;
+            padding: 1rem 0;
+            position: sticky;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             transition: all 0.3s;
         }
         
-        .back-btn:hover {
-            background: #8BC34A;
+        header.scrolled {
+            padding: 0.5rem 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
         
-        /* Case Study Sections */
-        .case-study {
-            display: none;
-            animation: fadeIn 0.5s;
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .case-study.active {
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        
+        .logo:hover {
+            color: #52c234;
+        }
+        
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 0;
+            align-items: center;
+        }
+        
+        .nav-menu > li {
+            position: relative;
+        }
+        
+        .nav-menu > li > a {
+            color: #333;
+            text-decoration: none;
+            padding: 1rem 1.5rem;
             display: block;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .nav-menu > li > a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: #52c234;
+            transition: all 0.3s;
+            transform: translateX(-50%);
         }
         
-        .hero-section {
+        .nav-menu > li > a:hover::after,
+        .nav-menu > li.active > a::after {
+            width: 80%;
+        }
+        
+        .nav-menu > li > a:hover {
+            color: #52c234;
+        }
+        
+        /* Dropdown Menu */
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            min-width: 250px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            border-top: 3px solid #52c234;
+        }
+        
+        .nav-menu > li:hover .dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown a {
+            color: #333;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            display: block;
+            transition: all 0.3s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .dropdown a:hover {
+            background: #f8f9fa;
+            color: #52c234;
+            padding-left: 2rem;
+        }
+        
+        .dropdown a i {
+            width: 20px;
+            margin-right: 0.5rem;
+            color: #52c234;
+        }
+        
+        /* CTA Button in Nav */
+        .nav-cta {
+            margin-left: 2rem;
+        }
+        
+        .nav-cta a {
             background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%);
-            padding: 5rem 0;
             color: white;
-            text-align: center;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
         }
         
-        .hero-content {
-            max-width: 900px;
+        .nav-cta a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(82, 194, 52, 0.3);
+        }
+        
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+        }
+        
+        /* Main Services Section */
+        .main-services {
+            margin-top: 0;
+            padding: 3rem 0;
+            background: #fff;
+        }
+        
+        .services-container {
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
         }
         
-        .client-logo {
-            width: 120px;
-            height: 120px;
-            background: white;
-            border-radius: 20px;
-            margin: 0 auto 2rem;
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0;
+        }
+        
+        .service-item {
+            padding: 3rem 2rem;
+            text-align: center;
+            border: 1px solid #eee;
+            transition: all 0.3s;
+            background: #fff;
+            cursor: pointer;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .service-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            transform: scale(1.02);
+            z-index: 20;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .service-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transition: height 0.3s;
+        }
+        
+        .service-item:hover::before {
+            height: 100%;
+        }
+        
+        .service-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            color: #52c234;
-        }
-        
-        .hero-content h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        
-        .hero-content .tagline {
-            font-size: 1.2rem;
-            opacity: 0.95;
-            margin-bottom: 2rem;
-        }
-        
-        .stats-row {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            margin-top: 3rem;
-            flex-wrap: wrap;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-number {
             font-size: 2.5rem;
+            color: #52c234;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .service-item:hover .service-icon {
+            transform: scale(1.1);
+        }
+        
+        .service-item h3 {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .service-item p {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Service Details Dropdown */
+        .service-details {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #eee;
+            border-top: 3px solid #52c234;
+            padding: 2rem;
+            margin-top: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 100;
+            text-align: left;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .service-item.active .service-details {
+            display: block;
+        }
+        
+        .service-details h4 {
+            color: #52c234;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .service-details ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .service-details li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .service-details li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #52c234;
             font-weight: bold;
         }
         
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
+        .close-details {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 30px;
+            height: 30px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .close-details:hover {
+            background: #52c234;
+            color: white;
+            transform: rotate(90deg);
+        }
+        
+        .expand-indicator {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            color: #52c234;
+            transition: transform 0.3s;
+        }
+        
+        .service-item.active .expand-indicator {
+            transform: rotate(180deg);
+        }
+        
+        /* Service Philosophy Section */
+        .philosophy-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .philosophy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .philosophy-content h2 {
+            font-size: 1.2rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            opacity: 0.9;
         }
         
-        .content-section {
-            padding: 4rem 0;
-            background: white;
+        .philosophy-content h3 {
+            font-size: 2.8rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
         }
         
-        .container {
-            max-width: 1000px;
+        .philosophy-content p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            opacity: 0.95;
+        }
+        
+        /* Team Section */
+        .team-section {
+            padding: 5rem 0;
+            background: #f8f9fa;
+        }
+        
+        .team-container {
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
         }
         
         .section-header {
+            text-align: center;
             margin-bottom: 3rem;
         }
         
         .section-header h2 {
-            color: #333;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-        
-        .section-header p {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             color: #666;
-            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
         }
         
-        .challenge-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
+        .section-header h3 {
+            font-size: 2.5rem;
+            color: #333;
+            font-weight: 600;
         }
         
-        .challenge-box h3 {
-            color: #856404;
-            margin-bottom: 1rem;
-        }
-        
-        .challenge-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .challenge-list li {
-            padding: 0.5rem 0;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-        
-        .challenge-list li:before {
-            content: "×";
-            position: absolute;
-            left: 0;
-            color: #dc3545;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        
-        .solution-box {
-            background: #d4edda;
-            border-left: 4px solid #52c234;
-            padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-        
-        .solution-box h3 {
-            color: #155724;
-            margin-bottom: 1rem;
-        }
-        
-        .solution-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .solution-list li {
-            padding: 0.5rem 0;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-        
-        .solution-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #52c234;
-            font-weight: bold;
-        }
-        
-        .tech-stack {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .tech-badge {
-            background: #f8f9fa;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            border: 1px solid #dee2e6;
-            font-size: 0.9rem;
-        }
-        
-        .workflow-diagram {
-            background: #f8f9fa;
-            padding: 3rem;
-            border-radius: 10px;
-            margin: 2rem 0;
-            text-align: center;
-        }
-        
-        .workflow-steps {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-        
-        .workflow-step {
-            flex: 1;
-            min-width: 150px;
-            text-align: center;
-        }
-        
-        .step-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-            margin: 0 auto 1rem;
-        }
-        
-        .step-arrow {
-            font-size: 2rem;
-            color: #52c234;
-        }
-        
-        .results-grid {
+        .team-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
         }
         
-        .result-card {
-            background: white;
-            border: 1px solid #e0e0e0;
-            padding: 2rem;
-            border-radius: 10px;
+        .team-member {
             text-align: center;
-            transition: all 0.3s;
+            transition: transform 0.3s;
         }
         
-        .result-card:hover {
-            transform: translateY(-5px);
+        .team-member:hover {
+            transform: translateY(-10px);
+        }
+        
+        .member-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0 auto 1.5rem;
+            overflow: hidden;
+            position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
-        .result-icon {
-            font-size: 2.5rem;
-            color: #52c234;
-            margin-bottom: 1rem;
+        .member-photo::after {
+            content: 'Photo';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
         }
         
-        .result-value {
-            font-size: 2rem;
-            font-weight: bold;
+        .team-member h4 {
+            font-size: 1.3rem;
             color: #333;
             margin-bottom: 0.5rem;
         }
         
-        .result-label {
+        .team-member p {
+            color: #52c234;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        /* How We Work Section */
+        .how-we-work {
+            padding: 5rem 0;
+            background: #fff;
+        }
+        
+        .work-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        .work-content h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             color: #666;
-            font-size: 0.9rem;
+            margin-bottom: 1rem;
         }
         
-        .code-sample {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 1.5rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 2rem 0;
+        .work-content h3 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 2rem;
+            font-weight: 600;
         }
         
-        .code-sample pre {
-            margin: 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            line-height: 1.5;
+        .work-content p {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 2rem;
         }
         
-        .cta-section {
+        .contact-info {
             background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%);
-            padding: 4rem 0;
+            padding: 3rem;
+            border-radius: 10px;
             text-align: center;
             color: white;
+            box-shadow: 0 20px 40px rgba(82, 194, 52, 0.3);
+            transition: transform 0.3s;
         }
         
-        .cta-content h2 {
+        .contact-info:hover {
+            transform: translateY(-5px);
+        }
+        
+        .contact-info h4 {
             font-size: 2rem;
             margin-bottom: 1rem;
         }
         
-        .cta-content p {
-            font-size: 1.1rem;
+        .phone-number {
+            font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 2rem;
-            opacity: 0.95;
         }
         
-        .cta-button {
+        .contact-button {
             background: white;
             color: #52c234;
-            padding: 1rem 3rem;
-            text-decoration: none;
+            padding: 1rem 2rem;
             border-radius: 50px;
-            font-weight: 600;
+            text-decoration: none;
             display: inline-block;
+            font-weight: 600;
             transition: all 0.3s;
         }
         
-        .cta-button:hover {
+        .contact-button:hover {
             transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px rgba(255,255,255,0.3);
+        }
+        
+        /* Schedule Section */
+        .schedule-section {
+            padding: 5rem 0;
+            background: #f8f9fa;
+        }
+        
+        .schedule-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+        
+        .schedule-image {
+            background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%);
+            height: 300px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .schedule-image:hover {
+            transform: scale(1.05);
+        }
+        
+        .schedule-image::after {
+            content: 'Service Image';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .schedule-content {
+            grid-column: span 3;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        
+        .schedule-content h2 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .schedule-content h3 {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        
+        .schedule-button {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .schedule-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(82, 194, 52, 0.3);
+        }
+        
+        /* Footer */
+        footer {
+            padding: 3rem 0 1rem;
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-column h4 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #52c234;
+        }
+        
+        .footer-column a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            display: block;
+            padding: 0.3rem 0;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 2rem;
+            text-align: center;
+        }
+        
+        .footer-social {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .footer-social a:hover {
+            background: #52c234;
+            transform: translateY(-3px);
+        }
+        
+        /* Floating WhatsApp Button */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #25d366;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3);
+            transition: all 0.3s;
+            z-index: 999;
+        }
+        
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(37, 211, 102, 0.4);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .top-bar {
+                display: none;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            }
+            
+            .nav-menu.active {
+                display: flex;
+            }
+            
+            .nav-menu > li {
+                width: 100%;
+            }
+            
+            .nav-menu > li > a {
+                padding: 1rem 2rem;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            
+            .dropdown {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                border-top: none;
+                background: rgba(23, 162, 184, 0.05);
+            }
+            
+            .nav-cta {
+                margin: 1rem 2rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .team-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .work-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .philosophy-content h3 {
+                font-size: 2rem;
+            }
+            
+            .work-content h3 {
+                font-size: 2rem;
+            }
+            
+            .phone-number {
+                font-size: 1.5rem;
+            }
+            
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="case-study-nav">
-        <div class="nav-container">
-            <div class="nav-links">
-                <a href="#" onclick="showCaseStudy('tgb')" class="active">The Gold Blessing</a>
-                <a href="#" onclick="showCaseStudy('sole')">Sole Blessing</a>
-                <a href="#" onclick="showCaseStudy('luntian')">Luntian.net</a>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info-top">
+                <span><i class="fas fa-phone"></i> +63 967-400-0040</span>
+                <span><i class="fas fa-envelope"></i> legerynpia@tyg-services.com</span>
+                <span><i class="fas fa-clock"></i> Mon-Sat: 8AM-6PM</span>
             </div>
-            <a href="/" class="back-btn">← Back to Main Site</a>
+            <div class="social-top">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
         </div>
-    </nav>
-
-    <!-- Case Study 1: The Gold Blessing -->
-    <div id="tgb" class="case-study active">
-        <section class="hero-section">
-            <div class="hero-content">
-                <div class="client-logo">
-                    <i class="fas fa-gem"></i>
-                </div>
-                <h1>The Gold Blessing (TGB)</h1>
-                <p class="tagline">Complete E-Commerce Automation for Premium Jewelry Retail</p>
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <div class="stat-number">75%</div>
-                        <div class="stat-label">Time Saved</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">100K+</div>
-                        <div class="stat-label">Lifetime Orders</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">Zero</div>
-                        <div class="stat-label">Manual Errors</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>The Challenge</h2>
-                    <p>Managing a growing jewelry business with multiple payment methods and shipping requirements</p>
-                </div>
-                
-                <div class="challenge-box">
-                    <h3>Before Automation:</h3>
-                    <ul class="challenge-list">
-                        <li>Manual order entry taking 15-20 minutes per order</li>
-                        <li>Invoice creation errors and inconsistencies</li>
-                        <li>Lost track of payment verifications</li>
-                        <li>Delayed shipping notifications</li>
-                        <li>No centralized customer data</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section" style="background: #f8f9fa;">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Our Solution</h2>
-                    <p>A complete Google Workspace automation ecosystem</p>
-                </div>
-                
-                <div class="solution-box">
-                    <h3>Automated Systems Built:</h3>
-                    <ul class="solution-list">
-                        <li>Online order form with automatic data capture</li>
-                        <li>Google Sheets database with smart categorization</li>
-                        <li>Auto-invoice generation with PDF creation</li>
-                        <li>Payment verification portal with file uploads</li>
-                        <li>LBC tracking integration and notifications</li>
-                        <li>Customer points and rewards tracking</li>
-                        <li>Automated email sequences for each order stage</li>
-                    </ul>
-                </div>
-                
-                <div class="workflow-diagram">
-                    <h3>Automated Workflow</h3>
-                    <div class="workflow-steps">
-                        <div class="workflow-step">
-                            <div class="step-icon"><i class="fas fa-shopping-cart"></i></div>
-                            <p>Customer Orders</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon"><i class="fas fa-database"></i></div>
-                            <p>Auto-Logged</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon"><i class="fas fa-file-invoice"></i></div>
-                            <p>Invoice Sent</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon"><i class="fas fa-credit-card"></i></div>
-                            <p>Payment Verified</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon"><i class="fas fa-shipping-fast"></i></div>
-                            <p>Tracking Sent</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="tech-stack">
-                    <span class="tech-badge">Google Forms</span>
-                    <span class="tech-badge">Google Sheets</span>
-                    <span class="tech-badge">Apps Script</span>
-                    <span class="tech-badge">Gmail API</span>
-                    <span class="tech-badge">Google Drive</span>
-                    <span class="tech-badge">HTML/CSS</span>
-                    <span class="tech-badge">JavaScript</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Technical Implementation</h2>
-                    <p>Sample of our Google Apps Script automation</p>
-                </div>
-                
-                <div class="code-sample">
-                    <pre>function sendInvoiceEmail(rowData) {
-  // Auto-generate invoice from order data
-  const invoice = {
-    orderId: rowData.orderId,
-    customer: rowData.customerName,
-    items: parseItems(rowData.orderDetails),
-    total: calculateTotal(rowData),
-    payment: rowData.paymentMethod
-  };
-  
-  // Create PDF invoice
-  const pdf = createPDF(invoice);
-  
-  // Send personalized email
-  MailApp.sendEmail({
-    to: rowData.email,
-    subject: `Invoice #${invoice.orderId}`,
-    htmlBody: generateEmailTemplate(invoice),
-    attachments: [pdf]
-  });
-  
-  // Update status in sheet
-  updateOrderStatus(rowData.row, 'INVOICE_SENT');
-}</pre>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section" style="background: #f8f9fa;">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Results & Impact</h2>
-                    <p>Measurable improvements from automation</p>
-                </div>
-                
-                <div class="results-grid">
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-clock"></i></div>
-                        <div class="result-value">3 mins</div>
-                        <div class="result-label">Order Processing Time<br>(from 20 mins)</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-percentage"></i></div>
-                        <div class="result-value">100%</div>
-                        <div class="result-label">Invoice Accuracy<br>(from 85%)</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-users"></i></div>
-                        <div class="result-value">98%</div>
-                        <div class="result-label">Customer Satisfaction<br>(automated updates)</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-peso-sign"></i></div>
-                        <div class="result-value">₱15k</div>
-                        <div class="result-label">Monthly Savings<br>(staff hours)</div>
-                    </div>
-                </div>
-            </div>
-        </section>
     </div>
 
-    <!-- Case Study 2: Sole Blessing -->
-    <div id="sole" class="case-study">
-        <section class="hero-section">
-            <div class="hero-content">
-                <div class="client-logo">
-                    <i class="fas fa-shoe-prints"></i>
-                </div>
-                <h1>Sole Blessing</h1>
-                <p class="tagline">Multi-Channel Inventory & Social Commerce Automation</p>
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <div class="stat-number">3</div>
-                        <div class="stat-label">Sales Channels</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">Real-time</div>
-                        <div class="stat-label">Inventory Sync</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Auto-Response</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>The Challenge</h2>
-                    <p>Managing inventory across Facebook, Instagram, and website while maintaining accurate stock levels</p>
-                </div>
-                
-                <div class="challenge-box">
-                    <h3>Pain Points:</h3>
-                    <ul class="challenge-list">
-                        <li>Overselling due to manual inventory updates</li>
-                        <li>Lost sales from delayed responses on social media</li>
-                        <li>No unified view of multi-channel performance</li>
-                        <li>Time-consuming manual price updates</li>
-                        <li>Inconsistent product information across platforms</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section" style="background: #f8f9fa;">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Our Solution</h2>
-                    <p>Integrated automation across all sales channels</p>
-                </div>
-                
-                <div class="solution-box">
-                    <h3>Systems Implemented:</h3>
-                    <ul class="solution-list">
-                        <li>Central inventory database with real-time sync</li>
-                        <li>Facebook Shop integration with auto-updates</li>
-                        <li>Instagram Shopping tags automation</li>
-                        <li>WhatsApp Business API for instant quotes</li>
-                        <li>Automated "out of stock" notifications</li>
-                        <li>Dynamic pricing based on cost changes</li>
-                        <li>Multi-channel sales dashboard</li>
-                    </ul>
-                </div>
-                
-                <div class="tech-stack">
-                    <span class="tech-badge">Facebook Business API</span>
-                    <span class="tech-badge">Instagram Shopping</span>
-                    <span class="tech-badge">WhatsApp Business</span>
-                    <span class="tech-badge">Google Sheets</span>
-                    <span class="tech-badge">Zapier</span>
-                    <span class="tech-badge">n8n</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Results & Impact</h2>
-                </div>
-                
-                <div class="results-grid">
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-sync"></i></div>
-                        <div class="result-value">Zero</div>
-                        <div class="result-label">Overselling Incidents<br>(from 5-10 monthly)</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-reply"></i></div>
-                        <div class="result-value">< 1 min</div>
-                        <div class="result-label">Response Time<br>(from hours)</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-chart-line"></i></div>
-                        <div class="result-value">35%</div>
-                        <div class="result-label">Sales Increase<br>(better availability)</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Case Study 3: Luntian.net -->
-    <div id="luntian" class="case-study">
-        <section class="hero-section">
-            <div class="hero-content">
-                <div class="client-logo">
-                    <i class="fas fa-tree"></i>
-                </div>
-                <h1>Luntian.net Properties</h1>
-                <p class="tagline">Airbnb & Property Management Automation</p>
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <div class="stat-number">5</div>
-                        <div class="stat-label">Properties Managed</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">90%</div>
-                        <div class="stat-label">Occupancy Rate</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">4.9★</div>
-                        <div class="stat-label">Guest Rating</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>The Challenge</h2>
-                    <p>Managing multiple vacation rentals with personalized guest experiences</p>
-                </div>
-                
-                <div class="challenge-box">
-                    <h3>Management Issues:</h3>
-                    <ul class="challenge-list">
-                        <li>Double bookings across platforms</li>
-                        <li>Delayed guest communications</li>
-                        <li>Inconsistent check-in instructions</li>
-                        <li>Manual maintenance scheduling</li>
-                        <li>No automated owner reporting</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section" style="background: #f8f9fa;">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Our Solution</h2>
-                    <p>Complete property management automation system</p>
-                </div>
-                
-                <div class="solution-box">
-                    <h3>Automated Features:</h3>
-                    <ul class="solution-list">
-                        <li>7-stage guest messaging sequence</li>
-                        <li>iCal sync preventing double bookings</li>
-                        <li>Smart pricing based on seasonality</li>
-                        <li>Automated cleaning schedules</li>
-                        <li>Maintenance request tracking</li>
-                        <li>Monthly owner reports with financials</li>
-                        <li>Emergency response protocols</li>
-                    </ul>
-                </div>
-                
-                <h3 style="margin-top: 3rem; margin-bottom: 2rem;">Guest Communication Timeline</h3>
-                <div class="workflow-diagram">
-                    <div class="workflow-steps">
-                        <div class="workflow-step">
-                            <div class="step-icon">1</div>
-                            <p>Booking Confirmation</p>
+    <!-- Main Header -->
+    <header id="header">
+        <div class="header-content">
+            <div class="logo">TYG SERVICES</div>
+            <nav>
+                <ul class="nav-menu" id="navMenu">
+                    <li class="active"><a href="#home">Home</a></li>
+                    <li>
+                        <a href="#services">Services <i class="fas fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px;"></i></a>
+                        <div class="dropdown">
+                            <a href="#"><i class="fas fa-user-clock"></i>Personal Lifestyle</a>
+                            <a href="#"><i class="fas fa-home"></i>Property & Estate</a>
+                            <a href="#"><i class="fas fa-child"></i>Family Services</a>
+                            <a href="#"><i class="fas fa-briefcase"></i>Business Support</a>
+                            <a href="#"><i class="fas fa-robot"></i>Automation Systems</a>
+                            <a href="#"><i class="fas fa-tools"></i>Vendor Desk</a>
+                            <a href="#"><i class="fas fa-video"></i>Content & Social</a>
+                            <a href="#"><i class="fas fa-laptop-code"></i>Web & Tech</a>
+                            <a href="#"><i class="fas fa-glass-cheers"></i>Special Events</a>
+                            <a href="#"><i class="fas fa-gem"></i>Luxury Services</a>
                         </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon">2</div>
-                            <p>7 Days Before</p>
+                    </li>
+                    <li>
+                        <a href="#packages">Packages <i class="fas fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px;"></i></a>
+                        <div class="dropdown">
+                            <a href="#"><i class="fas fa-star"></i>Starter Package</a>
+                            <a href="#"><i class="fas fa-gem"></i>Professional Package</a>
+                            <a href="#"><i class="fas fa-crown"></i>Enterprise Package</a>
+                            <a href="#"><i class="fas fa-cog"></i>Custom Solutions</a>
                         </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon">3</div>
-                            <p>Day Before</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon">4</div>
-                            <p>Check-in Day</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon">5</div>
-                            <p>During Stay</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon">6</div>
-                            <p>Check-out</p>
-                        </div>
-                        <span class="step-arrow">→</span>
-                        <div class="workflow-step">
-                            <div class="step-icon">7</div>
-                            <p>Review Request</p>
-                        </div>
-                    </div>
-                </div>
+                    </li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#team">Team</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li class="nav-cta">
+                        <a href="#schedule">Get Started</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
             </div>
-        </section>
+        </div>
+    </header>
 
-        <section class="content-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Results & Impact</h2>
+    <!-- Main Services Section -->
+    <section class="main-services" id="services">
+        <div class="services-container">
+            <div class="services-grid">
+                <div class="service-item" data-service="lifestyle">
+                    <div class="service-icon">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <h3>Personal Lifestyle <span class="expand-indicator">▼</span></h3>
+                    <p>Complete personal assistance for busy professionals</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Personal Lifestyle Management</h4>
+                        <ul>
+                            <li>Family calendar & appointment coordination</li>
+                            <li>Medical, beauty, wellness appointment setting</li>
+                            <li>Pharmacy runs & prescription management</li>
+                            <li>Personal shopping & returns</li>
+                            <li>Gift sourcing, wrapping & delivery</li>
+                            <li>Travel planning & VIP bookings</li>
+                            <li>Event tickets & experiences</li>
+                            <li>Travel documents & insurance</li>
+                            <li>Packing/unpacking services</li>
+                            <li>Personal correspondence & thank-you notes</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="results-grid">
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-calendar-check"></i></div>
-                        <div class="result-value">Zero</div>
-                        <div class="result-label">Double Bookings<br>(from 2-3 monthly)</div>
+                <div class="service-item" data-service="property">
+                    <div class="service-icon">
+                        <i class="fas fa-home"></i>
                     </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-star"></i></div>
-                        <div class="result-value">4.9</div>
-                        <div class="result-label">Guest Rating<br>(from 4.5)</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-percentage"></i></div>
-                        <div class="result-value">90%</div>
-                        <div class="result-label">Occupancy Rate<br>(from 65%)</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-icon"><i class="fas fa-clock"></i></div>
-                        <div class="result-value">10hrs</div>
-                        <div class="result-label">Weekly Time Saved<br>(per property)</div>
+                    <h3>Property & Estate <span class="expand-indicator">▼</span></h3>
+                    <p>Full-service property and Airbnb management</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Property, Estate & Resort Management</h4>
+                        <ul>
+                            <li>Staff & vendor recruitment/vetting</li>
+                            <li>Contractor project management & QC</li>
+                            <li>Bills & utilities optimization</li>
+                            <li>Inventory management & restocking</li>
+                            <li>Security system coordination</li>
+                            <li>Preventive maintenance calendar</li>
+                            <li>Emergency response playbooks</li>
+                            <li>Airbnb/STR guest messaging (7-stage)</li>
+                            <li>Calendar sync & pricing optimization</li>
+                            <li>Owner reporting & revenue analytics</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- CTA Section (appears on all case studies) -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-content">
-                <h2>Ready to Automate Your Business?</h2>
-                <p>Let's discuss how we can save you time and increase your efficiency</p>
-                <a href="mailto:legerynpia@tyg-services.com" class="cta-button">Schedule a Consultation</a>
+                
+                <div class="service-item" data-service="family">
+                    <div class="service-icon">
+                        <i class="fas fa-child"></i>
+                    </div>
+                    <h3>Family Services <span class="expand-indicator">▼</span></h3>
+                    <p>School, health, and childcare coordination</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Family Support Services</h4>
+                        <ul>
+                            <li>School applications & enrollment</li>
+                            <li>Tutor & activity coordination</li>
+                            <li>Summer camp research & booking</li>
+                            <li>Playdate scheduling</li>
+                            <li>Healthcare appointment coordination</li>
+                            <li>Medication reminders & management</li>
+                            <li>Healthcare liaison services</li>
+                            <li>Caregiver & nanny coordination</li>
+                            <li>Birthday party planning</li>
+                            <li>Elder care assistance</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="service-item" data-service="business">
+                    <div class="service-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>Business Support <span class="expand-indicator">▼</span></h3>
+                    <p>Executive assistance and relationship management</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Executive & Business Support</h4>
+                        <ul>
+                            <li>Email & calendar management</li>
+                            <li>Meeting prep & follow-up</li>
+                            <li>Presentation & report creation</li>
+                            <li>Research & competitive analysis</li>
+                            <li>Board meeting preparation</li>
+                            <li>Contact/CRM management</li>
+                            <li>Thank-you gifts coordination</li>
+                            <li>LinkedIn profile management</li>
+                            <li>Professional photoshoot coordination</li>
+                            <li>Event preparation assistance</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="service-item" data-service="automation">
+                    <div class="service-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Automation Systems <span class="expand-indicator">▼</span></h3>
+                    <p>Google Workspace automation and workflows</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Automation & Systems (Google Workspace)</h4>
+                        <ul>
+                            <li>Form → Sheet → Email workflows</li>
+                            <li>Auto-invoice from Sheets</li>
+                            <li>Payment reminder automation</li>
+                            <li>Calendar sync & conflict rules</li>
+                            <li>Task & expense dashboards</li>
+                            <li>KPI tracking systems</li>
+                            <li>Error logging & alerts</li>
+                            <li>Scheduled backups</li>
+                            <li>PDF generation automation</li>
+                            <li>Data integration workflows</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="service-item" data-service="vendor">
+                    <div class="service-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>Vendor Desk <span class="expand-indicator">▼</span></h3>
+                    <p>Trades and cleaning service coordination</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Vendor Desk - Trades & Cleaning</h4>
+                        <ul>
+                            <li>Plumbing, electrical, AC coordination</li>
+                            <li>Carpentry, glass, aluminum works</li>
+                            <li>Pest control & sanitation</li>
+                            <li>Routine & deep cleaning</li>
+                            <li>Move-in/out cleaning</li>
+                            <li>Post-renovation cleanup</li>
+                            <li>Water delivery & junk removal</li>
+                            <li>Get 2-3 quotes comparison</li>
+                            <li>Schedule & supervise works</li>
+                            <li>QC photos & warranty tracking</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="service-item" data-service="content">
+                    <div class="service-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3>Content & Social <span class="expand-indicator">▼</span></h3>
+                    <p>Photo, video, and social media growth</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Content Creation & Distribution</h4>
+                        <ul>
+                            <li>Product photography (studio/lifestyle)</li>
+                            <li>Gold macro videos & shine shots</li>
+                            <li>TikTok/Reels/Shorts creation</li>
+                            <li>Property walkthroughs</li>
+                            <li>Video editing & color grading</li>
+                            <li>Cross-platform scheduling</li>
+                            <li>Caption & hashtag optimization</li>
+                            <li>Google Business Profile management</li>
+                            <li>Monthly content calendars</li>
+                            <li>Analytics & KPI tracking</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="service-item" data-service="tech">
+                    <div class="service-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h3>Web & Tech <span class="expand-indicator">▼</span></h3>
+                    <p>Website development and IT support</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Web, Tech & Data Services</h4>
+                        <ul>
+                            <li>Landing page development</li>
+                            <li>Form → email integration</li>
+                            <li>WhatsApp/Calendly setup</li>
+                            <li>Analytics & event tracking</li>
+                            <li>Performance optimization</li>
+                            <li>Spreadsheet engineering (QUERY/FILTER)</li>
+                            <li>Dashboard creation</li>
+                            <li>Email & domain management</li>
+                            <li>Hosting & technical support</li>
+                            <li>Tracking pixels & OG cards</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="service-item" data-service="events">
+                    <div class="service-icon">
+                        <i class="fas fa-glass-cheers"></i>
+                    </div>
+                    <h3>Special Events <span class="expand-indicator">▼</span></h3>
+                    <p>Intimate celebrations and milestone planning</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Special Projects & Events</h4>
+                        <ul>
+                            <li>Milestone birthdays & anniversaries</li>
+                            <li>Family reunions coordination</li>
+                            <li>Holiday décor & cards</li>
+                            <li>Charity gala logistics</li>
+                            <li>Memorial service planning</li>
+                            <li>Vendor coordination</li>
+                            <li>Guest list management</li>
+                            <li>Photo/video coordination</li>
+                            <li>Thank-you follow-ups</li>
+                            <li>Run-of-show management</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="service-item" data-service="luxury">
+                    <div class="service-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h3>Luxury Services <span class="expand-indicator">▼</span></h3>
+                    <p>High-end lifestyle and vehicle management</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Luxury & Vehicle Services</h4>
+                        <ul>
+                            <li>Yacht/jet coordination</li>
+                            <li>Private club applications</li>
+                            <li>Private security coordination</li>
+                            <li>Luxury goods authentication</li>
+                            <li>Vehicle maintenance scheduling</li>
+                            <li>Registration & insurance</li>
+                            <li>Chauffeur coordination</li>
+                            <li>Airport meet-and-greet</li>
+                            <li>Parking management</li>
+                            <li>Purchase/lease research</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
+    <!-- Service Philosophy -->
+    <section class="philosophy-section" id="about">
+        <div class="philosophy-content">
+            <h2>Full-Service Concierge</h2>
+            <h3>Reclaim Your Time. Elevate Your Lifestyle.</h3>
+            <p>We handle everything from personal lifestyle management to complex business automation. Our comprehensive concierge services free up 10-20 hours of your week while ensuring every detail of your life runs smoothly.</p>
+            <p>Whether it's managing your properties, coordinating family schedules, automating your business, or handling special events - we combine technology with personalized service to deliver excellence in every task.</p>
+            <p>Your time is valuable. Let us handle the details while you focus on what matters most.</p>
+        </div>
+    </section>
+
+    <!-- Portfolio & References Section -->
+    <section class="portfolio-section" id="portfolio" style="padding: 5rem 0; background: #fff;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.5rem;">PROVEN TRACK RECORD</h2>
+                <h3 style="font-size: 2.5rem; color: #333; font-weight: 600; margin-bottom: 1rem;">Our Work in Action</h3>
+                <p style="color: #666; font-size: 1.1rem; max-width: 700px; margin: 0 auto;">While new to full automation services, we bring years of experience in retail operations, social media management, and online transactions to every project.</p>
+            </div>
+            
+            <!-- Current Implementations -->
+            <div style="margin-bottom: 4rem;">
+                <h4 style="color: #52c234; font-size: 1.3rem; margin-bottom: 2rem; text-align: center;">Current Automation Implementations</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                    <!-- The Gold Blessing -->
+                    <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px; border-left: 4px solid #52c234;">
+                        <h5 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">The Gold Blessing (TGB)</h5>
+                        <p style="color: #666; margin-bottom: 1rem;">Premium jewelry retail automation system</p>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Google Sheets order management system</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Automated invoice generation & email</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Payment verification portal</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Tracking & shipping notifications</li>
+                        </ul>
+                        <a href="https://github.com/yourusername/tgb-automation" style="color: #52c234; text-decoration: none; font-weight: 600;">View System Details →</a>
+                    </div>
+                    
+                    <!-- Sole Blessing -->
+                    <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px; border-left: 4px solid #52c234;">
+                        <h5 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">Sole Blessing</h5>
+                        <p style="color: #666; margin-bottom: 1rem;">E-commerce & inventory automation</p>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Multi-channel inventory sync</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Automated pricing calculations</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Customer points tracking system</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Sales reporting dashboards</li>
+                        </ul>
+                        <a href="https://soleblessing.com" target="_blank" style="color: #52c234; text-decoration: none; font-weight: 600;">Visit Website →</a>
+                    </div>
+                    
+                    <!-- Luntian.net -->
+                    <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px; border-left: 4px solid #52c234;">
+                        <h5 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">Luntian.net Properties</h5>
+                        <p style="color: #666; margin-bottom: 1rem;">Property management & booking system</p>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Airbnb calendar synchronization</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Guest communication automation</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Maintenance scheduling system</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Owner reporting portal</li>
+                        </ul>
+                        <a href="https://luntian.net" target="_blank" style="color: #52c234; text-decoration: none; font-weight: 600;">Visit Website →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Experience Timeline -->
+            <div style="background: linear-gradient(135deg, rgba(82, 194, 52, 0.1) 0%, rgba(139, 195, 74, 0.1) 100%); padding: 3rem; border-radius: 10px;">
+                <h4 style="color: #333; font-size: 1.3rem; margin-bottom: 2rem; text-align: center;">Our Experience Journey</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center;">
+                    <div>
+                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">8+ Years</h5>
+                        <p style="color: #666;">Retail Operations</p>
+                    </div>
+                    <div>
+                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">5+ Years</h5>
+                        <p style="color: #666;">Social Media Management</p>
+                    </div>
+                    <div>
+                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">100K+</h5>
+                        <p style="color: #666;">Online Transactions Processed</p>
+                    </div>
+                    <div>
+                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">50+</h5>
+                        <p style="color: #666;">Automation Workflows Built</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Technology Stack -->
+            <div style="margin-top: 4rem;">
+                <h4 style="color: #333; font-size: 1.3rem; margin-bottom: 2rem; text-align: center;">Technologies We Work With</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Google Workspace</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Apps Script</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Zapier</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Make (Integromat)</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">n8n</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">WhatsApp Business API</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Facebook Business</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Instagram Shopping</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Calendly</span>
+                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Airtable</span>
+                </div>
+            </div>
+            
+            <!-- Call to Action -->
+            <div style="text-align: center; margin-top: 4rem;">
+                <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">Want to see how we can automate your business?</p>
+                <a href="#schedule" style="display: inline-block; padding: 1rem 3rem; background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%); color: white; text-decoration: none; border-radius: 50px; font-weight: 600; transition: all 0.3s;">Request a Demo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section" id="team">
+        <div class="team-container">
+            <div class="section-header">
+                <h2>TEAM MEMBERS</h2>
+                <h3>Meet the People Behind TYG Services</h3>
+            </div>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-photo"></div>
+                    <h4>Legeryn Pia</h4>
+                    <p>CEO & Founder</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-photo"></div>
+                    <h4>Marcelo Mayo</h4>
+                    <p>Marketing Director</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-photo"></div>
+                    <h4>Jomel Escranda</h4>
+                    <p>Operations Director</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How We Work -->
+    <section class="how-we-work">
+        <div class="work-container">
+            <div class="work-content">
+                <h2>WHAT WE DO</h2>
+                <h3>How We Work</h3>
+                <p>We believe in highly personalized service enhanced by automation. Get in touch with us by text, phone or email, and tell us what you need. We will give you a customized quote right away.</p>
+                <p>Your very own concierge team will then be assigned to you to attend to your every need - from business automation to content creation, from property management to personal assistance.</p>
+                <p>Hire us under our basic pay-as-you-go rates, or under our weekly, monthly or yearly packages, depending on the level of service you require. We are flexible and committed to assisting you at your convenience!</p>
+            </div>
+            <div class="contact-info">
+                <h4>Let's Talk!</h4>
+                <div class="phone-number">0967-400-0040</div>
+                <a href="#schedule" class="contact-button">Get Started Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Schedule Section -->
+    <section class="schedule-section" id="schedule">
+        <div class="schedule-container">
+            <div class="schedule-image"></div>
+            <div class="schedule-image"></div>
+            <div class="schedule-image"></div>
+            
+            <div class="schedule-content">
+                <h2>Schedule Now</h2>
+                <h3>Make an Appointment</h3>
+                <p>Complete the form below to setup appointment.</p>
+                <a href="mailto:legerynpia@tyg-services.com" class="schedule-button">SCHEDULE CONSULTATION</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Map Section -->
+    <section class="map-section" id="location" style="padding: 0; background: #fff;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 3rem 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.5rem;">VISIT OUR OFFICE</h2>
+                <h3 style="font-size: 2.5rem; color: #333; font-weight: 600; margin-bottom: 1rem;">SVC Amadeo, Cavite</h3>
+                <p style="color: #666; font-size: 1.1rem;">Conveniently located between Metro Manila and Tagaytay</p>
+            </div>
+        </div>
+        <div style="width: 100%; height: 450px; background: #f0f0f0; position: relative;">
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15470.849749999998!2d120.91666!3d14.17083!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33bd7740b4c4c4c9%3A0x2b8e8e8e8e8e8e8e!2sSVC%20Amadeo%2C%20Cavite!5e0!3m2!1sen!2sph!4v1234567890"
+                width="100%" 
+                height="450" 
+                style="border:0; filter: grayscale(30%);" 
+                allowfullscreen="" 
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); max-width: 350px; text-align: center;">
+                <h4 style="color: #52c234; margin: 0 0 10px 0; font-size: 1.2rem;">TYG Services Concierge</h4>
+                <p style="margin: 5px 0; color: #666; font-size: 0.9rem;"><i class="fas fa-map-marker-alt" style="color: #52c234; margin-right: 5px;"></i> SVC Amadeo, Cavite</p>
+                <p style="margin: 5px 0; color: #666; font-size: 0.9rem;"><i class="fas fa-phone" style="color: #52c234; margin-right: 5px;"></i> 0967-400-0040</p>
+                <p style="margin: 5px 0; color: #666; font-size: 0.9rem;"><i class="fas fa-envelope" style="color: #52c234; margin-right: 5px;"></i> legerynpia@tyg-services.com</p>
+            </div>
+        </div>
+        <div style="background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%); padding: 3rem 2rem; text-align: center; color: white;">
+            <h3 style="font-size: 1.8rem; margin-bottom: 1rem;">Service Areas</h3>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; max-width: 1000px; margin: 0 auto;">
+                <div style="flex: 1; min-width: 200px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Metro Manila</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Alabang • Makati • BGC • Pasay</p>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Cavite</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Tagaytay • Silang • Dasmariñas • Bacoor</p>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Laguna</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Sta. Rosa • Biñan • Calamba • San Pedro</p>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Batangas</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Lipa • Batangas City • Nasugbu • Taal</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h4>Services</h4>
+                    <a href="#">Business Automation</a>
+                    <a href="#">Content Creation</a>
+                    <a href="#">Property Management</a>
+                    <a href="#">Social Media</a>
+                    <a href="#">View All Services</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <a href="#about">About Us</a>
+                    <a href="#team">Our Team</a>
+                    <a href="#">Partnership</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Blog</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">FAQs</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Contact Info</h4>
+                    <a href="tel:+639674000040">+63 967-400-0040</a>
+                    <a href="mailto:legerynpia@tyg-services.com">legerynpia@tyg-services.com</a>
+                    <a href="#">SVC Amadeo, Cavite</a>
+                    <a href="#">Mon-Sat: 8AM-6PM</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+                <p>&copy; 2024 TYG Services, Inc. All Rights Reserved.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">SVC Amadeo, Cavite • 0967-400-0040</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Powered by TYG + Luntian.net</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/639674000040" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- JavaScript -->
     <script>
-        function showCaseStudy(id) {
-            // Hide all case studies
-            document.querySelectorAll('.case-study').forEach(study => {
-                study.classList.remove('active');
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Mobile Menu Toggle
+            const menuToggle = document.getElementById('menuToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                });
+            }
+
+            // Header Scroll Effect
+            window.addEventListener('scroll', function() {
+                const header = document.getElementById('header');
+                if (header && window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else if (header) {
+                    header.classList.remove('scrolled');
+                }
+            });
+
+            // Service Item Click Functionality - IMPROVED VERSION
+            const serviceItems = document.querySelectorAll('.service-item');
+            
+            serviceItems.forEach(item => {
+                // Remove any existing event listeners first
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
             });
             
-            // Remove active class from all nav links
-            document.querySelectorAll('.nav-links a').forEach(link => {
-                link.classList.remove('active');
+            // Re-select after cloning
+            document.querySelectorAll('.service-item').forEach(item => {
+                item.style.cursor = 'pointer';
+                
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    // Don't trigger if clicking close button
+                    if (e.target.classList.contains('close-details')) {
+                        this.classList.remove('active');
+                        return;
+                    }
+                    
+                    // Don't trigger if clicking within service details
+                    if (e.target.closest('.service-details')) {
+                        return;
+                    }
+                    
+                    // Close other active items
+                    document.querySelectorAll('.service-item.active').forEach(otherItem => {
+                        if (otherItem !== this) {
+                            otherItem.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle current item
+                    this.classList.toggle('active');
+                    
+                    // Log for debugging
+                    console.log('Service clicked:', this.dataset.service);
+                });
             });
             
-            // Show selected case study
-            document.getElementById(id).classList.add('active');
+            // Close button functionality
+            document.querySelectorAll('.close-details').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const serviceItem = this.closest('.service-item');
+                    if (serviceItem) {
+                        serviceItem.classList.remove('active');
+                    }
+                });
+            });
             
-            // Add active class to clicked nav link
-            event.target.classList.add('active');
+            // Close service details when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.service-item')) {
+                    document.querySelectorAll('.service-item.active').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                }
+            });
+
+            // Smooth Scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const target = document.querySelector(targetId);
+                    if (target) {
+                        const headerOffset = 100;
+                        const elementPosition = target.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // Active Menu Item on Scroll
+            window.addEventListener('scroll', function() {
+                let current = '';
+                const sections = document.querySelectorAll('section');
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= (sectionTop - 200)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                const navItems = document.querySelectorAll('.nav-menu > li');
+                navItems.forEach(li => {
+                    li.classList.remove('active');
+                    if (current && li.querySelector(`a[href="#${current}"]`)) {
+                        li.classList.add('active');
+                    }
+                });
+            });
             
-            // Scroll to top
-            window.scrollTo(0, 0);
-        }
+            // Add visual feedback for debugging
+            console.log('TYG Services JavaScript loaded successfully');
+            console.log('Found', document.querySelectorAll('.service-item').length, 'service items');
+        });
     </script>
 </body>
 </html>

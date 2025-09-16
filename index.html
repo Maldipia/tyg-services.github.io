@@ -4,9 +4,9 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TYG Concierge Services in Cavite | Business Automation, Property Management, Personal Lifestyle Management">
-    <meta name="keywords" content="concierge services, business automation, Google Apps Script, property management, Amadeo Cavite, Philippines">
-    <title>TYG Concierge Services | Full-Service Lifestyle & Business Management</title>
+    <meta name="description" content="TYG Services | Automation-First Concierge in Cavite. We save you 10-20 hours weekly through Google Workspace automation, vendor desk operations, Airbnb management, and content creation. Partners with Great Life Concierge for complete lifestyle support.">
+    <meta name="keywords" content="automation concierge, Google Apps Script, vendor desk management, Airbnb automation, property operations, Amadeo Cavite, Philippines">
+    <title>TYG Services | Automation-First Operations & Business Management</title>
     
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -418,6 +418,16 @@
             transform: rotate(180deg);
         }
         
+        .partner-note {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f0f9f0;
+            border-radius: 5px;
+            border-left: 3px solid #52c234;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
         /* Service Philosophy Section */
         .philosophy-section {
             padding: 5rem 0;
@@ -526,17 +536,21 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
-     /* remove placeholder text */
-.member-photo::after { content: none; }
-
-/* make image cover the circle */
-.member-photo img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;   /* crops nicely to a circle */
-  display: block;
-}
-
+        .member-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .member-photo.placeholder::after {
+            content: 'Photo';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
         }
         
         .team-member h4 {
@@ -916,29 +930,28 @@
                     <li>
                         <a href="#services">Services <i class="fas fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px;"></i></a>
                         <div class="dropdown">
-                            <a href="#"><i class="fas fa-user-clock"></i>Personal Lifestyle</a>
-                            <a href="#"><i class="fas fa-home"></i>Property & Estate</a>
-                            <a href="#"><i class="fas fa-child"></i>Family Services</a>
-                            <a href="#"><i class="fas fa-briefcase"></i>Business Support</a>
                             <a href="#"><i class="fas fa-robot"></i>Automation Systems</a>
                             <a href="#"><i class="fas fa-tools"></i>Vendor Desk</a>
+                            <a href="#"><i class="fas fa-home"></i>Property Operations</a>
+                            <a href="#"><i class="fas fa-briefcase"></i>Business Support</a>
                             <a href="#"><i class="fas fa-video"></i>Content & Social</a>
                             <a href="#"><i class="fas fa-laptop-code"></i>Web & Tech</a>
-                            <a href="#"><i class="fas fa-glass-cheers"></i>Special Events</a>
-                            <a href="#"><i class="fas fa-gem"></i>Luxury Services</a>
+                            <a href="#"><i class="fas fa-user-clock"></i>Personal Systems</a>
+                            <a href="#"><i class="fas fa-child"></i>Family Coordination</a>
                         </div>
                     </li>
                     <li>
                         <a href="#packages">Packages <i class="fas fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px;"></i></a>
                         <div class="dropdown">
-                            <a href="#"><i class="fas fa-star"></i>Starter Package</a>
-                            <a href="#"><i class="fas fa-gem"></i>Professional Package</a>
-                            <a href="#"><i class="fas fa-crown"></i>Enterprise Package</a>
+                            <a href="#"><i class="fas fa-star"></i>Automation Starter</a>
+                            <a href="#"><i class="fas fa-gem"></i>Operations Pro</a>
+                            <a href="#"><i class="fas fa-crown"></i>Full-Service Enterprise</a>
                             <a href="#"><i class="fas fa-cog"></i>Custom Solutions</a>
                         </div>
                     </li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#portfolio">Portfolio</a></li>
+                    <li><a href="#partners">Partners</a></li>
                     <li><a href="#team">Team</a></li>
                     <li><a href="#contact">Contact</a></li>
                     <li class="nav-cta">
@@ -952,106 +965,11 @@
         </div>
     </header>
 
-    <!-- Main Services Section -->
+    <!-- Main Services Section - REORDERED WITH AUTOMATION FIRST -->
     <section class="main-services" id="services">
         <div class="services-container">
             <div class="services-grid">
-                <div class="service-item" data-service="lifestyle">
-                    <div class="service-icon">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                    <h3>Personal Lifestyle <span class="expand-indicator">▼</span></h3>
-                    <p>Complete personal assistance for busy professionals</p>
-                    <div class="service-details">
-                        <button class="close-details">×</button>
-                        <h4>Personal Lifestyle Management</h4>
-                        <ul>
-                            <li>Family calendar & appointment coordination</li>
-                            <li>Medical, beauty, wellness appointment setting</li>
-                            <li>Pharmacy runs & prescription management</li>
-                            <li>Personal shopping & returns</li>
-                            <li>Gift sourcing, wrapping & delivery</li>
-                            <li>Travel planning & VIP bookings</li>
-                            <li>Event tickets & experiences</li>
-                            <li>Travel documents & insurance</li>
-                            <li>Packing/unpacking services</li>
-                            <li>Personal correspondence & thank-you notes</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="service-item" data-service="property">
-                    <div class="service-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <h3>Property & Estate <span class="expand-indicator">▼</span></h3>
-                    <p>Full-service property and Airbnb management</p>
-                    <div class="service-details">
-                        <button class="close-details">×</button>
-                        <h4>Property, Estate & Resort Management</h4>
-                        <ul>
-                            <li>Staff & vendor recruitment/vetting</li>
-                            <li>Contractor project management & QC</li>
-                            <li>Bills & utilities optimization</li>
-                            <li>Inventory management & restocking</li>
-                            <li>Security system coordination</li>
-                            <li>Preventive maintenance calendar</li>
-                            <li>Emergency response playbooks</li>
-                            <li>Airbnb/STR guest messaging (7-stage)</li>
-                            <li>Calendar sync & pricing optimization</li>
-                            <li>Owner reporting & revenue analytics</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="service-item" data-service="family">
-                    <div class="service-icon">
-                        <i class="fas fa-child"></i>
-                    </div>
-                    <h3>Family Services <span class="expand-indicator">▼</span></h3>
-                    <p>School, health, and childcare coordination</p>
-                    <div class="service-details">
-                        <button class="close-details">×</button>
-                        <h4>Family Support Services</h4>
-                        <ul>
-                            <li>School applications & enrollment</li>
-                            <li>Tutor & activity coordination</li>
-                            <li>Summer camp research & booking</li>
-                            <li>Playdate scheduling</li>
-                            <li>Healthcare appointment coordination</li>
-                            <li>Medication reminders & management</li>
-                            <li>Healthcare liaison services</li>
-                            <li>Caregiver & nanny coordination</li>
-                            <li>Birthday party planning</li>
-                            <li>Elder care assistance</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="service-item" data-service="business">
-                    <div class="service-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <h3>Business Support <span class="expand-indicator">▼</span></h3>
-                    <p>Executive assistance and relationship management</p>
-                    <div class="service-details">
-                        <button class="close-details">×</button>
-                        <h4>Executive & Business Support</h4>
-                        <ul>
-                            <li>Email & calendar management</li>
-                            <li>Meeting prep & follow-up</li>
-                            <li>Presentation & report creation</li>
-                            <li>Research & competitive analysis</li>
-                            <li>Board meeting preparation</li>
-                            <li>Contact/CRM management</li>
-                            <li>Thank-you gifts coordination</li>
-                            <li>LinkedIn profile management</li>
-                            <li>Professional photoshoot coordination</li>
-                            <li>Event preparation assistance</li>
-                        </ul>
-                    </div>
-                </div>
-                
+                <!-- Automation First -->
                 <div class="service-item" data-service="automation">
                     <div class="service-icon">
                         <i class="fas fa-robot"></i>
@@ -1076,15 +994,16 @@
                     </div>
                 </div>
                 
+                <!-- Vendor Desk Second -->
                 <div class="service-item" data-service="vendor">
                     <div class="service-icon">
                         <i class="fas fa-tools"></i>
                     </div>
                     <h3>Vendor Desk <span class="expand-indicator">▼</span></h3>
-                    <p>Trades and cleaning service coordination</p>
+                    <p>Systematic vendor orchestration & QC</p>
                     <div class="service-details">
                         <button class="close-details">×</button>
-                        <h4>Vendor Desk - Trades & Cleaning</h4>
+                        <h4>Vendor Desk Operations</h4>
                         <ul>
                             <li>Plumbing, electrical, AC coordination</li>
                             <li>Carpentry, glass, aluminum works</li>
@@ -1093,130 +1012,244 @@
                             <li>Move-in/out cleaning</li>
                             <li>Post-renovation cleanup</li>
                             <li>Water delivery & junk removal</li>
-                            <li>Get 2-3 quotes comparison</li>
+                            <li>Get 2-3 quotes comparison system</li>
                             <li>Schedule & supervise works</li>
-                            <li>QC photos & warranty tracking</li>
+                            <li>QC photos & warranty tracking database</li>
                         </ul>
                     </div>
                 </div>
                 
+                <!-- Property Operations Third -->
+                <div class="service-item" data-service="property">
+                    <div class="service-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3>Property Operations <span class="expand-indicator">▼</span></h3>
+                    <p>Airbnb/STR specialized management systems</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Property & Airbnb Operations</h4>
+                        <ul>
+                            <li>Airbnb/STR guest messaging automation (7-stage)</li>
+                            <li>Multi-platform calendar synchronization</li>
+                            <li>Dynamic pricing optimization</li>
+                            <li>Owner reporting & revenue analytics</li>
+                            <li>Preventive maintenance scheduling</li>
+                            <li>Emergency response playbooks</li>
+                            <li>Inventory management systems</li>
+                            <li>Bills & utilities optimization</li>
+                            <li>Security system coordination</li>
+                            <li>Staff & vendor vetting database</li>
+                        </ul>
+                        <div class="partner-note">
+                            <strong>Note:</strong> For property sales and long-term leasing, we collaborate with real estate partners.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Business Support -->
+                <div class="service-item" data-service="business">
+                    <div class="service-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>Business Support <span class="expand-indicator">▼</span></h3>
+                    <p>Executive automation & data systems</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Business Process Automation</h4>
+                        <ul>
+                            <li>Email & calendar automation</li>
+                            <li>Meeting prep & follow-up systems</li>
+                            <li>Presentation & report templates</li>
+                            <li>Research & competitive analysis dashboards</li>
+                            <li>Board meeting preparation workflows</li>
+                            <li>Contact/CRM management systems</li>
+                            <li>Gift coordination tracking</li>
+                            <li>LinkedIn profile automation</li>
+                            <li>Professional photoshoot coordination</li>
+                            <li>Event preparation checklists</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Content & Social -->
                 <div class="service-item" data-service="content">
                     <div class="service-icon">
                         <i class="fas fa-video"></i>
                     </div>
                     <h3>Content & Social <span class="expand-indicator">▼</span></h3>
-                    <p>Photo, video, and social media growth</p>
+                    <p>Digital content production & distribution</p>
                     <div class="service-details">
                         <button class="close-details">×</button>
-                        <h4>Content Creation & Distribution</h4>
+                        <h4>Content Creation & Distribution Systems</h4>
                         <ul>
                             <li>Product photography (studio/lifestyle)</li>
                             <li>Gold macro videos & shine shots</li>
                             <li>TikTok/Reels/Shorts creation</li>
-                            <li>Property walkthroughs</li>
+                            <li>Property walkthrough videos</li>
                             <li>Video editing & color grading</li>
-                            <li>Cross-platform scheduling</li>
+                            <li>Cross-platform scheduling automation</li>
                             <li>Caption & hashtag optimization</li>
                             <li>Google Business Profile management</li>
                             <li>Monthly content calendars</li>
-                            <li>Analytics & KPI tracking</li>
+                            <li>Analytics & KPI tracking dashboards</li>
                         </ul>
                     </div>
                 </div>
                 
+                <!-- Web & Tech -->
                 <div class="service-item" data-service="tech">
                     <div class="service-icon">
                         <i class="fas fa-laptop-code"></i>
                     </div>
                     <h3>Web & Tech <span class="expand-indicator">▼</span></h3>
-                    <p>Website development and IT support</p>
+                    <p>Website systems and technical infrastructure</p>
                     <div class="service-details">
                         <button class="close-details">×</button>
                         <h4>Web, Tech & Data Services</h4>
                         <ul>
                             <li>Landing page development</li>
-                            <li>Form → email integration</li>
-                            <li>WhatsApp/Calendly setup</li>
-                            <li>Analytics & event tracking</li>
+                            <li>Form → email integration systems</li>
+                            <li>WhatsApp Business automation</li>
+                            <li>Analytics & event tracking setup</li>
                             <li>Performance optimization</li>
                             <li>Spreadsheet engineering (QUERY/FILTER)</li>
                             <li>Dashboard creation</li>
                             <li>Email & domain management</li>
                             <li>Hosting & technical support</li>
-                            <li>Tracking pixels & OG cards</li>
+                            <li>Tracking pixels & conversion optimization</li>
                         </ul>
                     </div>
                 </div>
                 
+                <!-- Personal Systems -->
+                <div class="service-item" data-service="lifestyle">
+                    <div class="service-icon">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <h3>Personal Systems <span class="expand-indicator">▼</span></h3>
+                    <p>Automated personal task management</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Personal Lifestyle Systems</h4>
+                        <ul>
+                            <li>Family calendar synchronization</li>
+                            <li>Appointment scheduling automation</li>
+                            <li>Prescription management system</li>
+                            <li>Shopping list automation</li>
+                            <li>Gift tracking database</li>
+                            <li>Travel document organization</li>
+                            <li>Insurance renewal tracking</li>
+                            <li>Personal correspondence templates</li>
+                            <li>Expense tracking systems</li>
+                            <li>Recurring task automation</li>
+                        </ul>
+                        <div class="partner-note">
+                            <strong>Note:</strong> For personal shopping, styling, and travel planning, we partner with Great Life Concierge.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Family Coordination -->
+                <div class="service-item" data-service="family">
+                    <div class="service-icon">
+                        <i class="fas fa-child"></i>
+                    </div>
+                    <h3>Family Coordination <span class="expand-indicator">▼</span></h3>
+                    <p>Systematic family schedule management</p>
+                    <div class="service-details">
+                        <button class="close-details">×</button>
+                        <h4>Family Support Systems</h4>
+                        <ul>
+                            <li>School calendar integration</li>
+                            <li>Activity scheduling system</li>
+                            <li>Camp registration tracking</li>
+                            <li>Playdate coordination database</li>
+                            <li>Healthcare appointment automation</li>
+                            <li>Medication reminder systems</li>
+                            <li>Caregiver scheduling platform</li>
+                            <li>Birthday reminder automation</li>
+                            <li>Elder care coordination systems</li>
+                            <li>Family expense tracking</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Event Support -->
                 <div class="service-item" data-service="events">
                     <div class="service-icon">
                         <i class="fas fa-glass-cheers"></i>
                     </div>
-                    <h3>Special Events <span class="expand-indicator">▼</span></h3>
-                    <p>Intimate celebrations and milestone planning</p>
+                    <h3>Event Support <span class="expand-indicator">▼</span></h3>
+                    <p>Event documentation and vendor systems</p>
                     <div class="service-details">
                         <button class="close-details">×</button>
-                        <h4>Special Projects & Events</h4>
+                        <h4>Event Support Systems</h4>
                         <ul>
-                            <li>Milestone birthdays & anniversaries</li>
-                            <li>Family reunions coordination</li>
-                            <li>Holiday décor & cards</li>
-                            <li>Charity gala logistics</li>
-                            <li>Memorial service planning</li>
-                            <li>Vendor coordination</li>
-                            <li>Guest list management</li>
-                            <li>Photo/video coordination</li>
-                            <li>Thank-you follow-ups</li>
-                            <li>Run-of-show management</li>
+                            <li>Event documentation (photo/video)</li>
+                            <li>Guest list management database</li>
+                            <li>Vendor coordination systems</li>
+                            <li>Timeline & checklist automation</li>
+                            <li>Thank-you automation workflows</li>
+                            <li>Digital invitation systems</li>
+                            <li>RSVP tracking platforms</li>
+                            <li>Budget tracking spreadsheets</li>
+                            <li>Post-event analytics</li>
                         </ul>
+                        <div class="partner-note">
+                            <strong>Note:</strong> For full event planning and party coordination (debuts, weddings, corporate events), we partner with Great Life Concierge.
+                        </div>
                     </div>
                 </div>
                 
+                <!-- Asset Management -->
                 <div class="service-item" data-service="luxury">
                     <div class="service-icon">
                         <i class="fas fa-gem"></i>
                     </div>
-                    <h3>Luxury Services <span class="expand-indicator">▼</span></h3>
-                    <p>High-end lifestyle and vehicle management</p>
+                    <h3>Asset Management <span class="expand-indicator">▼</span></h3>
+                    <p>High-value asset tracking systems</p>
                     <div class="service-details">
                         <button class="close-details">×</button>
-                        <h4>Luxury & Vehicle Services</h4>
+                        <h4>Premium Asset Management Systems</h4>
                         <ul>
-                            <li>Yacht/jet coordination</li>
-                            <li>Private club applications</li>
-                            <li>Private security coordination</li>
-                            <li>Luxury goods authentication</li>
-                            <li>Vehicle maintenance scheduling</li>
-                            <li>Registration & insurance</li>
-                            <li>Chauffeur coordination</li>
-                            <li>Airport meet-and-greet</li>
-                            <li>Parking management</li>
-                            <li>Purchase/lease research</li>
+                            <li>Vehicle maintenance scheduling database</li>
+                            <li>Registration & insurance renewal tracking</li>
+                            <li>Asset documentation portals</li>
+                            <li>Service history management</li>
+                            <li>Warranty tracking systems</li>
+                            <li>Digital asset inventories</li>
+                            <li>Depreciation tracking</li>
+                            <li>Purchase/lease comparison tools</li>
+                            <li>Parking management systems</li>
                         </ul>
+                        <div class="partner-note">
+                            <strong>Note:</strong> For yacht/jet coordination, private security, and luxury lifestyle services, we collaborate with specialized partners.
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Service Philosophy -->
+    <!-- Service Philosophy - UPDATED MESSAGING -->
     <section class="philosophy-section" id="about">
         <div class="philosophy-content">
-            <h2>Full-Service Concierge</h2>
-            <h3>Reclaim Your Time. Elevate Your Lifestyle.</h3>
-            <p>We handle everything from personal lifestyle management to complex business automation. Our comprehensive concierge services free up 10-20 hours of your week while ensuring every detail of your life runs smoothly.</p>
-            <p>Whether it's managing your properties, coordinating family schedules, automating your business, or handling special events - we combine technology with personalized service to deliver excellence in every task.</p>
-            <p>Your time is valuable. Let us handle the details while you focus on what matters most.</p>
+            <h2>Automation-First Operations</h2>
+            <h3>We Run the Systems. You Live Your Life.</h3>
+            <p>TYG Services saves you 10-20 hours weekly through intelligent automation and systematic operations. We build the technology backbone that makes your life and business run smoothly - from Google Workspace automation to vendor orchestration, from Airbnb operations to content production.</p>
+            <p>While we focus on <strong>operations and automation</strong>, we partner with premier lifestyle concierges like Great Life Concierge for travel planning, event coordination, and high-touch personal services - creating a complete support ecosystem.</p>
+            <p>Your recurring tasks become our automated systems. Your one-time needs get the specialized attention they deserve through our trusted partners.</p>
         </div>
     </section>
 
-    <!-- Portfolio & References Section -->
+    <!-- Portfolio Section -->
     <section class="portfolio-section" id="portfolio">
         <div class="portfolio-container">
             <div style="text-align: center; margin-bottom: 3rem;">
                 <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.5rem;">PROVEN TRACK RECORD</h2>
-                <h3 style="font-size: 2.5rem; color: #333; font-weight: 600; margin-bottom: 1rem;">Our Work in Action</h3>
-                <p style="color: #666; font-size: 1.1rem; max-width: 700px; margin: 0 auto;">While new to full automation services, we bring years of experience in retail operations, social media management, and online transactions to every project.</p>
+                <h3 style="font-size: 2.5rem; color: #333; font-weight: 600; margin-bottom: 1rem;">Our Automation in Action</h3>
+                <p style="color: #666; font-size: 1.1rem; max-width: 700px; margin: 0 auto;">We bring years of experience in retail operations, automation, and digital systems to every project.</p>
             </div>
             
             <!-- Current Implementations -->
@@ -1231,7 +1264,7 @@
                             <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Google Sheets order management system</li>
                             <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Automated invoice generation & email</li>
                             <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Payment verification portal</li>
-                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Tracking & shipping notifications</li>
+                            <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> 100K+ transactions automated</li>
                         </ul>
                         <a href="#" style="color: #52c234; text-decoration: none; font-weight: 600;">View System Details →</a>
                     </div>
@@ -1263,45 +1296,57 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- NEW PARTNERSHIP SECTION -->
+    <section style="padding: 4rem 0; background: linear-gradient(135deg, rgba(82, 194, 52, 0.05) 0%, rgba(139, 195, 74, 0.05) 100%);" id="partners">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; text-align: center;">
+            <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.5rem;">STRATEGIC PARTNERSHIPS</h2>
+            <h3 style="font-size: 2.5rem; color: #333; font-weight: 600; margin-bottom: 2rem;">Better Together</h3>
             
-            <!-- Experience Timeline -->
-            <div style="background: linear-gradient(135deg, rgba(82, 194, 52, 0.1) 0%, rgba(139, 195, 74, 0.1) 100%); padding: 3rem; border-radius: 10px;">
-                <h4 style="color: #333; font-size: 1.3rem; margin-bottom: 2rem; text-align: center;">Our Experience Journey</h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center;">
-                    <div>
-                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">8+ Years</h5>
-                        <p style="color: #666;">Retail Operations</p>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <p style="font-size: 1.1rem; color: #666; line-height: 1.8; margin-bottom: 2rem;">
+                    At TYG Services, we believe in collaborative excellence. We focus on what we do best - 
+                    <strong>automation, systems, and operations</strong> - while partnering with specialists for complementary services.
+                </p>
+                
+                <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <h4 style="color: #52c234; font-size: 1.3rem; margin-bottom: 1rem;">Featured Partner: Great Life Concierge</h4>
+                    <p style="color: #666; margin-bottom: 1.5rem;">
+                        For travel planning, party coordination, and high-touch lifestyle services, we collaborate with 
+                        Great Life Concierge - ensuring our clients receive specialized expertise across all lifestyle needs.
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                        <div>
+                            <h5 style="color: #333; margin-bottom: 0.5rem;">We Handle:</h5>
+                            <ul style="text-align: left; color: #666; list-style: none; padding: 0;">
+                                <li>✓ Automation & Systems</li>
+                                <li>✓ Vendor Desk Operations</li>
+                                <li>✓ Airbnb/STR Management</li>
+                                <li>✓ Content Production</li>
+                                <li>✓ Web Development</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 style="color: #333; margin-bottom: 0.5rem;">They Handle:</h5>
+                            <ul style="text-align: left; color: #666; list-style: none; padding: 0;">
+                                <li>✓ Travel Planning</li>
+                                <li>✓ Event Coordination</li>
+                                <li>✓ Personal Shopping</li>
+                                <li>✓ Party Planning</li>
+                                <li>✓ Lifestyle Experiences</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div>
-                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">5+ Years</h5>
-                        <p style="color: #666;">Social Media Management</p>
-                    </div>
-                    <div>
-                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">100K+</h5>
-                        <p style="color: #666;">Online Transactions Processed</p>
-                    </div>
-                    <div>
-                        <h5 style="color: #52c234; font-size: 2rem; margin-bottom: 0.5rem;">50+</h5>
-                        <p style="color: #666;">Automation Workflows Built</p>
+                    <div style="margin-top: 2rem;">
+                        <a href="https://greatlifeconcierge.com" target="_blank" style="color: #52c234; text-decoration: none; font-weight: 600;">Learn More About Great Life Concierge →</a>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Technology Stack -->
-            <div style="margin-top: 4rem;">
-                <h4 style="color: #333; font-size: 1.3rem; margin-bottom: 2rem; text-align: center;">Technologies We Work With</h4>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
-                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Google Workspace</span>
-                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">Google Apps Script</span>
-                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">n8n</span>
-                    <span style="background: white; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.9rem;">WhatsApp Business</span>
-                </div>
-            </div>
-            
-            <!-- Call to Action -->
-            <div style="text-align: center; margin-top: 4rem;">
-                <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">Want to see how we can automate your business?</p>
-                <a href="#schedule" style="display: inline-block; padding: 1rem 3rem; background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%); color: white; text-decoration: none; border-radius: 50px; font-weight: 600; transition: all 0.3s;">Request a Demo</a>
+                
+                <p style="margin-top: 2rem; font-style: italic; color: #666;">
+                    "Together, we provide a complete ecosystem of support - automation meets personalization."
+                </p>
             </div>
         </div>
     </section>
@@ -1315,18 +1360,19 @@
             </div>
             <div class="team-grid">
                 <div class="team-member">
-                    <div class="member-photo"></div>
-                      <img src="https://github.com/Maldipia/tyg-services.github.io/blob/main/pia%202.jpg?raw=true"
+                    <div class="member-photo">
+                        <img src="https://github.com/Maldipia/tyg-services.github.io/blob/main/pia%202.jpg?raw=true" alt="Legeryn Pia">
+                    </div>
                     <h4>Legeryn Pia</h4>
                     <p>CEO & Founder</p>
                 </div>
                 <div class="team-member">
-                    <div class="member-photo"></div>
+                    <div class="member-photo placeholder"></div>
                     <h4>Marcelo Mayo</h4>
                     <p>Marketing Director</p>
                 </div>
                 <div class="team-member">
-                    <div class="member-photo"></div>
+                    <div class="member-photo placeholder"></div>
                     <h4>Jomel Escranda</h4>
                     <p>Operations Director</p>
                 </div>
@@ -1334,20 +1380,20 @@
         </div>
     </section>
 
-    <!-- How We Work -->
+    <!-- How We Work - UPDATED MESSAGING -->
     <section class="how-we-work">
         <div class="work-container">
             <div class="work-content">
                 <h2>WHAT WE DO</h2>
                 <h3>How We Work</h3>
-                <p>We believe in highly personalized service enhanced by automation. Get in touch with us by text, phone or email, and tell us what you need. We will give you a customized quote right away.</p>
-                <p>Your very own concierge team will then be assigned to you to attend to your every need - from business automation to content creation, from property management to personal assistance.</p>
-                <p>Hire us under our basic pay-as-you-go rates, or under our weekly, monthly or yearly packages, depending on the level of service you require. We are flexible and committed to assisting you at your convenience!</p>
+                <p>We believe in automation-first service delivery. Get in touch with us by text, phone or email, and tell us what you need. We'll assess if it can be automated or systematized for maximum efficiency.</p>
+                <p>Your dedicated automation team will build custom systems tailored to your workflow - from business operations to content creation, from property management to vendor coordination.</p>
+                <p>Hire us for one-time system builds or ongoing management packages. We're flexible and committed to saving you time through smart automation!</p>
             </div>
             <div class="contact-info">
-                <h4>Let's Talk!</h4>
+                <h4>Let's Automate!</h4>
                 <div class="phone-number">0997-260-3555</div>
-                <a href="#schedule" class="contact-button">Get Started Now</a>
+                <a href="#schedule" class="contact-button">Start Saving Time</a>
             </div>
         </div>
     </section>
@@ -1360,285 +1406,24 @@
             <div class="schedule-image"></div>
             
             <div class="schedule-content">
-                <h2>Schedule Now</h2>
-                <h3>Make an Appointment</h3>
-                <p>Complete the form below to setup appointment.</p>
+                <h2>Schedule a Consultation</h2>
+                <h3>Let's Discuss Your Automation Needs</h3>
+                <p>Book a free consultation to discover how we can save you 10-20 hours per week.</p>
                 <a href="mailto:inquiry@tyg-services.com" class="schedule-button">SCHEDULE CONSULTATION</a>
             </div>
         </div>
     </section>
 
-    <!-- Location Map Section -->
-    <section class="map-section" id="location" style="padding: 0; background: #fff;">
-        <div style="max-width: 1200px; margin: 0 auto; padding: 3rem 2rem;">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.5rem;">VISIT OUR OFFICE</h2>
-                <h3 style="font-size: 2.5rem; color: #333; font-weight: 600; margin-bottom: 1rem;">SVC Amadeo, Cavite</h3>
-                <p style="color: #666; font-size: 1.1rem;">Conveniently located between Metro Manila and Tagaytay</p>
-            </div>
-        </div>
-        <div style="width: 100%; height: 450px; background: #f0f0f0; position: relative;">
-            <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15470.849749999998!2d120.91666!3d14.17083!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33bd7740b4c4c4c9%3A0x2b8e8e8e8e8e8e8e!2sSVC%20Amadeo%2C%20Cavite!5e0!3m2!1sen!2sph!4v1234567890"
-                width="100%" 
-                height="450" 
-                style="border:0; filter: grayscale(30%);" 
-                allowfullscreen="" 
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
-            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); max-width: 350px; text-align: center;">
-                <h4 style="color: #52c234; margin: 0 0 10px 0; font-size: 1.2rem;">TYG Services Concierge</h4>
-                <p style="margin: 5px 0; color: #666; font-size: 0.9rem;"><i class="fas fa-map-marker-alt" style="color: #52c234; margin-right: 5px;"></i> SVC Amadeo, Cavite</p>
-                <p style="margin: 5px 0; color: #666; font-size: 0.9rem;"><i class="fas fa-phone" style="color: #52c234; margin-right: 5px;"></i> 0967-400-0040</p>
-                <p style="margin: 5px 0; color: #666; font-size: 0.9rem;"><i class="fas fa-envelope" style="color: #52c234; margin-right: 5px;"></i> inquiry@tyg-services.com</p>
-            </div>
-        </div>
-        <div style="background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%); padding: 3rem 2rem; text-align: center; color: white;">
-            <h3 style="font-size: 1.8rem; margin-bottom: 1rem;">Service Areas</h3>
-            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; max-width: 1000px; margin: 0 auto;">
-                <div style="flex: 1; min-width: 200px;">
-                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Metro Manila</h4>
-                    <p style="font-size: 0.9rem; opacity: 0.9;">Alabang • Makati • BGC • Pasay</p>
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Cavite</h4>
-                    <p style="font-size: 0.9rem; opacity: 0.9;">Tagaytay • Silang • Dasmariñas • Bacoor</p>
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Laguna</h4>
-                    <p style="font-size: 0.9rem; opacity: 0.9;">Sta. Rosa • Biñan • Calamba • San Pedro</p>
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Batangas</h4>
-                    <p style="font-size: 0.9rem; opacity: 0.9;">Lipa • Batangas City • Nasugbu • Taal</p>
-                </div>
-            </div>
-        </div>
-    </section>
-<!-- Case Study: The Gold Blessing -->
-<section class="case-study-section" id="tgb-case-study" style="padding: 5rem 0; background: #fff;">
-    <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
-        <div style="text-align: center; margin-bottom: 3rem;">
-            <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.5rem;">CASE STUDY</h2>
-            <h3 style="font-size: 2.5rem; color: #333; font-weight: 600; margin-bottom: 1rem;">The Gold Blessing: 100K+ Transactions Automated</h3>
-            <p style="color: #52c234; font-size: 1.3rem; font-weight: 600;">From 20 Minutes to 2 Minutes Per Order</p>
-        </div>
-        
-        <!-- Problem & Solution Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 4rem;">
-            <!-- The Problem -->
-            <div style="background: #f8f9fa; padding: 2.5rem; border-radius: 10px; border-left: 4px solid #dc3545;">
-                <h4 style="color: #dc3545; font-size: 1.3rem; margin-bottom: 1.5rem;">❌ The Problem</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #dc3545;">•</span> 20 minutes manual invoice creation per order</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #dc3545;">•</span> Copy-pasting customer data 5-6 times</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #dc3545;">•</span> Payment screenshots lost in Messenger</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #dc3545;">•</span> Inventory lookup: 10 minutes per product</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #dc3545;">•</span> Layaway tracking in paper notebooks</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #dc3545;">•</span> ₱50,000+ monthly losses from errors</li>
-                </ul>
-            </div>
-            
-            <!-- The Solution -->
-            <div style="background: #f8f9fa; padding: 2.5rem; border-radius: 10px; border-left: 4px solid #52c234;">
-                <h4 style="color: #52c234; font-size: 1.3rem; margin-bottom: 1.5rem;">✓ Our Solution</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Google Form → Auto-Invoice → Email</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> One-time data entry, zero copy-paste</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Payment portal with auto-verification</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Column Z triggers instant auto-fill</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> 41-column layaway system with alerts</li>
-                    <li style="padding: 0.5rem 0; color: #555;"><span style="color: #52c234;">✓</span> Zero errors, perfect accuracy</li>
-                </ul>
-            </div>
-        </div>
-        
-        <!-- Results Dashboard -->
-        <div style="background: linear-gradient(135deg, #52c234 0%, #8BC34A 100%); padding: 3rem; border-radius: 10px; margin-bottom: 4rem;">
-            <h4 style="color: white; font-size: 1.5rem; margin-bottom: 2rem; text-align: center;">Measurable Results</h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
-                <div style="text-align: center;">
-                    <div style="font-size: 2.5rem; color: white; font-weight: bold;">90%</div>
-                    <div style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">Time Reduction</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 2.5rem; color: white; font-weight: bold;">100K+</div>
-                    <div style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">Transactions Processed</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 2.5rem; color: white; font-weight: bold;">₱0</div>
-                    <div style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">Error Losses (from ₱50K)</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 2.5rem; color: white; font-weight: bold;">160hrs</div>
-                    <div style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">Monthly Time Saved</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Add more sections as needed - I've included the core sections above -->
-        <!-- You can copy the rest from the artifact if you need the complete case study -->
-        
-    </div>
-</section>
-    <!-- FAQ Section -->
-<section id="faq" style="padding: 5rem 0; background: #fff;">
-    <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
-        <div style="text-align: center; margin-bottom: 3rem;">
-            <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.5rem;">FREQUENTLY ASKED QUESTIONS</h2>
-            <h3 style="font-size: 2.5rem; color: #333; font-weight: 600;">Everything You Need to Know</h3>
-        </div>
-        
-        <div style="max-width: 800px; margin: 0 auto;">
-            <!-- FAQ 1 -->
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #52c234;">
-                <h4 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">How long does automation take?</h4>
-                <p style="color: #666; line-height: 1.6;">
-                    Most automations are completed within <strong>2-4 weeks</strong>:
-                </p>
-                <ul style="color: #666; line-height: 1.8; margin-top: 0.5rem;">
-                    <li>Week 1: Map your current workflow and identify bottlenecks</li>
-                    <li>Week 2-3: Build and test the automation</li>
-                    <li>Week 4: Training and deployment</li>
-                </ul>
-                <p style="color: #666; line-height: 1.6; margin-top: 0.5rem;">
-                    Simple automations (like email templates) can be done in 2-3 days. Complex systems (like our 100K+ transaction system for The Gold Blessing) may take 4-6 weeks.
-                </p>
-            </div>
-
-            <!-- FAQ 2 -->
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #52c234;">
-                <h4 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">What if I don't have Google Workspace?</h4>
-                <p style="color: #666; line-height: 1.6;">
-                    No problem! We have three options:
-                </p>
-                <ul style="color: #666; line-height: 1.8; margin-top: 0.5rem;">
-                    <li><strong>Option 1:</strong> We'll help you set up Google Workspace (₱400/user/month) - most cost-effective</li>
-                    <li><strong>Option 2:</strong> Use free Gmail with some limitations</li>
-                    <li><strong>Option 3:</strong> We can work with Microsoft 365 or other platforms (may require additional tools)</li>
-                </ul>
-                <p style="color: #666; line-height: 1.6; margin-top: 0.5rem;">
-                    Most clients find Google Workspace pays for itself within the first month through time savings alone.
-                </p>
-            </div>
-
-            <!-- FAQ 3 -->
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #52c234;">
-                <h4 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">Can you work with my existing systems?</h4>
-                <p style="color: #666; line-height: 1.6;">
-                    Yes! We specialize in connecting different systems. We can integrate:
-                </p>
-                <ul style="color: #666; line-height: 1.8; margin-top: 0.5rem;">
-                    <li>Your current Excel/Sheets files</li>
-                    <li>Accounting software (QuickBooks, Xero)</li>
-                    <li>E-commerce platforms (Shopify, WooCommerce, Lazada)</li>
-                    <li>Social media and messaging (Facebook, Instagram, WhatsApp)</li>
-                    <li>Payment systems (GCash, Maya, PayPal)</li>
-                </ul>
-                <p style="color: #666; line-height: 1.6; margin-top: 0.5rem;">
-                    Using n8n, we can connect almost any system with an API. If it has data, we can probably automate it.
-                </p>
-            </div>
-
-            <!-- FAQ 4 -->
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #52c234;">
-                <h4 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">Do you provide training?</h4>
-                <p style="color: #666; line-height: 1.6;">
-                    Absolutely! Every automation package includes:
-                </p>
-                <ul style="color: #666; line-height: 1.8; margin-top: 0.5rem;">
-                    <li><strong>Video tutorials:</strong> Step-by-step guides for your team</li>
-                    <li><strong>Documentation:</strong> Written guides with screenshots</li>
-                    <li><strong>Live training:</strong> 2-4 hours of hands-on training</li>
-                    <li><strong>Admin guide:</strong> For your IT person or manager</li>
-                </ul>
-                <p style="color: #666; line-height: 1.6; margin-top: 0.5rem;">
-                    We ensure your team is 100% comfortable before we consider the project complete. Additional training available at ₱1,500/hour.
-                </p>
-            </div>
-
-            <!-- FAQ 5 -->
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #52c234;">
-                <h4 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">What's included in support?</h4>
-                <p style="color: #666; line-height: 1.6;">
-                    Our support packages include:
-                </p>
-                <div style="margin-top: 0.5rem;">
-                    <p style="color: #52c234; font-weight: 600;">First 30 Days (FREE):</p>
-                    <ul style="color: #666; line-height: 1.8;">
-                        <li>Unlimited bug fixes</li>
-                        <li>Minor adjustments</li>
-                        <li>WhatsApp/email support</li>
-                    </ul>
-                </div>
-                <div style="margin-top: 1rem;">
-                    <p style="color: #52c234; font-weight: 600;">Monthly Support (₱5,000/month):</p>
-                    <ul style="color: #666; line-height: 1.8;">
-                        <li>2 hours of modifications/updates</li>
-                        <li>Priority WhatsApp support</li>
-                        <li>Monthly system health check</li>
-                        <li>Backup verification</li>
-                    </ul>
-                </div>
-                <p style="color: #666; line-height: 1.6; margin-top: 0.5rem;">
-                    Most clients don't need ongoing support after the first month - our systems are built to run independently.
-                </p>
-            </div>
-
-            <!-- FAQ 6 - Bonus -->
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #52c234;">
-                <h4 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">How much does automation cost?</h4>
-                <p style="color: #666; line-height: 1.6;">
-                    Our pricing depends on complexity:
-                </p>
-                <ul style="color: #666; line-height: 1.8; margin-top: 0.5rem;">
-                    <li><strong>Simple automation:</strong> ₱15,000-25,000 (email templates, basic forms)</li>
-                    <li><strong>Medium complexity:</strong> ₱30,000-60,000 (order processing, inventory sync)</li>
-                    <li><strong>Full system:</strong> ₱75,000-150,000 (complete business automation)</li>
-                    <li><strong>Hourly consulting:</strong> ₱2,000/hour</li>
-                </ul>
-                <p style="color: #666; line-height: 1.6; margin-top: 0.5rem;">
-                    Most clients recover their investment within 2-3 months through time savings alone. <strong>Free consultation</strong> to assess your needs.
-                </p>
-            </div>
-
-            <!-- FAQ 7 - Bonus -->
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #52c234;">
-                <h4 style="color: #333; font-size: 1.2rem; margin-bottom: 1rem;">What makes TYG different from freelancers or other agencies?</h4>
-                <p style="color: #666; line-height: 1.6;">
-                    Three key differences:
-                </p>
-                <ul style="color: #666; line-height: 1.8; margin-top: 0.5rem;">
-                    <li><strong>Real experience:</strong> We've processed 100K+ actual transactions, not just "projects"</li>
-                    <li><strong>No expensive tools:</strong> We use Google Workspace you already have (no Zapier fees)</li>
-                    <li><strong>Complete service:</strong> From automation to content creation to property management</li>
-                </ul>
-                <p style="color: #666; line-height: 1.6; margin-top: 0.5rem;">
-                    We're not just developers - we're business operators who understand retail, inventory, and customer service because we do it ourselves daily.
-                </p>
-            </div>
-        </div>
-
-        <!-- CTA at bottom -->
-        <div style="text-align: center; margin-top: 3rem;">
-            <p style="color: #666; font-size: 1.1rem; margin-bottom: 1.5rem;">Still have questions?</p>
-            <a href="https://wa.me/639674000040" target="_blank" style="display: inline-block; background: #25d366; color: white; padding: 1rem 2.5rem; text-decoration: none; border-radius: 50px; font-weight: 600;">
-                <i class="fab fa-whatsapp" style="margin-right: 0.5rem;"></i> Chat on WhatsApp
-            </a>
-        </div>
-    </div>
-</section>
     <!-- Footer -->
     <footer id="contact">
         <div class="footer-content">
             <div class="footer-grid">
                 <div class="footer-column">
-                    <h4>Services</h4>
-                    <a href="#">Personal Lifestyle</a>
-                    <a href="#">Property Management</a>
-                    <a href="#">Business Automation</a>
-                    <a href="#">Content & Social</a>
+                    <h4>Our Services</h4>
+                    <a href="#">Automation Systems</a>
+                    <a href="#">Vendor Desk</a>
+                    <a href="#">Property Operations</a>
+                    <a href="#">Content Production</a>
                     <a href="#">View All Services</a>
                 </div>
                 <div class="footer-column">
@@ -1646,7 +1431,7 @@
                     <a href="#about">About Us</a>
                     <a href="#team">Our Team</a>
                     <a href="#portfolio">Portfolio</a>
-                    <a href="#">Partnership</a>
+                    <a href="#partners">Partnerships</a>
                     <a href="#">Careers</a>
                 </div>
                 <div class="footer-column">
@@ -1660,7 +1445,7 @@
                 <div class="footer-column">
                     <h4>Contact Info</h4>
                     <a href="tel:+639972603555">+63 997-260-3555</a>
-                    <a href="mailto:legerynpia@tyg-services.com">inquiry@tyg-services.com</a>
+                    <a href="mailto:inquiry@tyg-services.com">inquiry@tyg-services.com</a>
                     <a href="#">SVC Amadeo, Cavite</a>
                     <a href="#">Mon-Sat: 8AM-6PM</a>
                 </div>
@@ -1674,9 +1459,13 @@
                     <a href="#"><i class="fab fa-youtube"></i></a>
                     <a href="#"><i class="fab fa-twitter"></i></a>
                 </div>
+                <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.8);">
+                    For travel planning and event coordination, we proudly partner with 
+                    <a href="https://greatlifeconcierge.com" style="color: #52c234; text-decoration: none;" target="_blank">Great Life Concierge</a>
+                </p>
                 <p>&copy; 2024 TYG Services, Inc. All Rights Reserved.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Automation-First Concierge Services</p>
                 <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">SVC Amadeo, Cavite • 0997-260-3555</p>
-                <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Powered by TYG + Luntian.net</p>
             </div>
         </div>
     </footer>

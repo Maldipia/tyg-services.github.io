@@ -526,14 +526,17 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
-        .member-photo::after {
-            content: 'Photo';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 1.2rem;
+     /* remove placeholder text */
+.member-photo::after { content: none; }
+
+/* make image cover the circle */
+.member-photo img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* crops nicely to a circle */
+  display: block;
+}
+
         }
         
         .team-member h4 {

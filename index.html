@@ -44,7 +44,8 @@
         nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 20px 0; transition: all 0.4s ease; }
         nav.scrolled { background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(20px); padding: 15px 0; border-bottom: 1px solid rgba(212, 168, 67, 0.1); }
         nav .container { display: flex; justify-content: space-between; align-items: center; }
-        .logo { height: 45px; }
+        .logo { height: 60px; transition: transform 0.3s ease; cursor: pointer; }
+        .logo:hover { transform: scale(1.1); }
         .nav-links { display: flex; gap: 35px; list-style: none; align-items: center; }
         .nav-links a { color: var(--white); text-decoration: none; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.5px; transition: color 0.3s; position: relative; }
         .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--gold); transition: width 0.3s; }
@@ -293,7 +294,7 @@
                 </div>
                 <div class="hero-visual">
                     <div class="hero-image-container">
-                        <img src="tyglogo2_0.png" alt="TYG Services" style="width: 100%; max-width: 350px; margin: 0 auto; display: block;">
+                        <img src="TYGLOGO3.0.png" alt="TYG Services" style="width: 100%; max-width: 350px; margin: 0 auto; display: block;">
                         <div class="floating-card card-1"><div class="card-icon">⚡</div><div class="card-text">Auto-Processing</div><div class="card-sub">Orders handled 24/7</div></div>
                         <div class="floating-card card-2"><div class="card-icon">📊</div><div class="card-text">Live Analytics</div><div class="card-sub">Real-time insights</div></div>
                         <div class="floating-card card-3"><div class="card-icon">🤖</div><div class="card-text">AI Chatbots</div><div class="card-sub">Smart responses</div></div>

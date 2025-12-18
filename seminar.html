@@ -3,35 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Seminar: Automate Your Business, Reclaim Your Life | TYG Services</title>
-    <meta name="description" content="Learn how to run multiple businesses in just 5 hours a day. Free 90-minute online seminar on business automation by Pia of TYG Services.">
-    <meta name="keywords" content="business automation, free seminar, Filipino entrepreneur, online selling, TYG Services">
+    <title>Free Seminar: Gustong Mag-Negosyo Pero Walang Puhunan? | TYG Services</title>
+    <meta name="description" content="Free seminar para sa gustong mag-start ng business kahit walang capital. Matuto muna. Kumita habang natututo.">
     
-    <!-- Open Graph Tags -->
-    <meta property="og:title" content="Free Seminar: Automate Your Business, Reclaim Your Life">
-    <meta property="og:description" content="Learn how I went from losing everything to running 6 businesses in 5 hours/day. FREE 90-minute seminar.">
-    <meta property="og:image" content="https://tyg-services.com/seminar-og.png">
-    <meta property="og:url" content="https://tyg-services.com/seminar.html">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Free Seminar: Gustong Mag-Negosyo Pero Walang Puhunan?">
+    <meta property="og:description" content="Matuto muna. Kumita habang natututo. Hindi kailangan ng malaking puhunan para magsimula ng tama.">
     <meta property="og:type" content="website">
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta property="og:url" content="https://tyg-services.com/seminar.html">
     
-    <!-- Icons -->
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
     <style>
         :root {
             --gold: #D4A843;
             --gold-light: #E8C875;
             --black: #0A0A0A;
             --dark: #151515;
-            --dark-card: #1A1A1A;
             --gray: #888888;
             --white: #FAFAFA;
-            --gradient: linear-gradient(135deg, #D4A843 0%, #B88A2E 100%);
         }
 
         * {
@@ -42,1040 +34,656 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--black);
+            background: var(--black);
             color: var(--white);
-            line-height: 1.6;
-            overflow-x: hidden;
+            line-height: 1.7;
         }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Playfair Display', serif;
-            color: var(--white);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        /* BUTTONS */
-        .btn-primary {
-            display: inline-block;
-            background: var(--gradient);
-            color: var(--black);
-            padding: 15px 35px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: none;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(212, 168, 67, 0.3);
-        }
-
-        .btn-secondary {
-            display: inline-block;
-            background: transparent;
-            color: var(--gold);
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: 1px solid var(--gold);
-            transition: all 0.3s;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(212, 168, 67, 0.1);
-            transform: translateY(-3px);
-        }
-
-        /* BADGE */
-        .badge {
-            display: inline-block;
-            background: rgba(212, 168, 67, 0.15);
-            color: var(--gold);
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            border: 1px solid rgba(212, 168, 67, 0.3);
-        }
-
-        /* SECTION HEADER */
-        .section-header {
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto 60px;
-        }
-
-        .section-header h2 {
-            font-size: clamp(2rem, 4vw, 3rem);
-            margin-bottom: 20px;
-            background: linear-gradient(to right, #fff, #ccc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .section-header p {
-            color: var(--gray);
-            font-size: 1.1rem;
-        }
-
-        /* HERO SECTION */
-        .hero {
-            padding: 120px 0 80px;
-            background: radial-gradient(circle at top right, rgba(212, 168, 67, 0.1), transparent 40%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-
-        .hero-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 60px;
-            align-items: center;
-        }
-
-        .hero-content h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            line-height: 1.2;
-            margin-bottom: 25px;
-        }
-
-        .hero-content p {
-            font-size: 1.2rem;
-            color: var(--gray);
-            margin-bottom: 40px;
-            max-width: 600px;
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .stat-item h4 {
-            font-size: 1.8rem;
-            color: var(--gold);
-            margin-bottom: 5px;
-        }
-
-        .stat-item span {
-            font-size: 0.9rem;
-            color: var(--gray);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .reg-box {
-            background: var(--dark-card);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .reg-box::before {
-            content: '';
-            position: absolute;
+        /* Navigation */
+        nav {
+            position: fixed;
             top: 0;
-            left: 0;
             width: 100%;
-            height: 5px;
-            background: var(--gradient);
-        }
-
-        .reg-title {
-            font-size: 1.8rem;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .event-details {
-            margin-bottom: 30px;
-        }
-
-        .detail-row {
+            padding: 20px 40px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 1000;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
         }
 
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(212, 168, 67, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gold);
-            font-size: 1.2rem;
-        }
-
-        .detail-text strong {
-            display: block;
-            color: var(--white);
-            font-size: 1.1rem;
-        }
-
-        .detail-text span {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-
-        .warning-text {
-            text-align: center;
-            color: #ff6b6b;
-            font-size: 0.9rem;
-            margin-top: 15px;
-            font-weight: 500;
-        }
-
-        .quote-box {
-            margin-top: 30px;
-            text-align: center;
-            font-style: italic;
-            color: var(--gray);
-            font-size: 0.9rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 20px;
-        }
-
-        /* STORY SECTION */
-        .story-section {
-            padding: 100px 0;
-            background: var(--dark);
-        }
-
-        .timeline {
-            position: relative;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            width: 2px;
-            background: rgba(212, 168, 67, 0.2);
-            transform: translateX(-50%);
-        }
-
-        .timeline-card {
-            position: relative;
-            width: 45%;
-            margin-bottom: 60px;
-            background: var(--dark-card);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .timeline-card:nth-child(odd) {
-            left: 0;
-        }
-
-        .timeline-card:nth-child(even) {
-            left: 55%;
-        }
-
-        .timeline-icon {
-            position: absolute;
-            top: 20px;
-            width: 50px;
-            height: 50px;
-            background: var(--black);
-            border: 2px solid var(--gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            z-index: 2;
-        }
-
-        .timeline-card:nth-child(odd) .timeline-icon {
-            right: -65px; /* 50% + 40px gap */
-        }
-
-        .timeline-card:nth-child(even) .timeline-icon {
-            left: -65px;
-        }
-
-        .timeline-card h3 {
-            color: var(--gold);
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        .timeline-card p {
-            color: var(--gray);
-            font-size: 1rem;
-        }
-
-        .story-quote {
-            text-align: center;
-            font-size: 1.5rem;
+        .logo {
             font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
             color: var(--gold);
-            margin-top: 60px;
-            font-style: italic;
+            text-decoration: none;
+            font-weight: 600;
         }
 
-        /* LEARN SECTION */
-        .learn-section {
-            padding: 100px 0;
-            background: var(--black);
-        }
-
-        .learn-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        .nav-links {
+            display: flex;
             gap: 30px;
         }
 
-        .learn-card {
-            background: var(--dark-card);
-            padding: 40px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s;
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s;
         }
 
-        .learn-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--gold);
-        }
-
-        .learn-icon {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .learn-card h3 {
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-
-        .learn-card p {
-            color: var(--gray);
-        }
-
-        /* WHO FOR SECTION */
-        .who-section {
-            padding: 100px 0;
-            background: var(--dark);
-        }
-
-        .who-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-        }
-
-        .who-col h3 {
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-            text-align: center;
-        }
-
-        .check-list, .x-list {
-            list-style: none;
-        }
-
-        .check-list li, .x-list li {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 1.1rem;
-            background: var(--dark-card);
-            padding: 20px;
-            border-radius: 10px;
-        }
-
-        .check-list li i {
-            color: #4ade80;
-            font-size: 1.2rem;
-        }
-
-        .x-list li i {
-            color: #f87171;
-            font-size: 1.2rem;
-        }
-
-        /* HOST SECTION */
-        .host-section {
-            padding: 100px 0;
-            background: var(--black);
-        }
-
-        .host-grid {
-            display: grid;
-            grid-template-columns: 0.8fr 1.2fr;
-            gap: 60px;
-            align-items: center;
-        }
-
-        .host-img {
-            width: 100%;
-            border-radius: 20px;
-            border: 2px solid var(--gold);
-            box-shadow: 20px 20px 0 rgba(212, 168, 67, 0.1);
-        }
-
-        .host-content h2 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-
-        .host-role {
+        .nav-links a:hover {
             color: var(--gold);
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            display: block;
-            font-weight: 600;
+        }
+
+        /* Sections */
+        section {
+            padding: 100px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: rgba(212, 168, 67, 0.15);
+            color: var(--gold);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .host-bio {
-            color: var(--gray);
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h2 span, h1 span {
+            color: var(--gold);
+        }
+
+        p {
             font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 100px;
+            background: radial-gradient(ellipse at top right, rgba(212, 168, 67, 0.1) 0%, transparent 50%);
+        }
+
+        .hero-content {
+            max-width: 700px;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--white);
             margin-bottom: 30px;
         }
 
-        .biz-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+        /* CTA Button */
+        .cta-button {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--black);
+            padding: 18px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
         }
 
-        .biz-item {
+        .cta-button:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+        }
+
+        .trust-note {
+            margin-top: 20px;
+            font-size: 0.95rem;
+            color: var(--gray);
+        }
+
+        .trust-note i {
+            color: #4CAF50;
+            margin-right: 8px;
+        }
+
+        /* Event Details */
+        .event-details {
+            display: flex;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .event-item {
             display: flex;
             align-items: center;
             gap: 10px;
             color: var(--white);
-            font-size: 0.95rem;
         }
 
-        /* OPPORTUNITY SECTION */
-        .opp-section {
-            padding: 100px 0;
+        .event-item i {
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        /* Story Section */
+        .story-section {
             background: var(--dark);
         }
 
-        .opp-grid {
+        .story-grid {
+            display: grid;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .story-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 168, 67, 0.15);
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .story-card .icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .story-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--gold);
+        }
+
+        .story-card p {
+            font-size: 1rem;
+            color: var(--gray);
+            margin: 0;
+        }
+
+        /* Quote Box */
+        .quote-box {
+            background: rgba(212, 168, 67, 0.08);
+            border: 1px solid rgba(212, 168, 67, 0.3);
+            border-radius: 12px;
+            padding: 30px 40px;
+            margin: 40px auto;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .quote-box p {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-style: italic;
+            color: var(--gold-light);
+            margin: 0;
+        }
+
+        /* Learn Grid */
+        .learn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 50px;
+        }
+
+        .learn-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s;
+        }
+
+        .learn-card:hover {
+            border-color: rgba(212, 168, 67, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .learn-card .number {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .learn-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: var(--white);
+        }
+
+        .learn-card p {
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Who Section */
+        .who-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 40px;
+            margin-top: 50px;
         }
 
-        .opp-card {
-            background: var(--dark-card);
-            padding: 50px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            transition: transform 0.3s;
+        .who-column h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
         }
 
-        .opp-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--gold);
+        .who-column.yes h3 {
+            color: #4CAF50;
         }
 
-        .opp-card h3 {
-            font-size: 2rem;
-            margin-bottom: 10px;
+        .who-column.no h3 {
+            color: #ff6b6b;
         }
 
-        .opp-subtitle {
-            color: var(--gold);
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-            display: block;
-            font-weight: 600;
-        }
-
-        .opp-list {
-            text-align: left;
-            margin-bottom: 40px;
+        .who-column ul {
             list-style: none;
         }
 
-        .opp-list li {
-            margin-bottom: 15px;
-            padding-left: 25px;
+        .who-column ul li {
+            padding: 10px 0;
+            padding-left: 30px;
             position: relative;
             color: var(--gray);
         }
 
-        .opp-list li::before {
-            content: '•';
-            color: var(--gold);
+        .who-column.yes ul li::before {
+            content: "✓";
+            color: #4CAF50;
             position: absolute;
             left: 0;
-            font-weight: bold;
         }
 
-        /* FAQ SECTION */
-        .faq-section {
-            padding: 100px 0;
-            background: var(--black);
+        .who-column.no ul li::before {
+            content: "✗";
+            color: #ff6b6b;
+            position: absolute;
+            left: 0;
         }
 
-        .faq-grid {
+        /* Host Section */
+        .host-section {
+            background: var(--dark);
+        }
+
+        .host-content {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            grid-template-columns: 1fr 2fr;
+            gap: 50px;
+            align-items: center;
+            margin-top: 50px;
         }
 
-        .faq-item {
-            background: var(--dark-card);
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .faq-item h3 {
-            color: var(--gold);
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-
-        .faq-item p {
-            color: var(--gray);
-        }
-
-        /* CTA SECTION */
-        .cta-section {
-            padding: 120px 0;
-            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1632&q=80');
-            background-size: cover;
-            background-attachment: fixed;
+        .host-image {
             text-align: center;
         }
 
-        .cta-content h2 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+        .host-image img {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--gold);
+        }
+
+        .host-info h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .host-info .role {
+            color: var(--gold);
             margin-bottom: 20px;
         }
 
-        .cta-content p {
-            font-size: 1.3rem;
-            color: var(--white);
-            margin-bottom: 40px;
-            opacity: 0.9;
+        .businesses-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        .cta-details {
-            margin-top: 30px;
-            color: var(--gold);
+        .business-tag {
+            background: rgba(212, 168, 67, 0.1);
+            border: 1px solid rgba(212, 168, 67, 0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* FAQ Section */
+        .faq-list {
+            max-width: 800px;
+            margin: 50px auto 0;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px 0;
+        }
+
+        .faq-question {
             font-weight: 600;
-            letter-spacing: 1px;
+            font-size: 1.1rem;
+            color: var(--white);
+            margin-bottom: 10px;
         }
 
-        /* FOOTER */
-        footer {
-            background: var(--black);
-            padding: 60px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
+        .faq-answer {
             color: var(--gray);
+            font-size: 1rem;
         }
 
-        .footer-links {
+        /* Final CTA */
+        .final-cta {
+            text-align: center;
+            background: linear-gradient(135deg, var(--dark) 0%, rgba(212, 168, 67, 0.1) 100%);
+            padding: 80px 40px;
+        }
+
+        .final-cta h2 {
+            font-size: 2.5rem;
+        }
+
+        .final-cta .event-details {
+            justify-content: center;
             margin: 30px 0;
         }
 
-        .footer-links a {
-            margin: 0 15px;
-            transition: color 0.3s;
-        }
-
-        .footer-links a:hover {
+        .tagline {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
             color: var(--gold);
+            font-style: italic;
+            margin-top: 40px;
         }
 
-        .social-icons {
-            margin-bottom: 30px;
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .social-icons a {
-            font-size: 1.5rem;
-            margin: 0 10px;
-            color: var(--white);
-            transition: color 0.3s;
+        footer p {
+            font-size: 0.9rem;
         }
 
-        .social-icons a:hover {
+        footer a {
             color: var(--gold);
+            text-decoration: none;
         }
 
-        /* RESPONSIVE */
-        @media (max-width: 992px) {
-            .hero-grid, .host-grid, .who-grid, .opp-grid, .faq-grid {
-                grid-template-columns: 1fr;
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            h1 {
+                font-size: 2.2rem;
             }
 
             .hero {
-                padding-top: 100px;
+                padding-top: 80px;
+            }
+
+            .host-content {
+                grid-template-columns: 1fr;
                 text-align: center;
             }
 
-            .hero-content p {
-                margin: 0 auto 40px;
-            }
-
-            .hero-stats {
+            .businesses-list {
                 justify-content: center;
             }
 
-            .timeline::before {
-                left: 30px;
-            }
-
-            .timeline-card {
-                width: 100%;
-                padding-left: 80px;
-                left: 0 !important;
-            }
-
-            .timeline-icon {
-                left: 5px !important;
-                right: auto !important;
-            }
-
-            .host-img {
-                max-width: 400px;
-                margin: 0 auto;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .section-header h2 {
-                font-size: 2.2rem;
-            }
-            
-            .hero-content h1 {
-                font-size: 2.5rem;
-            }
-
-            .btn-primary {
-                width: 100%;
+            .who-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- HERO SECTION -->
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">TYG Services</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#services">Services</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#contact">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
     <section class="hero">
-        <div class="container">
-            <div class="hero-grid">
-                <div class="hero-content">
-                    <span class="badge">FREE SEMINAR</span>
-                    <h1>Automate Your Business, Reclaim Your Life</h1>
-                    <p>Learn how I went from losing everything to running 6 businesses in just 5 hours a day — and how you can avoid the mistakes I made.</p>
-                    
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <h4>6</h4>
-                            <span>Businesses</span>
-                        </div>
-                        <div class="stat-item">
-                            <h4>9+</h4>
-                            <span>Years Exp</span>
-                        </div>
-                        <div class="stat-item">
-                            <h4>100+</h4>
-                            <span>Systems</span>
-                        </div>
-                    </div>
+        <div class="hero-content">
+            <span class="section-badge">Free Business Seminar</span>
+            <h1>Gustong Mag-Negosyo Pero <span>Walang Puhunan?</span></h1>
+            <p class="hero-subtitle">Matuto muna. Kumita habang natututo. Hindi kailangan ng malaking puhunan para magsimula ng tama.</p>
+            
+            <div class="event-details">
+                <div class="event-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Next Session: Saturday, 8:00 PM</span>
                 </div>
+                <div class="event-item">
+                    <i class="fas fa-video"></i>
+                    <span>Live via Zoom</span>
+                </div>
+                <div class="event-item">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>100% Free</span>
+                </div>
+            </div>
 
-                <div class="reg-box">
-                    <h3 class="reg-title">Reserve Your FREE Seat</h3>
-                    <div class="event-details">
-                        <div class="detail-row">
-                            <div class="detail-icon"><i class="far fa-calendar-alt"></i></div>
-                            <div class="detail-text">
-                                <strong>Every Saturday</strong>
-                                <span>Weekly Session</span>
-                            </div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-icon"><i class="far fa-clock"></i></div>
-                            <div class="detail-text">
-                                <strong>2:00 PM - 4:00 PM PHT</strong>
-                                <span>Manila Time</span>
-                            </div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-icon"><i class="fas fa-video"></i></div>
-                            <div class="detail-text">
-                                <strong>Online via Zoom</strong>
-                                <span>Join from anywhere</span>
-                            </div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-icon"><i class="fas fa-tag"></i></div>
-                            <div class="detail-text">
-                                <strong>₱0 (FREE!)</strong>
-                                <span>No hidden fees</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <a href="https://forms.gle/XXXXX" target="_blank" class="btn-primary" style="width: 100%; text-align: center;">Register Now — It's Free →</a>
-                    <p class="warning-text">⚠️ Limited to 50 seats per session</p>
-                    
-                    <div class="quote-box">
-                        "The idea is His gift; the journey is His guidance."
-                        <br>— Pia, Founder
-                    </div>
-                </div>
+            <a href="https://forms.gle/XXXXX" class="cta-button">Reserve Your Spot</a>
+            
+            <div class="trust-note">
+                <i class="fas fa-check-circle"></i> No Hidden Fees. No "Get Rich Quick" Promises.
             </div>
         </div>
     </section>
 
-    <!-- STORY SECTION -->
+    <!-- Story Section -->
     <section class="story-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="badge">THE REAL STORY</span>
-                <h2>From Rock Bottom to 6 Businesses</h2>
-                <p>This isn't a success story. It's a survival story.</p>
+        <span class="section-badge">The Reality</span>
+        <h2>Bakit Maraming <span>Bumabagsak?</span></h2>
+        <p style="text-align: center; max-width: 700px; margin: 0 auto 50px;">
+            Sa 2016, nagsimula ako ng business. Akala ko basta may puhunan, okay na. Mali ako. Nawala ang lahat. Bakit? Kasi wala akong sistema.
+        </p>
+
+        <div class="story-grid">
+            <div class="story-card">
+                <div class="icon">📉</div>
+                <h3>Excitement vs. Reality</h3>
+                <p>Marami ang nag-uumpisa dahil "excited" pero tumitigil kapag mahirap na. Business requires discipline, not just motivation.</p>
             </div>
-
-            <div class="timeline">
-                <!-- Card 1 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">📉</div>
-                    <h3>The Fall (2016)</h3>
-                    <p>In 2016, I invested ALL my savings into two restaurants. I had ideas, visuals, and dreams — but no systems, no financial controls. Within a year, everything collapsed. I sold my car. Lost the business. Was left with nothing.</p>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">🚪</div>
-                    <h3>The Exits I Declined</h3>
-                    <p>I had safe options: teach in Malaysia, become a secretary to a COO, work in a Japanese factory. I declined ALL of them. I chose to come home and rebuild.</p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">💪</div>
-                    <h3>Rock Bottom</h3>
-                    <p>I returned to the Philippines with less than ₱1,000. I sold repacked soap, biscuits with ₱5 margins, and drove Grab for 13 hours straight chasing ₱1,500 incentives — without food, water, or rest.</p>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">🙏</div>
-                    <h3>The Prayer</h3>
-                    <p>One exhausted night, I whispered: "Lord, bigyan mo lang ako ng ₱200,000 in sales. Kapag nangyari, pupunta ako ng Simala." Four days later — it happened. And I kept my promise.</p>
-                </div>
-
-                <!-- Card 5 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">💡</div>
-                    <h3>The Insight</h3>
-                    <p>That moment gave me hope. But the real lesson came after: Effort alone is not enough. Hustle without structure only leads to exhaustion. I started building systems — one by one.</p>
-                </div>
-
-                <!-- Card 6 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">🚀</div>
-                    <h3>Today</h3>
-                    <p>9 years and 100+ systems later, I run 6 businesses in just 5 hours a day. Not because I'm special — because I built the right foundation. Now I want to help you do the same.</p>
-                </div>
+            <div class="story-card">
+                <div class="icon">📦</div>
+                <h3>Inventory Trap</h3>
+                <p>Bibili ng stocks, hindi mabebenta, tengga ang pera. Ang solusyon? Sell before you buy. Yan ang ituturo ko.</p>
             </div>
+            <div class="story-card">
+                <div class="icon">📝</div>
+                <h3>Walang Tracking</h3>
+                <p>"Kumita ako ng 5k!" Pero gumastos ka ng 6k sa pamasahe at pagkain. If you don't track, you don't have a business.</p>
+            </div>
+        </div>
 
-            <div class="story-quote">
-                "The idea is His gift; the journey is His guidance."
+        <div class="quote-box">
+            <p>"I'm not here to promise you millions. I'm here to teach you the discipline that allowed me to rebuild my life and run 6 businesses today."</p>
+        </div>
+    </section>
+
+    <!-- What You Will Learn -->
+    <section>
+        <span class="section-badge">The Curriculum</span>
+        <h2>What You Will <span>Learn</span></h2>
+        
+        <div class="learn-grid">
+            <div class="learn-card">
+                <div class="number">01</div>
+                <h3>The Reseller Mindset</h3>
+                <p>Paano mag-isip na parang negosyante, hindi tindero/tindera lang. Treating your side hustle as a corporation.</p>
+            </div>
+            <div class="learn-card">
+                <div class="number">02</div>
+                <h3>Zero-Inventory Model</h3>
+                <p>Paano magbenta ng products na wala sa kamay mo (Ethical Dropshipping & Pre-Order Systems).</p>
+            </div>
+            <div class="learn-card">
+                <div class="number">03</div>
+                <h3>The Discipline of Tracking</h3>
+                <p>Introduction sa "Daily Log." Kung hindi mo kayang ilista ang piso, hindi ka handa sa milyon.</p>
+            </div>
+            <div class="learn-card">
+                <div class="number">04</div>
+                <h3>Earn While You Learn</h3>
+                <p>Access sa TYG Reseller Program. Verified products (Jewelry, Sneakers, Essentials) na pwede mong ibenta agad.</p>
             </div>
         </div>
     </section>
 
-    <!-- LEARN SECTION -->
-    <section class="learn-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="badge">WHAT YOU'LL LEARN</span>
-                <h2>What You'll Learn in 90 Minutes</h2>
-                <p>No fluff. Just actionable strategies you can use immediately.</p>
+    <!-- Who Is This For -->
+    <section class="story-section">
+        <span class="section-badge">Audience Check</span>
+        <h2>Is This For <span>You?</span></h2>
+        
+        <div class="who-grid">
+            <div class="who-column yes">
+                <h3>✅ This IS For You If:</h3>
+                <ul>
+                    <li>Gusto mong matuto ng business pero walang malaking puhunan.</li>
+                    <li>OFW ka na naghahanap ng extra income na manageable.</li>
+                    <li>Willing kang mag-aral at sumunod sa sistema.</li>
+                    <li>Gusto mo ng honest na community at mentorship.</li>
+                </ul>
             </div>
-
-            <div class="learn-grid">
-                <div class="learn-card">
-                    <span class="learn-icon">⚡</span>
-                    <h3>The 5 Automation Pillars</h3>
-                    <p>The exact framework for automating orders, inventory, payments, customer service, and reporting.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">💰</span>
-                    <h3>The Hidden Cost of Manual Work</h3>
-                    <p>Why you're losing ₱50K+ per month to inefficiency — and how to stop the bleeding.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">📺</span>
-                    <h3>Live System Demo</h3>
-                    <p>Watch real orders process automatically in actual business systems — not mockups.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">🤖</span>
-                    <h3>24/7 Customer Service</h3>
-                    <p>How to answer "How much?" and "Available pa?" automatically while you sleep.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">📊</span>
-                    <h3>5-Minute Dashboard</h3>
-                    <p>Check all your business metrics before breakfast — know exactly where you stand.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">🎯</span>
-                    <h3>Your Action Plan</h3>
-                    <p>Leave with a clear roadmap to start automating YOUR business this week.</p>
-                </div>
+            <div class="who-column no">
+                <h3>❌ This is NOT For You If:</h3>
+                <ul>
+                    <li>Naghahanap ka ng "Get Rich Quick" scheme.</li>
+                    <li>Ayaw mong mag-track ng sales at expenses.</li>
+                    <li>Tamad ka mag-reply sa customers.</li>
+                    <li>Naghahanap ka lang ng "investment" na tutubo mag-isa.</li>
+                </ul>
             </div>
         </div>
     </section>
 
-    <!-- WHO FOR SECTION -->
-    <section class="who-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="badge">IS THIS FOR YOU?</span>
-                <h2>This Seminar is For You If...</h2>
-            </div>
-
-            <div class="who-grid">
-                <div class="who-col">
-                    <h3>✅ This IS For You</h3>
-                    <ul class="check-list">
-                        <li><i class="fas fa-check-circle"></i> You're doing ₱30K-500K+ monthly but feeling stuck</li>
-                        <li><i class="fas fa-check-circle"></i> You spend 10+ hours/week on repetitive tasks</li>
-                        <li><i class="fas fa-check-circle"></i> You're tired of answering the same questions daily</li>
-                        <li><i class="fas fa-check-circle"></i> You want to scale without hiring an army</li>
-                        <li><i class="fas fa-check-circle"></i> You're an OFW managing a PH business remotely</li>
-                        <li><i class="fas fa-check-circle"></i> You've failed before and want to rebuild RIGHT</li>
-                    </ul>
-                </div>
-                <div class="who-col">
-                    <h3>❌ This is NOT For You</h3>
-                    <ul class="x-list">
-                        <li><i class="fas fa-times-circle"></i> You're looking for "get rich quick" schemes</li>
-                        <li><i class="fas fa-times-circle"></i> You're not willing to put in the work</li>
-                        <li><i class="fas fa-times-circle"></i> You think automation is only for big companies</li>
-                        <li><i class="fas fa-times-circle"></i> You're happy working 16-hour days forever</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- HOST SECTION -->
+    <!-- Meet Your Host -->
     <section class="host-section">
-        <div class="container">
-            <div class="host-grid">
-                <div class="host-visual">
-                    <img src="https://github.com/Maldipia/tyg-services.github.io/blob/main/pia%202.jpg?raw=true" alt="Pia - Founder" class="host-img">
-                </div>
-                <div class="host-content">
-                    <span class="badge">MEET YOUR HOST</span>
-                    <h2>Pia</h2>
-                    <span class="host-role">Founder, TYG Services</span>
-                    
-                    <p class="host-bio">In 2016, Pia lost everything — her savings, her business, even her car. With less than ₱1,000, she drove Grab for 13 hours a day and sold biscuits with ₱5 margins.</p>
-                    <p class="host-bio">One prayer, one promise to Simala, and 9 years of building systems later — she now runs 6 businesses while working just 5 hours a day.</p>
-                    <p class="host-bio">This seminar is her way of helping other Filipino entrepreneurs avoid the painful mistakes she made.</p>
-                    
-                    <h4 style="margin-bottom: 15px; color: var(--gold);">Businesses She Runs:</h4>
-                    <div class="biz-list">
-                        <div class="biz-item"><i class="fas fa-ring"></i> The Gold Blessing</div>
-                        <div class="biz-item"><i class="fas fa-shoe-prints"></i> Sole Blessing</div>
-                        <div class="biz-item"><i class="fas fa-home"></i> Luntian Log Cabin</div>
-                        <div class="biz-item"><i class="fas fa-shopping-basket"></i> Must Have Corner</div>
-                        <div class="biz-item"><i class="fas fa-tshirt"></i> AST3R</div>
-                        <div class="biz-item"><i class="fas fa-bolt"></i> TYG Services</div>
-                    </div>
-                </div>
+        <div class="host-content">
+            <div class="host-image">
+                <img src="pia 2.jpg" alt="Pia - Founder of TYG Services">
             </div>
-        </div>
-    </section>
-
-    <!-- OPPORTUNITY SECTION -->
-    <section class="opp-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="badge">THE OPPORTUNITY</span>
-                <h2>Two Ways to Start</h2>
-                <p>Whether you're just starting or already scaling, we have a path for you.</p>
-            </div>
-
-            <div class="opp-grid">
-                <!-- Card 1 -->
-                <div class="opp-card">
-                    <h3>No Capital? No Problem.</h3>
-                    <span class="opp-subtitle">Join Our Reseller Program</span>
-                    
-                    <p style="color: var(--gray); margin-bottom: 20px;">Start earning while learning — no capital required. Resell products from our existing businesses:</p>
-                    
-                    <ul class="opp-list">
-                        <li>Sole Blessing (Footwear)</li>
-                        <li>AST3R (Apparel)</li>
-                        <li>Must Have Corner (Essentials)</li>
-                    </ul>
-                    
-                    <ul class="check-list" style="text-align: left; margin-bottom: 30px;">
-                        <li style="padding: 10px; font-size: 0.9rem;"><i class="fas fa-check"></i> No bulk inventory needed</li>
-                        <li style="padding: 10px; font-size: 0.9rem;"><i class="fas fa-check"></i> No physical store required</li>
-                        <li style="padding: 10px; font-size: 0.9rem;"><i class="fas fa-check"></i> Earn while you learn</li>
-                    </ul>
-                    
-                    <a href="#" class="btn-secondary">Learn More About Reselling →</a>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="opp-card" style="border-color: var(--gold);">
-                    <h3>Already Have a Business?</h3>
-                    <span class="opp-subtitle">Get Systems That Work</span>
-                    
-                    <p style="color: var(--gray); margin-bottom: 20px;">If you're already doing ₱30K-500K/month, you need systems — not more hustle.</p>
-                    
-                    <ul class="opp-list">
-                        <li>GoldFlow Pro — Inventory System</li>
-                        <li>Custom Automation — Built for you</li>
-                        <li>Free Audit — Identify time wasters</li>
-                    </ul>
-                    
-                    <div style="background: rgba(212, 168, 67, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: left;">
-                        <h5 style="color: var(--gold); margin-bottom: 10px;">Seminar Exclusive Bonuses:</h5>
-                        <div style="font-size: 0.9rem; margin-bottom: 5px;">✅ 60-day free trial (not 30)</div>
-                        <div style="font-size: 0.9rem; margin-bottom: 5px;">✅ Free 1-on-1 onboarding call</div>
-                        <div style="font-size: 0.9rem;">✅ Priority support for 90 days</div>
-                    </div>
-                    
-                    <a href="https://forms.gle/XXXXX" target="_blank" class="btn-primary">Join the Seminar First →</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ SECTION -->
-    <section class="faq-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="badge">FAQ</span>
-                <h2>Frequently Asked Questions</h2>
-            </div>
-
-            <div class="faq-grid">
-                <div class="faq-item">
-                    <h3>Is this really free?</h3>
-                    <p>Yes, 100% free. No credit card required. No hidden fees. I make money when you succeed and choose to use our systems — not from charging for information.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>I'm not techy. Can I still learn?</h3>
-                    <p>Absolutely! I'm not a programmer either. Everything I teach uses simple tools like Google Sheets. If you can use Facebook, you can learn this.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>What if I can't attend live?</h3>
-                    <p>Register anyway! We'll send you the recording within 24 hours. But live attendees get exclusive bonuses.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Is this just a sales pitch?</h3>
-                    <p>No. 90% of the seminar is pure education — my real story, real systems, real strategies. I do present options at the end for those who want help implementing, but there's zero pressure.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>My business is different. Will this work for me?</h3>
-                    <p>If your business has orders, inventory, payments, and customers — yes. The framework applies whether you sell jewelry, food, clothes, or services. We customize the details.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>I've failed before. Is it too late for me?</h3>
-                    <p>I lost EVERYTHING in 2016 and rebuilt from ₱1,000. It's never too late. The best time to build systems was years ago. The second best time is today.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FINAL CTA -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-content">
-                <h2>Ready to Stop Being a Slave to Your Business?</h2>
-                <p>Join 50 business owners this Saturday and learn how to build systems that work while you sleep.</p>
+            <div class="host-info">
+                <span class="section-badge">Your Mentor</span>
+                <h3>Meet Pia</h3>
+                <p class="role">Founder, TYG Services</p>
+                <p>From a failed business in 2016 to running an automation-first company managing multiple ventures. Pia specializes in systems, efficiency, and practical entrepreneurship.</p>
                 
-                <a href="https://forms.gle/XXXXX" target="_blank" class="btn-primary" style="font-size: 1.2rem; padding: 20px 50px;">Reserve Your FREE Seat Now →</a>
-                
-                <div class="cta-details">
-                    📅 Every Saturday | 🕐 2:00 PM PHT | 💻 Online via Zoom
-                </div>
-                
-                <div class="quote-box" style="border: none; margin-top: 50px; font-size: 1.2rem;">
-                    "The idea is His gift; the journey is His guidance."
+                <div class="businesses-list">
+                    <span class="business-tag">TYG Services</span>
+                    <span class="business-tag">The Gold Blessing</span>
+                    <span class="business-tag">Sole Blessing</span>
+                    <span class="business-tag">Property Management</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FOOTER -->
+    <!-- FAQ -->
+    <section>
+        <span class="section-badge">Common Questions</span>
+        <h2>Frequently Asked <span>Questions</span></h2>
+        
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">May bayad ba ang seminar?</div>
+                <div class="faq-answer">Wala. 100% Free ito. Gusto lang namin ituro ang tamang paraan ng pagnenegosyo.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Kailangan ba magaling ako sa computer?</div>
+                <div class="faq-answer">Hindi. Basta marunong ka mag-Facebook at willing matuto mag-Google Sheets (tuturo namin), okay ka na.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Networking ba ito?</div>
+                <div class="faq-answer">Hindi. Wala kaming downline-downline. Ito ay direct selling at reselling business. Kikita ka sa benta, hindi sa recruit.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Paano kung nasa abroad ako?</div>
+                <div class="faq-answer">Perfect ito para sa'yo. Designed ang system namin para magawa mo ito kahit nasa ibang bansa ka gamit lang ang phone mo.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <span class="section-badge">Limited Slots Only</span>
+        <h2>Start Your Journey Today.</h2>
+        
+        <div class="event-details">
+            <div class="event-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Next Session: Saturday, 8:00 PM</span>
+            </div>
+        </div>
+
+        <a href="https://forms.gle/XXXXX" class="cta-button">Reserve Your Spot Now</a>
+        
+        <p class="tagline">"Efficiency in Motion. Business with Integrity."</p>
+    </section>
+
+    <!-- Footer -->
     <footer>
-        <div class="container">
-            <div class="social-icons">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="https://wa.me/639972603555"><i class="fab fa-whatsapp"></i></a>
-            </div>
-            
-            <div class="footer-links">
-                <a href="index.html">Home</a>
-                <a href="index.html#services">Services</a>
-                <a href="index.html#goldflow">GoldFlow Pro</a>
-                <a href="index.html#contact">Contact</a>
-            </div>
-            
-            <p>&copy; 2025 TYG Services. All rights reserved.</p>
-            <p style="margin-top: 10px; font-size: 0.9rem;">Contact: 0997-260-3555 | inquiry@tyg-services.com</p>
-        </div>
+        <p>&copy; 2025 TYG Services. All rights reserved.</p>
+        <p style="margin-top: 10px; font-size: 0.8rem; color: var(--gray);">
+            Disclaimer: Results vary based on individual effort. This is an educational workshop.
+        </p>
     </footer>
 
 </body>
 </html>
-<!-- Force rebuild timestamp: 2025-12-18 -->

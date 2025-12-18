@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Seminar: Automate Your Business, Reclaim Your Life | TYG Services</title>
-    <meta name="description" content="Learn how to run multiple businesses in just 5 hours a day. Free 90-minute online seminar on business automation by Pia of TYG Services.">
-    <meta name="keywords" content="business automation, free seminar, Filipino entrepreneur, online selling, TYG Services">
+    <title>Free Seminar: Build a Real Business | TYG Services</title>
+    <meta name="description" content="A practical workshop on how to start, manage, and grow a business using the TYG Reselling Model. No inventory required. Just discipline and systems.">
+    <meta name="keywords" content="business automation, free seminar, Filipino entrepreneur, online selling, TYG Services, reselling">
     
     <!-- Open Graph Tags -->
-    <meta property="og:title" content="Free Seminar: Automate Your Business, Reclaim Your Life">
-    <meta property="og:description" content="Learn how I went from losing everything to running 6 businesses in 5 hours/day. FREE 90-minute seminar.">
+    <meta property="og:title" content="Free Seminar: Build a Real Business. Start with the Fundamentals.">
+    <meta property="og:description" content="Learn how to start, manage, and grow a business using the TYG Reselling Model. No inventory required. Just discipline and systems.">
     <meta property="og:image" content="https://tyg-services.com/seminar-og.png">
     <meta property="og:url" content="https://tyg-services.com/seminar.html">
     <meta property="og:type" content="website">
@@ -156,6 +156,21 @@
             align-items: center;
         }
 
+        @media (max-width: 968px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero-content p {
+                margin: 0 auto 40px;
+            }
+            
+            .hero-stats {
+                justify-content: center;
+            }
+        }
+
         .hero-content h1 {
             font-size: clamp(2.5rem, 5vw, 4rem);
             line-height: 1.2;
@@ -278,279 +293,162 @@
             background: var(--dark);
         }
 
-        .timeline {
-            position: relative;
+        .story-content {
             max-width: 800px;
             margin: 0 auto;
+            text-align: center;
         }
 
-        .timeline::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            width: 2px;
-            background: rgba(212, 168, 67, 0.2);
-            transform: translateX(-50%);
+        .story-content p {
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 20px;
+            line-height: 1.8;
         }
 
-        .timeline-card {
-            position: relative;
-            width: 45%;
-            margin-bottom: 60px;
+        .story-highlight {
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin: 40px 0;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* MODULES SECTION */
+        .modules-section {
+            padding: 100px 0;
+            background: var(--black);
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .module-card {
             background: var(--dark-card);
             padding: 30px;
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .timeline-card:nth-child(odd) {
-            left: 0;
-        }
-
-        .timeline-card:nth-child(even) {
-            left: 55%;
-        }
-
-        .timeline-icon {
-            position: absolute;
-            top: 20px;
-            width: 50px;
-            height: 50px;
-            background: var(--black);
-            border: 2px solid var(--gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            z-index: 2;
-        }
-
-        .timeline-card:nth-child(odd) .timeline-icon {
-            right: -65px; /* 50% + 40px gap */
-        }
-
-        .timeline-card:nth-child(even) .timeline-icon {
-            left: -65px;
-        }
-
-        .timeline-card h3 {
-            color: var(--gold);
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        .timeline-card p {
-            color: var(--gray);
-            font-size: 1rem;
-        }
-
-        .story-quote {
-            text-align: center;
-            font-size: 1.5rem;
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-top: 60px;
-            font-style: italic;
-        }
-
-        /* LEARN SECTION */
-        .learn-section {
-            padding: 100px 0;
-            background: var(--black);
-        }
-
-        .learn-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-
-        .learn-card {
-            background: var(--dark-card);
-            padding: 40px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
             transition: transform 0.3s;
         }
 
-        .learn-card:hover {
-            transform: translateY(-10px);
+        .module-card:hover {
+            transform: translateY(-5px);
             border-color: var(--gold);
         }
 
-        .learn-icon {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .learn-card h3 {
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-
-        .learn-card p {
-            color: var(--gray);
-        }
-
-        /* WHO FOR SECTION */
-        .who-section {
-            padding: 100px 0;
-            background: var(--dark);
-        }
-
-        .who-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-        }
-
-        .who-col h3 {
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-            text-align: center;
-        }
-
-        .check-list, .x-list {
-            list-style: none;
-        }
-
-        .check-list li, .x-list li {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 1.1rem;
-            background: var(--dark-card);
-            padding: 20px;
-            border-radius: 10px;
-        }
-
-        .check-list li i {
-            color: #4ade80;
-            font-size: 1.2rem;
-        }
-
-        .x-list li i {
-            color: #f87171;
-            font-size: 1.2rem;
-        }
-
-        /* HOST SECTION */
-        .host-section {
-            padding: 100px 0;
-            background: var(--black);
-        }
-
-        .host-grid {
-            display: grid;
-            grid-template-columns: 0.8fr 1.2fr;
-            gap: 60px;
-            align-items: center;
-        }
-
-        .host-img {
-            width: 100%;
-            border-radius: 20px;
-            border: 2px solid var(--gold);
-            box-shadow: 20px 20px 0 rgba(212, 168, 67, 0.1);
-        }
-
-        .host-content h2 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-
-        .host-role {
+        .module-number {
             color: var(--gold);
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            display: block;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: block;
         }
 
-        .host-bio {
+        .module-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        .module-card p {
             color: var(--gray);
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-        }
-
-        .biz-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .biz-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--white);
             font-size: 0.95rem;
         }
 
-        /* OPPORTUNITY SECTION */
-        .opp-section {
+        /* WHO IS THIS FOR */
+        .audience-section {
             padding: 100px 0;
             background: var(--dark);
         }
 
-        .opp-grid {
+        .audience-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 60px;
         }
 
-        .opp-card {
-            background: var(--dark-card);
-            padding: 50px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            transition: transform 0.3s;
+        @media (max-width: 768px) {
+            .audience-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .opp-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--gold);
-        }
-
-        .opp-card h3 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .opp-subtitle {
-            color: var(--gold);
-            font-size: 1.1rem;
+        .audience-col h3 {
+            font-size: 1.8rem;
             margin-bottom: 30px;
-            display: block;
-            font-weight: 600;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .opp-list {
-            text-align: left;
-            margin-bottom: 40px;
+        .audience-list {
             list-style: none;
         }
 
-        .opp-list li {
-            margin-bottom: 15px;
-            padding-left: 25px;
-            position: relative;
+        .audience-list li {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
             color: var(--gray);
         }
 
-        .opp-list li::before {
-            content: '•';
+        .audience-list i {
+            margin-top: 5px;
+        }
+
+        .for-you i {
+            color: #4caf50;
+        }
+
+        .not-for-you i {
+            color: #ff6b6b;
+        }
+
+        /* LEARN AND EARN */
+        .learn-earn-section {
+            padding: 100px 0;
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2015&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            text-align: center;
+        }
+
+        .learn-earn-box {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 60px;
+            border-radius: 20px;
+            border: 1px solid var(--gold);
+        }
+
+        .learn-earn-box h2 {
             color: var(--gold);
-            position: absolute;
-            left: 0;
-            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .learn-earn-list {
+            text-align: left;
+            margin: 30px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .learn-earn-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .learn-earn-item i {
+            color: var(--gold);
+            font-size: 1.2rem;
         }
 
         /* FAQ SECTION */
@@ -560,71 +458,45 @@
         }
 
         .faq-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .faq-item {
             background: var(--dark-card);
             padding: 30px;
-            border-radius: 10px;
+            border-radius: 15px;
+            margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .faq-item h3 {
-            color: var(--gold);
-            margin-bottom: 15px;
             font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--white);
         }
 
         .faq-item p {
             color: var(--gray);
-        }
-
-        /* CTA SECTION */
-        .cta-section {
-            padding: 120px 0;
-            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1632&q=80');
-            background-size: cover;
-            background-attachment: fixed;
-            text-align: center;
-        }
-
-        .cta-content h2 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            margin-bottom: 20px;
-        }
-
-        .cta-content p {
-            font-size: 1.3rem;
-            color: var(--white);
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-
-        .cta-details {
-            margin-top: 30px;
-            color: var(--gold);
-            font-weight: 600;
-            letter-spacing: 1px;
+            font-size: 0.95rem;
         }
 
         /* FOOTER */
         footer {
-            background: var(--black);
-            padding: 60px 0;
+            background: var(--dark);
+            padding: 60px 0 30px;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             text-align: center;
-            color: var(--gray);
         }
 
         .footer-links {
-            margin: 30px 0;
+            margin-bottom: 30px;
         }
 
         .footer-links a {
+            color: var(--gray);
             margin: 0 15px;
+            font-size: 0.9rem;
             transition: color 0.3s;
         }
 
@@ -632,73 +504,19 @@
             color: var(--gold);
         }
 
-        .social-icons {
-            margin-bottom: 30px;
+        .copyright {
+            color: var(--gray);
+            font-size: 0.8rem;
+            opacity: 0.6;
         }
 
-        .social-icons a {
-            font-size: 1.5rem;
-            margin: 0 10px;
-            color: var(--white);
-            transition: color 0.3s;
-        }
-
-        .social-icons a:hover {
-            color: var(--gold);
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 992px) {
-            .hero-grid, .host-grid, .who-grid, .opp-grid, .faq-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .hero {
-                padding-top: 100px;
-                text-align: center;
-            }
-
-            .hero-content p {
-                margin: 0 auto 40px;
-            }
-
-            .hero-stats {
-                justify-content: center;
-            }
-
-            .timeline::before {
-                left: 30px;
-            }
-
-            .timeline-card {
-                width: 100%;
-                padding-left: 80px;
-                left: 0 !important;
-            }
-
-            .timeline-icon {
-                left: 5px !important;
-                right: auto !important;
-            }
-
-            .host-img {
-                max-width: 400px;
-                margin: 0 auto;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .section-header h2 {
-                font-size: 2.2rem;
-            }
-            
-            .hero-content h1 {
-                font-size: 2.5rem;
-            }
-
-            .btn-primary {
-                width: 100%;
-            }
+        .disclaimer {
+            max-width: 800px;
+            margin: 20px auto 0;
+            font-size: 0.75rem;
+            color: var(--gray);
+            opacity: 0.5;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -709,347 +527,204 @@
         <div class="container">
             <div class="hero-grid">
                 <div class="hero-content">
-                    <span class="badge">FREE SEMINAR</span>
-                    <h1>Automate Your Business, Reclaim Your Life</h1>
-                    <p>Learn how I went from losing everything to running 6 businesses in just 5 hours a day — and how you can avoid the mistakes I made.</p>
+                    <span class="badge">Free Business Workshop</span>
+                    <h1>Build a Real Business.<br>Start with the Fundamentals.</h1>
+                    <p>A practical workshop on how to start, manage, and grow a business using the TYG Reselling Model. No inventory required. Just discipline and systems.</p>
                     
                     <div class="hero-stats">
                         <div class="stat-item">
-                            <h4>6</h4>
-                            <span>Businesses</span>
+                            <h4>Zero</h4>
+                            <span>Inventory Risk</span>
                         </div>
                         <div class="stat-item">
-                            <h4>9+</h4>
-                            <span>Years Exp</span>
+                            <h4>100%</h4>
+                            <span>Practical Skills</span>
                         </div>
                         <div class="stat-item">
-                            <h4>100+</h4>
-                            <span>Systems</span>
+                            <h4>Free</h4>
+                            <span>Access</span>
                         </div>
                     </div>
+
+                    <a href="#register" class="btn-primary">Join the Next Workshop</a>
                 </div>
 
-                <div class="reg-box">
-                    <h3 class="reg-title">Reserve Your FREE Seat</h3>
+                <div class="reg-box" id="register">
+                    <h3 class="reg-title">Reserve Your Spot</h3>
+                    
                     <div class="event-details">
                         <div class="detail-row">
-                            <div class="detail-icon"><i class="far fa-calendar-alt"></i></div>
+                            <div class="detail-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
                             <div class="detail-text">
-                                <strong>Every Saturday</strong>
-                                <span>Weekly Session</span>
+                                <strong>Next Session</strong>
+                                <span>Saturday, 8:00 PM PHT</span>
                             </div>
                         </div>
                         <div class="detail-row">
-                            <div class="detail-icon"><i class="far fa-clock"></i></div>
+                            <div class="detail-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
                             <div class="detail-text">
-                                <strong>2:00 PM - 4:00 PM PHT</strong>
-                                <span>Manila Time</span>
+                                <strong>Format</strong>
+                                <span>Live Online Workshop (Zoom)</span>
                             </div>
                         </div>
                         <div class="detail-row">
-                            <div class="detail-icon"><i class="fas fa-video"></i></div>
-                            <div class="detail-text">
-                                <strong>Online via Zoom</strong>
-                                <span>Join from anywhere</span>
+                            <div class="detail-icon">
+                                <i class="fas fa-ticket-alt"></i>
                             </div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-icon"><i class="fas fa-tag"></i></div>
                             <div class="detail-text">
-                                <strong>₱0 (FREE!)</strong>
-                                <span>No hidden fees</span>
+                                <strong>Cost</strong>
+                                <span>100% Free for Committed Learners</span>
                             </div>
                         </div>
                     </div>
-                    
-                    <a href="https://forms.gle/XXXXX" target="_blank" class="btn-primary" style="width: 100%; text-align: center;">Register Now — It's Free →</a>
-                    <p class="warning-text">⚠️ Limited to 50 seats per session</p>
+
+                    <a href="https://forms.gle/XXXXX" target="_blank" class="btn-primary" style="width: 100%; text-align: center;">Register Now</a>
+                    <p class="warning-text">Limited to 50 committed participants.</p>
                     
                     <div class="quote-box">
-                        "The idea is His gift; the journey is His guidance."
-                        <br>— Pia, Founder
+                        "I'm not here to promise you millions. I'm here to teach you the discipline that rebuilt my life."
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- STORY SECTION -->
+    <!-- FOUNDER STORY -->
     <section class="story-section">
         <div class="container">
             <div class="section-header">
-                <span class="badge">THE REAL STORY</span>
-                <h2>From Rock Bottom to 6 Businesses</h2>
-                <p>This isn't a success story. It's a survival story.</p>
+                <h2>I Learned Business the Hard Way. You Don't Have To.</h2>
             </div>
-
-            <div class="timeline">
-                <!-- Card 1 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">📉</div>
-                    <h3>The Fall (2016)</h3>
-                    <p>In 2016, I invested ALL my savings into two restaurants. I had ideas, visuals, and dreams — but no systems, no financial controls. Within a year, everything collapsed. I sold my car. Lost the business. Was left with nothing.</p>
+            <div class="story-content">
+                <p>In 2016, I started my first business. I made mistakes, lost money, and faced the reality of failure. It wasn't luck that turned things around—it was building systems.</p>
+                <p>Today, I run 6 businesses, but it started with one simple concept: <strong>Reselling</strong>. I learned how to find products, manage customers, and track every peso.</p>
+                <div class="story-highlight">
+                    "I created this seminar to share that journey. I'm not here to promise you millions. I'm here to teach you the discipline and systems that allowed me to rebuild and grow."
                 </div>
-
-                <!-- Card 2 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">🚪</div>
-                    <h3>The Exits I Declined</h3>
-                    <p>I had safe options: teach in Malaysia, become a secretary to a COO, work in a Japanese factory. I declined ALL of them. I chose to come home and rebuild.</p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">💪</div>
-                    <h3>Rock Bottom</h3>
-                    <p>I returned to the Philippines with less than ₱1,000. I sold repacked soap, biscuits with ₱5 margins, and drove Grab for 13 hours straight chasing ₱1,500 incentives — without food, water, or rest.</p>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">🙏</div>
-                    <h3>The Prayer</h3>
-                    <p>One exhausted night, I whispered: "Lord, bigyan mo lang ako ng ₱200,000 in sales. Kapag nangyari, pupunta ako ng Simala." Four days later — it happened. And I kept my promise.</p>
-                </div>
-
-                <!-- Card 5 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">💡</div>
-                    <h3>The Insight</h3>
-                    <p>That moment gave me hope. But the real lesson came after: Effort alone is not enough. Hustle without structure only leads to exhaustion. I started building systems — one by one.</p>
-                </div>
-
-                <!-- Card 6 -->
-                <div class="timeline-card">
-                    <div class="timeline-icon">🚀</div>
-                    <h3>Today</h3>
-                    <p>9 years and 100+ systems later, I run 6 businesses in just 5 hours a day. Not because I'm special — because I built the right foundation. Now I want to help you do the same.</p>
-                </div>
-            </div>
-
-            <div class="story-quote">
-                "The idea is His gift; the journey is His guidance."
+                <p>This isn't about getting rich quick. It's about building a foundation that lasts.</p>
             </div>
         </div>
     </section>
 
-    <!-- LEARN SECTION -->
-    <section class="learn-section">
+    <!-- WHO IS THIS FOR -->
+    <section class="audience-section">
         <div class="container">
             <div class="section-header">
-                <span class="badge">WHAT YOU'LL LEARN</span>
-                <h2>What You'll Learn in 90 Minutes</h2>
-                <p>No fluff. Just actionable strategies you can use immediately.</p>
+                <h2>Is This For You?</h2>
+                <p>We value quality over quantity. This workshop is designed for a specific type of person.</p>
             </div>
-
-            <div class="learn-grid">
-                <div class="learn-card">
-                    <span class="learn-icon">⚡</span>
-                    <h3>The 5 Automation Pillars</h3>
-                    <p>The exact framework for automating orders, inventory, payments, customer service, and reporting.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">💰</span>
-                    <h3>The Hidden Cost of Manual Work</h3>
-                    <p>Why you're losing ₱50K+ per month to inefficiency — and how to stop the bleeding.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">📺</span>
-                    <h3>Live System Demo</h3>
-                    <p>Watch real orders process automatically in actual business systems — not mockups.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">🤖</span>
-                    <h3>24/7 Customer Service</h3>
-                    <p>How to answer "How much?" and "Available pa?" automatically while you sleep.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">📊</span>
-                    <h3>5-Minute Dashboard</h3>
-                    <p>Check all your business metrics before breakfast — know exactly where you stand.</p>
-                </div>
-                <div class="learn-card">
-                    <span class="learn-icon">🎯</span>
-                    <h3>Your Action Plan</h3>
-                    <p>Leave with a clear roadmap to start automating YOUR business this week.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- WHO FOR SECTION -->
-    <section class="who-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="badge">IS THIS FOR YOU?</span>
-                <h2>This Seminar is For You If...</h2>
-            </div>
-
-            <div class="who-grid">
-                <div class="who-col">
-                    <h3>✅ This IS For You</h3>
-                    <ul class="check-list">
-                        <li><i class="fas fa-check-circle"></i> You're doing ₱30K-500K+ monthly but feeling stuck</li>
-                        <li><i class="fas fa-check-circle"></i> You spend 10+ hours/week on repetitive tasks</li>
-                        <li><i class="fas fa-check-circle"></i> You're tired of answering the same questions daily</li>
-                        <li><i class="fas fa-check-circle"></i> You want to scale without hiring an army</li>
-                        <li><i class="fas fa-check-circle"></i> You're an OFW managing a PH business remotely</li>
-                        <li><i class="fas fa-check-circle"></i> You've failed before and want to rebuild RIGHT</li>
+            <div class="audience-grid">
+                <div class="audience-col">
+                    <h3><i class="fas fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> This IS For You If:</h3>
+                    <ul class="audience-list for-you">
+                        <li><i class="fas fa-check"></i> You are a beginner with low capital but high willingness to learn.</li>
+                        <li><i class="fas fa-check"></i> You are an OFW looking for a manageable side business.</li>
+                        <li><i class="fas fa-check"></i> You want to learn actual business skills (sales, tracking, operations).</li>
+                        <li><i class="fas fa-check"></i> You value community support and honest feedback.</li>
                     </ul>
                 </div>
-                <div class="who-col">
-                    <h3>❌ This is NOT For You</h3>
-                    <ul class="x-list">
-                        <li><i class="fas fa-times-circle"></i> You're looking for "get rich quick" schemes</li>
-                        <li><i class="fas fa-times-circle"></i> You're not willing to put in the work</li>
-                        <li><i class="fas fa-times-circle"></i> You think automation is only for big companies</li>
-                        <li><i class="fas fa-times-circle"></i> You're happy working 16-hour days forever</li>
+                <div class="audience-col">
+                    <h3><i class="fas fa-times-circle" style="color: #ff6b6b; margin-right: 10px;"></i> This is NOT For You If:</h3>
+                    <ul class="audience-list not-for-you">
+                        <li><i class="fas fa-times"></i> You are looking for "easy money" or "passive income" without work.</li>
+                        <li><i class="fas fa-times"></i> You are not willing to track your sales and expenses daily.</li>
+                        <li><i class="fas fa-times"></i> You expect automation to solve problems you haven't understood yet.</li>
+                        <li><i class="fas fa-times"></i> You are looking for a "get rich quick" scheme.</li>
                     </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- HOST SECTION -->
-    <section class="host-section">
+    <!-- MODULES -->
+    <section class="modules-section">
         <div class="container">
-            <div class="host-grid">
-                <div class="host-visual">
-                    <img src="https://github.com/Maldipia/tyg-services.github.io/blob/main/pia%202.jpg?raw=true" alt="Pia - Founder" class="host-img">
+            <div class="section-header">
+                <h2>What You Will Learn</h2>
+                <p>A structured approach to building your business foundation.</p>
+            </div>
+            <div class="modules-grid">
+                <div class="module-card">
+                    <span class="module-number">Module 1</span>
+                    <h3>The Reseller Mindset</h3>
+                    <p>Why most fail and how to treat even a small side hustle as a serious corporation from Day 1.</p>
                 </div>
-                <div class="host-content">
-                    <span class="badge">MEET YOUR HOST</span>
-                    <h2>Pia</h2>
-                    <span class="host-role">Founder, TYG Services</span>
-                    
-                    <p class="host-bio">In 2016, Pia lost everything — her savings, her business, even her car. With less than ₱1,000, she drove Grab for 13 hours a day and sold biscuits with ₱5 margins.</p>
-                    <p class="host-bio">One prayer, one promise to Simala, and 9 years of building systems later — she now runs 6 businesses while working just 5 hours a day.</p>
-                    <p class="host-bio">This seminar is her way of helping other Filipino entrepreneurs avoid the painful mistakes she made.</p>
-                    
-                    <h4 style="margin-bottom: 15px; color: var(--gold);">Businesses She Runs:</h4>
-                    <div class="biz-list">
-                        <div class="biz-item"><i class="fas fa-ring"></i> The Gold Blessing</div>
-                        <div class="biz-item"><i class="fas fa-shoe-prints"></i> Sole Blessing</div>
-                        <div class="biz-item"><i class="fas fa-home"></i> Luntian Log Cabin</div>
-                        <div class="biz-item"><i class="fas fa-shopping-basket"></i> Must Have Corner</div>
-                        <div class="biz-item"><i class="fas fa-tshirt"></i> AST3R</div>
-                        <div class="biz-item"><i class="fas fa-bolt"></i> TYG Services</div>
+                <div class="module-card">
+                    <span class="module-number">Module 2</span>
+                    <h3>The Zero-Inventory Model</h3>
+                    <p>How to sell products you don't own yet (ethical dropshipping/pre-order) to minimize risk and capital.</p>
+                </div>
+                <div class="module-card">
+                    <span class="module-number">Module 3</span>
+                    <h3>The Discipline of Tracking</h3>
+                    <p>Introduction to the "Daily Log." If you don't track it, you don't know it. Master your numbers.</p>
+                </div>
+                <div class="module-card">
+                    <span class="module-number">Module 4</span>
+                    <h3>From Manual to Systems</h3>
+                    <p>Why you must do things manually first before you ever think about automation. Build the process first.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LEARN AND EARN -->
+    <section class="learn-earn-section">
+        <div class="container">
+            <div class="learn-earn-box">
+                <h2>Earn While You Learn</h2>
+                <p>We don't just teach theory. Qualified participants get access to the <strong>TYG Reseller Program</strong>.</p>
+                
+                <div class="learn-earn-list">
+                    <div class="learn-earn-item">
+                        <i class="fas fa-gem"></i>
+                        <span>Access verified products (Jewelry, Sneakers, Essentials)</span>
+                    </div>
+                    <div class="learn-earn-item">
+                        <i class="fas fa-wallet"></i>
+                        <span>No Capital Upfront - Pay only after you sell</span>
+                    </div>
+                    <div class="learn-earn-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Keep the profit margin on every sale</span>
+                    </div>
+                    <div class="learn-earn-item">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Real practice with professional tracking sheets</span>
                     </div>
                 </div>
+
+                <a href="#register" class="btn-primary">Apply for the Program</a>
             </div>
         </div>
     </section>
 
-    <!-- OPPORTUNITY SECTION -->
-    <section class="opp-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="badge">THE OPPORTUNITY</span>
-                <h2>Two Ways to Start</h2>
-                <p>Whether you're just starting or already scaling, we have a path for you.</p>
-            </div>
-
-            <div class="opp-grid">
-                <!-- Card 1 -->
-                <div class="opp-card">
-                    <h3>No Capital? No Problem.</h3>
-                    <span class="opp-subtitle">Join Our Reseller Program</span>
-                    
-                    <p style="color: var(--gray); margin-bottom: 20px;">Start earning while learning — no capital required. Resell products from our existing businesses:</p>
-                    
-                    <ul class="opp-list">
-                        <li>Sole Blessing (Footwear)</li>
-                        <li>AST3R (Apparel)</li>
-                        <li>Must Have Corner (Essentials)</li>
-                    </ul>
-                    
-                    <ul class="check-list" style="text-align: left; margin-bottom: 30px;">
-                        <li style="padding: 10px; font-size: 0.9rem;"><i class="fas fa-check"></i> No bulk inventory needed</li>
-                        <li style="padding: 10px; font-size: 0.9rem;"><i class="fas fa-check"></i> No physical store required</li>
-                        <li style="padding: 10px; font-size: 0.9rem;"><i class="fas fa-check"></i> Earn while you learn</li>
-                    </ul>
-                    
-                    <a href="#" class="btn-secondary">Learn More About Reselling →</a>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="opp-card" style="border-color: var(--gold);">
-                    <h3>Already Have a Business?</h3>
-                    <span class="opp-subtitle">Get Systems That Work</span>
-                    
-                    <p style="color: var(--gray); margin-bottom: 20px;">If you're already doing ₱30K-500K/month, you need systems — not more hustle.</p>
-                    
-                    <ul class="opp-list">
-                        <li>GoldFlow Pro — Inventory System</li>
-                        <li>Custom Automation — Built for you</li>
-                        <li>Free Audit — Identify time wasters</li>
-                    </ul>
-                    
-                    <div style="background: rgba(212, 168, 67, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: left;">
-                        <h5 style="color: var(--gold); margin-bottom: 10px;">Seminar Exclusive Bonuses:</h5>
-                        <div style="font-size: 0.9rem; margin-bottom: 5px;">✅ 60-day free trial (not 30)</div>
-                        <div style="font-size: 0.9rem; margin-bottom: 5px;">✅ Free 1-on-1 onboarding call</div>
-                        <div style="font-size: 0.9rem;">✅ Priority support for 90 days</div>
-                    </div>
-                    
-                    <a href="https://forms.gle/XXXXX" target="_blank" class="btn-primary">Join the Seminar First →</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ SECTION -->
+    <!-- FAQ -->
     <section class="faq-section">
         <div class="container">
             <div class="section-header">
-                <span class="badge">FAQ</span>
                 <h2>Frequently Asked Questions</h2>
             </div>
-
             <div class="faq-grid">
                 <div class="faq-item">
-                    <h3>Is this really free?</h3>
-                    <p>Yes, 100% free. No credit card required. No hidden fees. I make money when you succeed and choose to use our systems — not from charging for information.</p>
+                    <h3>Is this a guaranteed income program?</h3>
+                    <p>No. Business results depend entirely on your effort, market conditions, and execution. We provide the training and access to products; you provide the work.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>I'm not techy. Can I still learn?</h3>
-                    <p>Absolutely! I'm not a programmer either. Everything I teach uses simple tools like Google Sheets. If you can use Facebook, you can learn this.</p>
+                    <h3>Do I need to buy software or automation tools?</h3>
+                    <p>No. We teach you to use free tools like Google Sheets first. Automation is an optional advanced step for when you are ready to scale.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>What if I can't attend live?</h3>
-                    <p>Register anyway! We'll send you the recording within 24 hours. But live attendees get exclusive bonuses.</p>
+                    <h3>Is there a fee to join the reseller program?</h3>
+                    <p>The seminar is free. Acceptance into the reseller program is based on your commitment and performance during the workshop.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>Is this just a sales pitch?</h3>
-                    <p>No. 90% of the seminar is pure education — my real story, real systems, real strategies. I do present options at the end for those who want help implementing, but there's zero pressure.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>My business is different. Will this work for me?</h3>
-                    <p>If your business has orders, inventory, payments, and customers — yes. The framework applies whether you sell jewelry, food, clothes, or services. We customize the details.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>I've failed before. Is it too late for me?</h3>
-                    <p>I lost EVERYTHING in 2016 and rebuilt from ₱1,000. It's never too late. The best time to build systems was years ago. The second best time is today.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FINAL CTA -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-content">
-                <h2>Ready to Stop Being a Slave to Your Business?</h2>
-                <p>Join 50 business owners this Saturday and learn how to build systems that work while you sleep.</p>
-                
-                <a href="https://forms.gle/XXXXX" target="_blank" class="btn-primary" style="font-size: 1.2rem; padding: 20px 50px;">Reserve Your FREE Seat Now →</a>
-                
-                <div class="cta-details">
-                    📅 Every Saturday | 🕐 2:00 PM PHT | 💻 Online via Zoom
-                </div>
-                
-                <div class="quote-box" style="border: none; margin-top: 50px; font-size: 1.2rem;">
-                    "The idea is His gift; the journey is His guidance."
+                    <h3>I'm an OFW, can I do this?</h3>
+                    <p>Yes! This program is specifically designed to be manageable remotely, provided you have internet access and the discipline to communicate.</p>
                 </div>
             </div>
         </div>
@@ -1058,24 +733,17 @@
     <!-- FOOTER -->
     <footer>
         <div class="container">
-            <div class="social-icons">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="https://wa.me/639972603555"><i class="fab fa-whatsapp"></i></a>
-            </div>
-            
             <div class="footer-links">
                 <a href="index.html">Home</a>
                 <a href="index.html#services">Services</a>
-                <a href="index.html#goldflow">GoldFlow Pro</a>
                 <a href="index.html#contact">Contact</a>
             </div>
-            
-            <p>&copy; 2025 TYG Services. All rights reserved.</p>
-            <p style="margin-top: 10px; font-size: 0.9rem;">Contact: 0997-260-3555 | inquiry@tyg-services.com</p>
+            <p class="copyright">&copy; 2025 TYG Services. All rights reserved.</p>
+            <p class="disclaimer">
+                Disclaimer: All financial numbers referenced are for educational purposes or represent historical performance of TYG's own businesses. They are not guarantees of your future earnings. Participants in the Reseller Program act as independent business owners, not employees of TYG Services.
+            </p>
         </div>
     </footer>
 
 </body>
 </html>
-<!-- Force rebuild timestamp: 2025-12-18 -->

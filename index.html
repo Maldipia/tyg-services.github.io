@@ -90,6 +90,54 @@
 
         /* SECTIONS */
         section { padding: 100px 0; }
+        
+        /* TRUSTED BY */
+        .trusted-by { padding: 40px 0; background: var(--dark-card); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .trusted-logos { display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; opacity: 0.6; align-items: center; }
+        .trusted-logo { font-size: 1.2rem; font-weight: 600; color: var(--gray); letter-spacing: 1px; }
+        
+        /* OFW SECTION */
+        .ofw-section { background: linear-gradient(rgba(10,10,10,0.9), rgba(10,10,10,0.9)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80'); background-size: cover; background-attachment: fixed; }
+        .ofw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .ofw-content h2 { margin-bottom: 20px; font-size: 2.5rem; }
+        .ofw-content p { margin-bottom: 30px; color: var(--gray); }
+        .ofw-list { list-style: none; margin-bottom: 30px; }
+        .ofw-list li { margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        .ofw-list li i { color: var(--gold); }
+
+        /* CASE STUDY */
+        .case-study { background: var(--dark); }
+        .case-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .case-content h3 { color: var(--gold); margin-bottom: 10px; }
+        .case-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px; }
+        .case-stat-box { background: var(--dark-card); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(212, 168, 67, 0.2); }
+        .case-stat-num { font-size: 2rem; color: var(--gold); font-weight: bold; }
+        .case-stat-label { font-size: 0.8rem; color: var(--gray); }
+
+        /* RESOURCES */
+        .resources { background: var(--black); }
+        .resource-card { background: var(--dark-card); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s; }
+        .resource-card:hover { transform: translateY(-10px); border-color: var(--gold); }
+        .resource-icon { font-size: 3rem; color: var(--gold); margin-bottom: 20px; }
+        .resource-card h3 { margin-bottom: 15px; }
+        .resource-card p { color: var(--gray); margin-bottom: 25px; }
+
+        /* FAQ */
+        .faq-section { background: var(--dark); }
+        .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .faq-item { background: var(--dark-card); padding: 30px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .faq-item h3 { color: var(--gold); margin-bottom: 15px; font-size: 1.1rem; }
+        .faq-item p { color: var(--gray); font-size: 0.95rem; }
+
+        /* MEDIA */
+        .media-section { background: var(--black); }
+        .media-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; }
+        .media-card { background: var(--dark-card); border-radius: 15px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .media-content { padding: 25px; }
+        .media-tag { background: rgba(212, 168, 67, 0.1); color: var(--gold); padding: 5px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: 600; margin-bottom: 10px; display: inline-block; }
+        .media-card h3 { margin-bottom: 10px; font-size: 1.2rem; }
+        .media-card p { color: var(--gray); font-size: 0.9rem; margin-bottom: 15px; }
+        .media-link { color: var(--gold); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
         .section-header { text-align: center; max-width: 700px; margin: 0 auto 60px; }
         .section-badge { display: inline-block; background: rgba(212, 168, 67, 0.1); color: var(--gold); padding: 8px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
         .section-header h2 { font-size: clamp(2rem, 4vw, 2.8rem); margin-bottom: 20px; color: var(--white); }
@@ -304,6 +352,18 @@
         </div>
     </section>
 
+    <section class="trusted-by">
+        <div class="container">
+            <div class="trusted-logos">
+                <div class="trusted-logo">TRUSTED BY BUSINESSES IN</div>
+                <div class="trusted-logo">RETAIL</div>
+                <div class="trusted-logo">REAL ESTATE</div>
+                <div class="trusted-logo">E-COMMERCE</div>
+                <div class="trusted-logo">HOSPITALITY</div>
+            </div>
+        </div>
+    </section>
+
     <section class="problem">
         <div class="container">
             <div class="section-header">
@@ -315,6 +375,35 @@
                 <div class="problem-card"><div class="problem-icon">😩</div><h3>Drowning in Manual Tasks</h3><p>Copy-pasting orders, updating spreadsheets, sending the same messages over and over. Your time is worth more than this.</p></div>
                 <div class="problem-card"><div class="problem-icon">🌏</div><h3>Managing from Afar</h3><p>OFWs and remote owners struggling to monitor their PH business. You need eyes and systems that work while you sleep.</p></div>
                 <div class="problem-card"><div class="problem-icon">📈</div><h3>Can't Scale Operations</h3><p>Working IN your business instead of ON it. Growth means more chaos instead of more profit.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ofw-section">
+        <div class="container">
+            <div class="ofw-grid">
+                <div class="ofw-content">
+                    <span class="section-badge">OFW Solutions</span>
+                    <h2>Run Your PH Business from Anywhere</h2>
+                    <p>Don't let distance be a barrier. We build systems that give you full control and visibility of your Philippine operations, whether you're in Dubai, London, or New York.</p>
+                    <ul class="ofw-list">
+                        <li><i class="fas fa-check-circle"></i> Real-time dashboard monitoring</li>
+                        <li><i class="fas fa-check-circle"></i> Automated staff reporting</li>
+                        <li><i class="fas fa-check-circle"></i> Inventory & sales tracking</li>
+                        <li><i class="fas fa-check-circle"></i> Fraud prevention systems</li>
+                    </ul>
+                    <a href="#contact" class="btn-primary">Start Remote Management</a>
+                </div>
+                <div class="ofw-visual">
+                    <div class="hero-image-container">
+                        <div class="floating-card" style="top: 20px; left: 20px; animation-delay: 1s;"><div class="card-icon">🌍</div><div class="card-text">Remote Control</div></div>
+                        <div class="floating-card" style="bottom: 20px; right: 20px; animation-delay: 2s;"><div class="card-icon">📱</div><div class="card-text">24/7 Access</div></div>
+                        <div style="text-align: center; padding: 40px; color: var(--gray);">
+                            <i class="fas fa-globe-asia" style="font-size: 5rem; color: var(--gold); margin-bottom: 20px;"></i>
+                            <h3>Global Command Center</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -359,6 +448,67 @@
         </div>
     </section>
 
+    <section class="case-study">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Case Study</span>
+                <h2>The Gold Blessing Automation</h2>
+                <p>How we scaled a jewelry business to 100K+ transactions without adding chaos.</p>
+            </div>
+            <div class="case-grid">
+                <div class="case-visual">
+                    <div class="hero-image-container">
+                        <div style="text-align: center; padding: 40px;">
+                            <i class="fas fa-gem" style="font-size: 4rem; color: var(--gold); margin-bottom: 20px;"></i>
+                            <h3>Inventory System</h3>
+                            <p style="color: var(--gray);">Automated tracking from purchase to sale</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="case-content">
+                    <h3>The Challenge</h3>
+                    <p style="color: var(--gray); margin-bottom: 20px;">Manual inventory tracking led to overselling and hours of reconciliation every night. Growth was capped by human error.</p>
+                    <h3>The Solution</h3>
+                    <p style="color: var(--gray);">We built a custom inventory system that syncs real-time across all sales channels, automates invoicing, and generates profit reports instantly.</p>
+                    <div class="case-stats">
+                        <div class="case-stat-box"><div class="case-stat-num">95%</div><div class="case-stat-label">Time Saved</div></div>
+                        <div class="case-stat-box"><div class="case-stat-num">0</div><div class="case-stat-label">Overselling Errors</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="resources">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Free Resources</span>
+                <h2>Start Automating Today</h2>
+                <p>Download our free guides to kickstart your automation journey.</p>
+            </div>
+            <div class="problem-grid">
+                <div class="resource-card">
+                    <div class="resource-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <h3>Automation Audit Checklist</h3>
+                    <p>Identify the bottlenecks in your business that are ripe for automation.</p>
+                    <a href="#contact" class="btn-secondary">Download Free</a>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-icon"><i class="fas fa-file-excel"></i></div>
+                    <h3>5 Essential Sheet Automations</h3>
+                    <p>Simple scripts you can copy-paste to save 5 hours this week.</p>
+                    <a href="#contact" class="btn-secondary">Get the Guide</a>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-icon"><i class="fas fa-plane"></i></div>
+                    <h3>OFW Business Starter</h3>
+                    <p>The complete guide to setting up a remote-managed PH business.</p>
+                    <a href="#contact" class="btn-secondary">Download Guide</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="goldflow-section" id="goldflow">
         <div class="goldflow-container">
             <div class="goldflow-header">
@@ -377,6 +527,62 @@
                 <div class="goldflow-proof"><h4>Proven Results with The Gold Blessing</h4><div class="goldflow-stats"><div><p class="goldflow-stat-number">₱2M+</p><p class="goldflow-stat-label">Monthly Inventory</p></div><div><p class="goldflow-stat-number">100K+</p><p class="goldflow-stat-label">Transactions</p></div><div><p class="goldflow-stat-number">ZERO</p><p class="goldflow-stat-label">Overselling</p></div><div><p class="goldflow-stat-number">95%</p><p class="goldflow-stat-label">Time Saved</p></div></div></div>
                 <div class="goldflow-pricing"><h4>Simple, Transparent Pricing</h4><div class="pricing-grid"><div class="pricing-card"><h5>STARTER</h5><p class="price">₱2,500</p><p class="period">/month</p><ul><li><span>✓</span> Up to 500 products</li><li><span>✓</span> 3 sales channels</li><li><span>✓</span> Basic reports</li></ul></div><div class="pricing-card popular"><h5>PROFESSIONAL</h5><p class="price">₱5,000</p><p class="period">/month</p><ul><li><span>✓</span> Unlimited products</li><li><span>✓</span> Facebook auto-post</li><li><span>✓</span> Advanced analytics</li><li><span>✓</span> Priority support</li></ul></div><div class="pricing-card"><h5>ENTERPRISE</h5><p class="price">₱12,000</p><p class="period">/month</p><ul><li><span>✓</span> Everything in Pro</li><li><span>✓</span> Multi-branch</li><li><span>✓</span> API access</li></ul></div></div></div>
                 <div class="goldflow-cta"><h3>Start Your 30-Day FREE Trial!</h3><p>No credit card required • Set up in 10 minutes</p><a href="https://script.google.com/macros/s/AKfycbyfOpTiwc4CpsgyBfNzDbr0WxM1tz4pVNbkL6k0h6UPYuvTunn2AYj2mf5_t8dzRT0szg/exec" target="_blank" class="goldflow-btn">Start Free Trial →</a><p style="margin-top: 2rem; color: #666;"><strong>Questions?</strong> <a href="https://wa.me/639674000040" style="color: #25D366; font-weight: bold;">WhatsApp 0967-400-0040</a></p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">FAQ</span>
+                <h2>Common Questions</h2>
+                <p>Everything you need to know about automating your business.</p>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h3>How much does automation cost?</h3>
+                    <p>We offer project-based pricing starting at ₱25,000 for simple systems, and retainer packages for ongoing support. The ROI typically pays for itself within 3 months.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>How long does it take to build?</h3>
+                    <p>Simple automations (like order trackers) can be live in 1 week. Complex custom systems (like inventory management) typically take 4-6 weeks to design, build, and test.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Do I need technical knowledge?</h3>
+                    <p>Zero. We build the "engine" under the hood. You just drive the car. We provide full training and documentation for you and your staff.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Is my data secure?</h3>
+                    <p>Absolutely. We build on top of Google's enterprise-grade security infrastructure. You own your data and your systems 100%.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="media-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Insights</span>
+                <h2>Learn Automation</h2>
+                <p>Tips, tutorials, and behind-the-scenes of our systems.</p>
+            </div>
+            <div class="media-grid">
+                <div class="media-card">
+                    <div class="media-content">
+                        <span class="media-tag">YOUTUBE</span>
+                        <h3>Watch: 50 Orders Processed in 10 Seconds</h3>
+                        <p>See our custom automation script in action handling a bulk order upload for a retail client.</p>
+                        <a href="#" class="media-link">Watch Video →</a>
+                    </div>
+                </div>
+                <div class="media-card">
+                    <div class="media-content">
+                        <span class="media-tag">BLOG</span>
+                        <h3>Why Google Sheets is Better Than Excel</h3>
+                        <p>For cloud-based businesses, Google Sheets + Apps Script is the ultimate low-code power tool.</p>
+                        <a href="#" class="media-link">Read Article →</a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

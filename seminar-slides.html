@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYG Services - Free Community Seminar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4A843;
+            --gold-light: #E8C875;
+            --black: #0A0A0A;
+            --dark: #151515;
+            --gray: #888888;
+            --light-gray: #AAAAAA;
+            --white: #FAFAFA;
+            --red: #ff6b6b;
+            --green: #4CAF50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--black);
+            color: var(--white);
+            overflow: hidden;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 100px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, var(--black) 0%, var(--dark) 100%);
+            text-align: center;
+        }
+
+        .slide.active { display: flex; }
+        .slide.left-align { align-items: flex-start; text-align: left; }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        h1 span, h2 span { color: var(--gold); }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+        }
+
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--gold);
+        }
+
+        p {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            color: var(--white);
+            max-width: 900px;
+            margin-bottom: 15px;
+        }
+
+        .subtitle { font-size: 1.8rem; color: var(--gold); margin-bottom: 20px; }
+        .small-text { font-size: 1.1rem; color: var(--gray); }
+        .muted { color: var(--gray); }
+        .gold { color: var(--gold); }
+        .red { color: var(--red); }
+        .green { color: var(--green); }
+
+        ul { list-style: none; text-align: left; max-width: 800px; }
+
+        ul li {
+            font-size: 1.4rem;
+            padding: 15px 0;
+            padding-left: 40px;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        ul li::before {
+            content: "•";
+            color: var(--gold);
+            font-size: 1.8rem;
+            position: absolute;
+            left: 0;
+            top: 12px;
+        }
+
+        ul.check li::before { content: "✓"; color: var(--green); font-size: 1.4rem; }
+        ul.cross li::before { content: "✗"; color: var(--red); font-size: 1.4rem; }
+
+        ul.numbered { counter-reset: item; }
+        ul.numbered li { counter-increment: item; padding-left: 50px; }
+        ul.numbered li::before {
+            content: counter(item) ".";
+            color: var(--gold);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .highlight-box {
+            background: rgba(212, 168, 67, 0.1);
+            border-left: 4px solid var(--gold);
+            padding: 30px 40px;
+            margin: 30px 0;
+            max-width: 850px;
+        }
+
+        .highlight-box p { margin: 0; font-size: 1.6rem; }
+
+        .quote-box {
+            background: rgba(212, 168, 67, 0.08);
+            border: 1px solid rgba(212, 168, 67, 0.3);
+            border-radius: 16px;
+            padding: 40px 50px;
+            margin: 30px 0;
+            max-width: 800px;
+        }
+
+        .quote-box p {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-style: italic;
+            color: var(--gold-light);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .stat-row {
+            display: flex;
+            gap: 80px;
+            margin: 50px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-item { text-align: center; }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            color: var(--gold);
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label { font-size: 1.1rem; color: var(--gray); margin-top: 10px; }
+
+        .math-box {
+            background: var(--dark);
+            border: 1px solid rgba(212, 168, 67, 0.3);
+            border-radius: 12px;
+            padding: 30px 50px;
+            margin: 30px 0;
+            font-size: 1.4rem;
+            text-align: left;
+            max-width: 500px;
+        }
+
+        .math-line { display: flex; justify-content: space-between; padding: 10px 0; }
+
+        .math-result {
+            border-top: 2px solid var(--gold);
+            margin-top: 15px;
+            padding-top: 15px;
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            max-width: 1000px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .brand-grid {
+            display: flex;
+            gap: 30px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .brand-card {
+            background: var(--dark);
+            border: 1px solid rgba(212, 168, 67, 0.2);
+            border-radius: 12px;
+            padding: 25px 35px;
+            text-align: center;
+            min-width: 180px;
+        }
+
+        .brand-card .icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .brand-card .name { font-weight: 600; font-size: 1.1rem; }
+        .brand-card .desc { font-size: 0.9rem; color: var(--gray); margin-top: 5px; }
+
+        .divider { width: 80px; height: 3px; background: var(--gold); margin: 30px auto; }
+        .big-text { font-size: 2.5rem; line-height: 1.6; }
+
+        .tagline {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--gold);
+            font-style: italic;
+            margin-top: 40px;
+        }
+
+        .pause-note { font-size: 1rem; color: var(--gray); font-style: italic; margin-top: 30px; }
+
+        .title-slide {
+            background: radial-gradient(ellipse at top right, rgba(212, 168, 67, 0.12) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--black) 0%, var(--dark) 100%);
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(212, 168, 67, 0.15);
+            color: var(--gold);
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .nav {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .nav button {
+            background: rgba(212, 168, 67, 0.2);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 14px 35px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 500;
+        }
+
+        .nav button:hover { background: var(--gold); color: var(--black); }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 38px;
+            right: 50px;
+            font-size: 1rem;
+            color: var(--gray);
+        }
+
+        .logo {
+            position: fixed;
+            top: 30px;
+            left: 50px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .section-marker {
+            position: fixed;
+            top: 30px;
+            right: 50px;
+            font-size: 0.9rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 1024px) {
+            .slide { padding: 50px 60px; }
+            h1 { font-size: 2.8rem; }
+            h2 { font-size: 2.2rem; }
+            p, ul li { font-size: 1.2rem; }
+        }
+
+        @media (max-width: 768px) {
+            .slide { padding: 40px 30px; }
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.8rem; }
+            p { font-size: 1.1rem; }
+            ul li { font-size: 1.1rem; }
+            .stat-number { font-size: 3rem; }
+            .brand-grid { flex-direction: column; align-items: center; }
+            .logo, .section-marker { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">TYG Services</div>
+    
+    <div class="presentation">
+        
+        <!-- SLIDE 1: Title -->
+        <div class="slide active title-slide" data-section="Opening">
+            <span class="badge">Free Community Seminar</span>
+            <h1>From <span>Survival</span> to <span>Systems</span></h1>
+            <p>Helping You Start a Business With No Capital</p>
+            <div class="divider"></div>
+            <p class="small-text">Learn • Earn • Build Systems</p>
+        </div>
+
+        <!-- SLIDE 2: Why You're Here -->
+        <div class="slide" data-section="Opening">
+            <h2>Why <span>You're Here</span></h2>
+            <ul>
+                <li>Help you start <strong>without capital</strong></li>
+                <li>Reduce costly beginner mistakes</li>
+                <li>Teach business through <strong>real experience</strong>, not theory</li>
+                <li>Give you a safe way to <strong>learn and earn</strong> at the same time</li>
+            </ul>
+            <div class="highlight-box">
+                <p>This is free. There is no catch.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: Ground Rules -->
+        <div class="slide" data-section="Opening">
+            <h2>Important <span>Ground Rules</span></h2>
+            <p class="muted" style="margin-bottom: 30px;">Before we begin, let's be clear:</p>
+            <div class="two-column" style="max-width: 900px;">
+                <div>
+                    <ul class="cross">
+                        <li>This is <strong>NOT</strong> a get-rich-quick talk</li>
+                        <li>There are <strong>NO</strong> income guarantees</li>
+                        <li>Automation is <strong>NOT</strong> required</li>
+                    </ul>
+                </div>
+                <div>
+                    <ul class="check">
+                        <li>Effort, discipline, and honesty matter</li>
+                        <li>This is about <strong>learning properly</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Why I Built This -->
+        <div class="slide" data-section="Founder Story">
+            <h2>Why I <span>Built This</span></h2>
+            <p>I built this seminar because I learned business the <strong>hard way</strong>.</p>
+            <div style="margin: 40px 0;">
+                <p class="muted">Not from books.</p>
+                <p class="muted">Not from courses.</p>
+                <p class="gold" style="font-size: 1.8rem; margin-top: 20px;">From failure, survival, and rebuilding.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: My Story Part 1 -->
+        <div class="slide" data-section="Founder Story">
+            <h2>My Real Story — <span>Part 1</span></h2>
+            <ul>
+                <li>2016: Opened two Chinese-fusion restaurants</li>
+                <li>Invested <strong>all my savings</strong></li>
+                <li>Had ideas and visuals — but <strong>no systems</strong></li>
+                <li>Did not fully understand operations and responsibility</li>
+            </ul>
+            <p class="pause-note">[Pause]</p>
+            <p class="red" style="font-size: 2rem; margin-top: 20px;">Within a year, everything collapsed.</p>
+        </div>
+
+        <!-- SLIDE 6: My Story Part 2 -->
+        <div class="slide" data-section="Founder Story">
+            <h2>My Real Story — <span>Part 2</span></h2>
+            <div style="margin: 40px 0;">
+                <p class="red" style="font-size: 1.8rem;">Sold my car.</p>
+                <p class="red" style="font-size: 1.8rem;">Lost the business.</p>
+                <p class="red" style="font-size: 1.8rem;">Left with nothing.</p>
+            </div>
+            <div class="divider"></div>
+            <p>This was not bad luck.</p>
+            <p class="gold">This was lack of structure.</p>
+        </div>
+
+        <!-- SLIDE 7: The Choices -->
+        <div class="slide" data-section="Founder Story">
+            <h2>The <span>Choices</span></h2>
+            <p class="muted" style="margin-bottom: 20px;">I had options:</p>
+            <ul>
+                <li>Go back to Malaysia — teach language to students there</li>
+                <li>Become personal secretary — my cousin's spouse was COO of a big company</li>
+                <li>Work in Japan — factory job, stable income</li>
+            </ul>
+            <div class="divider"></div>
+            <p style="margin-top: 20px;">Safe paths. Stable income.</p>
+            <p class="gold" style="font-size: 1.8rem; margin-top: 20px;">Tinanggihan ko lahat.</p>
+        </div>
+
+        <!-- SLIDE 8: Rock Bottom -->
+        <div class="slide" data-section="Founder Story">
+            <h2><span>Rock Bottom</span></h2>
+            <p>Bumalik ako sa Pilipinas.</p>
+            <p class="muted">Less than ₱50,000 sa bulsa ko.</p>
+            <div style="margin: 30px 0;">
+                <p>Sa airport, bumili ako ng e-cigarettes para ibenta — para kumita kahit papaano.</p>
+            </div>
+            <p class="muted">Pagdating ko dito...</p>
+            <div class="stat-row" style="margin: 30px 0;">
+                <div class="stat-item">
+                    <div class="stat-number" style="color: var(--red);">₱1,000</div>
+                    <div class="stat-label">That was my entire net worth.</div>
+                </div>
+            </div>
+            <p class="pause-note">[Let that land]</p>
+        </div>
+
+        <!-- SLIDE 9: Survival Mode -->
+        <div class="slide" data-section="Founder Story">
+            <h2><span>Survival</span> Mode</h2>
+            <p class="muted" style="margin-bottom: 20px;">To survive, I:</p>
+            <ul>
+                <li>Sold repacked powdered soap — carried up 3 floors</li>
+                <li>Buy-and-sell with <strong>₱5–₱10 margins</strong> per item</li>
+                <li>Allowed customers to pay on salary day</li>
+                <li>Drove Grab — <strong>13 hours straight</strong> — for ₱1,500 incentive</li>
+            </ul>
+            <p style="margin-top: 30px; font-style: italic;" class="muted">No pride. Just discipline.</p>
+        </div>
+
+        <!-- SLIDE 10: The Turning Point (Simala) -->
+        <div class="slide" data-section="Founder Story">
+            <h2>The <span>Turning Point</span></h2>
+            <p class="muted">One night, exhausted, I prayed:</p>
+            <div class="quote-box">
+                <p>"Lord, ₱200,000 lang po. Gross sales lang.<br>Kapag nangyari, pupunta ako ng Simala."</p>
+            </div>
+            <p style="margin-top: 30px;"><span class="gold" style="font-size: 1.8rem;">Four days later</span> — it happened.</p>
+            <p>And I kept my promise.</p>
+            <div class="divider"></div>
+            <p class="muted">But that was not the miracle.<br>The miracle was what I built <strong>after</strong>.</p>
+        </div>
+
+        <!-- SLIDE 11: The Real Lesson -->
+        <div class="slide" data-section="Founder Story">
+            <h2>The Real <span>Lesson</span></h2>
+            <p class="muted" style="margin-bottom: 20px;">What I realized:</p>
+            <div class="two-column" style="max-width: 900px;">
+                <div>
+                    <ul class="cross">
+                        <li>Hustle alone is <strong>not enough</strong></li>
+                        <li>Effort without structure leads to <strong>exhaustion</strong></li>
+                    </ul>
+                </div>
+                <div>
+                    <ul class="check">
+                        <li>Systems reduce mistakes</li>
+                        <li>Tracking creates control</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="gold" style="font-size: 1.8rem; margin-top: 40px;">Discipline beats motivation.</p>
+        </div>
+
+        <!-- SLIDE 12: Where I Am Today -->
+        <div class="slide" data-section="Founder Story">
+            <h2>Where I Am <span>Today</span></h2>
+            <p class="muted">9 years later:</p>
+            <div class="stat-row">
+                <div class="stat-item">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">Operating Businesses</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Systems Built</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5 hrs</div>
+                    <div class="stat-label">Average Workday</div>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <p>Not because I'm special.</p>
+            <p class="gold">Because I learned to build structure.</p>
+        </div>
+
+        <!-- SLIDE 13: The Real Problem -->
+        <div class="slide" data-section="The Problem">
+            <h2>The Real <span>Problem</span> Today</h2>
+            <p class="muted" style="margin-bottom: 20px;">Today, business is harder because:</p>
+            <ul>
+                <li>Life moves faster</li>
+                <li>Mistakes cost more</li>
+                <li>Capital is limited</li>
+                <li>AI and automation add confusion</li>
+            </ul>
+            <div class="highlight-box" style="margin-top: 40px;">
+                <p>Beginners don't need hype. They need <strong>structure</strong>.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: The Core Idea -->
+        <div class="slide" data-section="The Problem">
+            <h2>The <span>Core Idea</span></h2>
+            <div class="big-text" style="margin: 50px 0;">
+                <p class="gold">Learn first.</p>
+                <p class="gold">Earn second.</p>
+                <p class="gold">Automate last.</p>
+            </div>
+            <p class="muted">This seminar is built around this idea.</p>
+        </div>
+
+        <!-- SLIDE 15: What You Will Learn -->
+        <div class="slide" data-section="What You'll Learn">
+            <h2>What You Will <span>Learn</span></h2>
+            <ul class="numbered">
+                <li>How business actually works</li>
+                <li>How to start with <strong>no capital</strong></li>
+                <li>How to price and track properly</li>
+                <li>How to avoid common beginner mistakes</li>
+                <li>How to build simple systems (manual first)</li>
+            </ul>
+        </div>
+
+        <!-- SLIDE 16: Learn-and-Earn Model -->
+        <div class="slide" data-section="What You'll Learn">
+            <h2>The <span>Learn-and-Earn</span> Model</h2>
+            <p class="muted" style="margin-bottom: 20px;">If you don't have capital, you can:</p>
+            <ul>
+                <li>Resell real products</li>
+                <li>Earn margins on each sale</li>
+                <li>Learn business fundamentals through practice</li>
+            </ul>
+            <div class="highlight-box" style="margin-top: 30px;">
+                <p>No inventory required. No bulk buying. Order per customer.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: This is NOT MLM -->
+        <div class="slide" data-section="What You'll Learn">
+            <h2>This is <span>NOT</span> MLM</h2>
+            <p class="muted" style="margin-bottom: 30px;">Let me be very clear:</p>
+            <ul class="cross">
+                <li><strong>No</strong> recruitment incentives</li>
+                <li><strong>No</strong> upline / downline structure</li>
+                <li><strong>No</strong> required inventory purchase</li>
+                <li><strong>No</strong> "levels" or "tiers" to unlock</li>
+            </ul>
+            <div class="highlight-box" style="margin-top: 30px;">
+                <p>You earn from YOUR sales only. Period.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Products You Can Resell -->
+        <div class="slide" data-section="What You'll Learn">
+            <h2>Products You <span>Can Resell</span></h2>
+            <div class="brand-grid">
+                <div class="brand-card">
+                    <div class="icon">👟</div>
+                    <div class="name">Sole Blessing</div>
+                    <div class="desc">Footwear</div>
+                </div>
+                <div class="brand-card">
+                    <div class="icon">👔</div>
+                    <div class="name">AST3R</div>
+                    <div class="desc">Apparel</div>
+                </div>
+                <div class="brand-card">
+                    <div class="icon">🥚</div>
+                    <div class="name">Must Have Corner</div>
+                    <div class="desc">Daily Essentials</div>
+                </div>
+            </div>
+            <p class="small-text">These are real, operating businesses.</p>
+            <p class="small-text gold">Optional: You can also apply what you learn elsewhere.</p>
+        </div>
+
+        <!-- SLIDE 19: How the Math Works -->
+        <div class="slide" data-section="What You'll Learn">
+            <h2>How the <span>Math</span> Works</h2>
+            <p class="muted">Example: Sneakers</p>
+            <div class="math-box">
+                <div class="math-line"><span>Your buy price:</span> <span>₱1,200</span></div>
+                <div class="math-line"><span>Your sell price:</span> <span>₱1,500</span></div>
+                <div class="math-line math-result"><span>Your profit:</span> <span>₱300</span></div>
+            </div>
+            <p style="margin-top: 30px;">Sell <span class="gold">10 pairs</span> = <span class="gold">₱3,000</span> profit/month</p>
+            <p class="small-text">No inventory risk. No bulk purchase. Just effort.</p>
+        </div>
+
+        <!-- SLIDE 20: Why Reselling is Safe -->
+        <div class="slide" data-section="What You'll Learn">
+            <h2>Why Reselling is <span>Safe</span></h2>
+            <p class="muted" style="margin-bottom: 20px;">Reselling allows you to:</p>
+            <ul class="check">
+                <li>Learn without risking savings</li>
+                <li>Understand real customers</li>
+                <li>Practice pricing and communication</li>
+                <li>Make mistakes with <strong>low consequences</strong></li>
+            </ul>
+            <p class="gold" style="margin-top: 40px; font-size: 1.6rem;">The income is secondary. The education is primary.</p>
+        </div>
+
+        <!-- SLIDE 21: Discipline Over Motivation -->
+        <div class="slide" data-section="Systems & Discipline">
+            <h2><span>Discipline</span> Over Motivation</h2>
+            <p class="muted" style="margin-bottom: 20px;">What matters more than motivation:</p>
+            <ul>
+                <li>Daily tracking</li>
+                <li>Honest logging</li>
+                <li>Fixing mistakes</li>
+                <li>Consistency</li>
+            </ul>
+            <div class="highlight-box" style="margin-top: 30px;">
+                <p>Systems protect effort.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 22: Simple Systems -->
+        <div class="slide" data-section="Systems & Discipline">
+            <h2>Simple <span>Systems</span></h2>
+            <p class="muted" style="margin-bottom: 20px;">You will learn to track:</p>
+            <ul class="numbered">
+                <li><strong>Sales</strong> — what sold, when, to whom</li>
+                <li><strong>Payments</strong> — who paid, who hasn't</li>
+                <li><strong>Mistakes</strong> — what went wrong, why</li>
+                <li><strong>Progress</strong> — are you improving?</li>
+            </ul>
+            <p class="small-text" style="margin-top: 30px;">No advanced tools required. Notebook or Google Sheets is enough.</p>
+        </div>
+
+        <!-- SLIDE 23: About Mistakes -->
+        <div class="slide" data-section="Systems & Discipline">
+            <h2>About <span>Mistakes</span></h2>
+            <div style="margin: 40px 0;">
+                <p style="font-size: 2rem;">Mistakes are not failures.</p>
+                <p class="gold" style="font-size: 2rem;"><strong>Untracked</strong> mistakes become failures.</p>
+            </div>
+            <p class="muted">We learn by:</p>
+            <ul class="numbered" style="margin-top: 20px;">
+                <li>Noticing errors</li>
+                <li>Understanding why</li>
+                <li>Correcting the process</li>
+                <li>Improving the system</li>
+            </ul>
+        </div>
+
+        <!-- SLIDE 24: When Systems Matter -->
+        <div class="slide" data-section="Systems & Discipline">
+            <h2>When Systems Become <span>Important</span></h2>
+            <p class="muted" style="margin-bottom: 20px;">Systems matter most when:</p>
+            <ul>
+                <li>Sales become consistent</li>
+                <li>Time becomes limited</li>
+                <li>Errors start repeating</li>
+                <li>You can't keep track in your head</li>
+            </ul>
+            <p class="gold" style="margin-top: 40px; font-size: 1.6rem;">This is when structure saves you.</p>
+        </div>
+
+        <!-- SLIDE 25: About Automation -->
+        <div class="slide" data-section="Systems & Discipline">
+            <h2>About <span>Automation</span></h2>
+            <p class="muted" style="margin-bottom: 30px;">Important:</p>
+            <ul class="cross">
+                <li>Automation is <strong>NOT</strong> required to start</li>
+                <li>Automation is <strong>NOT</strong> being sold today</li>
+                <li>Automation is <strong>NOT</strong> for beginners</li>
+            </ul>
+            <div class="highlight-box" style="margin-top: 30px;">
+                <p>Automation is support — not a shortcut.</p>
+            </div>
+            <p class="small-text" style="margin-top: 20px;">When you're ready (and only if you need it), we can talk.</p>
+        </div>
+
+        <!-- SLIDE 26: Who This Is For -->
+        <div class="slide" data-section="Who This Is For">
+            <h2>Who This Program <span>Is For</span></h2>
+            <ul class="check">
+                <li>Beginners who want to learn properly</li>
+                <li>People with no capital to start</li>
+                <li>Side hustlers testing the waters</li>
+                <li>Anyone willing to track and be consistent</li>
+                <li>People who failed before and want to try again — <strong>the right way</strong></li>
+            </ul>
+        </div>
+
+        <!-- SLIDE 27: Who This Is NOT For -->
+        <div class="slide" data-section="Who This Is For">
+            <h2>Who This Is <span>NOT</span> For</h2>
+            <ul class="cross">
+                <li>People chasing fast money</li>
+                <li>People who don't want discipline</li>
+                <li>People who refuse to track</li>
+                <li>People looking for shortcuts</li>
+            </ul>
+            <p class="muted" style="margin-top: 40px;">And that's okay. This isn't for everyone.</p>
+        </div>
+
+        <!-- SLIDE 28: What You Get -->
+        <div class="slide" data-section="What's Next">
+            <h2>What You Get <span>After Today</span></h2>
+            <p class="muted" style="margin-bottom: 20px;">After this seminar, you may:</p>
+            <ul class="check">
+                <li>Join the community (free)</li>
+                <li>Try the learn-and-earn model</li>
+                <li>Access basic tracking templates</li>
+                <li>Ask questions and get support</li>
+            </ul>
+            <p class="gold" style="margin-top: 40px; font-size: 1.5rem;">All optional. No pressure. No deadline.</p>
+        </div>
+
+        <!-- SLIDE 29: The Community -->
+        <div class="slide" data-section="What's Next">
+            <h2>The <span>Community</span></h2>
+            <p style="margin-bottom: 30px;">You're not doing this alone.</p>
+            <p class="muted">Inside the community:</p>
+            <ul style="margin: 20px 0;">
+                <li>Ask questions anytime</li>
+                <li>Learn from others' experiences</li>
+                <li>Share wins — and struggles</li>
+                <li>Get support when stuck</li>
+            </ul>
+            <div class="highlight-box">
+                <p>No spam. No selling. Just support.</p>
+            </div>
+            <p class="small-text">Free to join. Free to leave.</p>
+        </div>
+
+        <!-- SLIDE 30: How This Helps -->
+        <div class="slide" data-section="What's Next">
+            <h2>How This <span>Helps</span> the Community</h2>
+            <p class="muted" style="margin-bottom: 20px;">This model:</p>
+            <ul class="check">
+                <li>Lowers entry barriers</li>
+                <li>Reduces beginner losses</li>
+                <li>Builds shared learning</li>
+                <li>Creates honest income paths</li>
+            </ul>
+            <p class="gold" style="margin-top: 40px; font-size: 1.5rem;">When you succeed, the community grows stronger.</p>
+        </div>
+
+        <!-- SLIDE 31: Why This Is Free -->
+        <div class="slide" data-section="What's Next">
+            <h2>Why This Is <span>Free</span></h2>
+            <p class="muted" style="margin-bottom: 30px;">Honest answer:</p>
+            <ul>
+                <li>I wish someone helped me this way when I started</li>
+                <li>I believe in building relationships first</li>
+                <li>I want to find serious people to work with long-term</li>
+            </ul>
+            <div class="divider"></div>
+            <p class="small-text">TYG earns when you use our systems later — if and when you need it.</p>
+            <p class="small-text">That's optional. And that's not today.</p>
+        </div>
+
+        <!-- SLIDE 32: Final Reminder -->
+        <div class="slide" data-section="Closing">
+            <h2>Final <span>Reminder</span></h2>
+            <p>You don't need to be perfect.</p>
+            <div class="big-text" style="margin: 40px 0;">
+                <p>You need to be <span class="gold">honest</span>.</p>
+                <p>You need to be <span class="gold">consistent</span>.</p>
+                <p>You need to be <span class="gold">willing to learn</span>.</p>
+            </div>
+            <p class="muted">That's it. The rest follows.</p>
+        </div>
+
+        <!-- SLIDE 33: Next Steps -->
+        <div class="slide" data-section="Closing">
+            <h2>Next <span>Steps</span></h2>
+            <p class="muted" style="margin-bottom: 30px;">If you choose to continue:</p>
+            <ul class="numbered">
+                <li>Join the community group (link in chat)</li>
+                <li>Introduce yourself</li>
+                <li>Start small — one sale, one tracking entry</li>
+                <li>Ask questions when stuck</li>
+            </ul>
+            <p class="gold" style="margin-top: 40px; font-size: 1.5rem;">No pressure. No deadline. Start when you're ready.</p>
+        </div>
+
+        <!-- SLIDE 34: Thank You -->
+        <div class="slide title-slide" data-section="Closing">
+            <h2>Thank You</h2>
+            <p style="margin: 20px 0;">I built systems because survival demanded it.</p>
+            <p>You don't have to learn the hard way.</p>
+            <div class="divider"></div>
+            <p class="tagline">"The idea is His gift; the journey is His guidance."</p>
+            <div style="margin-top: 50px;">
+                <p class="small-text">Contact: 0997-260-3555 | inquiry@tyg-services.com</p>
+                <p class="small-text">tyg-services.com</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="nav">
+        <button onclick="prevSlide()">← Previous</button>
+        <button onclick="nextSlide()">Next →</button>
+    </div>
+
+    <div class="slide-counter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">34</span>
+    </div>
+
+    <div class="section-marker" id="sectionMarker">Opening</div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+            const section = slides[currentSlide].getAttribute('data-section');
+            document.getElementById('sectionMarker').textContent = section || '';
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { showSlide(currentSlide - 1); }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextSlide(); }
+            else if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); prevSlide(); }
+            else if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+            else if (e.key === 'End') { e.preventDefault(); showSlide(totalSlides - 1); }
+        });
+
+        let touchStartX = 0, touchEndX = 0;
+        document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchStartX - touchEndX > 50) nextSlide();
+            else if (touchEndX - touchStartX > 50) prevSlide();
+        });
+    </script>
+</body>
+</html>

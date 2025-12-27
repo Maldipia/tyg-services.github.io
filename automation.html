@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TYG Services | Premium Automation & Operations for Growing Businesses. We build systems that replace manual work.">
+    <title>TYG Services | Scale Without Chaos</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --gold: #D4A843;
+            --gold-light: #E8C875;
+            --gold-dark: #9A7B2F;
+            --black: #0A0A0A;
+            --dark: #151515;
+            --dark-card: #1A1A1A;
+            --gray: #888888;
+            --white: #FAFAFA;
+            --gradient-gold: linear-gradient(135deg, #9A7B2F 0%, #D4A843 50%, #E8C875 100%);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: var(--white);
+            background: var(--black);
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 500; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        /* NAV */
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 20px 0; transition: all 0.4s ease; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(212, 168, 67, 0.1); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { height: 60px; }
+        .nav-cta { background: var(--gradient-gold); color: var(--black); padding: 10px 24px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.3s; }
+        .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212, 168, 67, 0.3); }
+
+        /* HERO */
+        .hero { min-height: 90vh; display: flex; align-items: center; position: relative; padding: 140px 0 80px; overflow: hidden; background: var(--black); }
+        .hero::before { content: ''; position: absolute; top: -50%; right: -20%; width: 80%; height: 150%; background: radial-gradient(ellipse at center, rgba(212, 168, 67, 0.08) 0%, transparent 60%); pointer-events: none; }
+        .hero-content { max-width: 800px; margin: 0 auto; text-align: center; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(212, 168, 67, 0.1); border: 1px solid rgba(212, 168, 67, 0.3); padding: 8px 16px; border-radius: 30px; font-size: 0.85rem; color: var(--gold); margin-bottom: 30px; }
+        .hero h1 { font-size: clamp(2.8rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 24px; color: var(--white); }
+        .hero h1 span { background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-subtitle { font-size: 1.25rem; color: var(--gray); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .btn-primary { background: var(--gradient-gold); color: var(--black); padding: 18px 40px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 1.1rem; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(212, 168, 67, 0.35); }
+
+        /* SECTIONS */
+        section { padding: 100px 0; }
+        .section-header { text-align: center; max-width: 700px; margin: 0 auto 60px; }
+        .section-badge { color: var(--gold); font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 15px; }
+        h2 { font-size: 2.5rem; margin-bottom: 20px; color: var(--white); }
+        
+        /* PROBLEM */
+        .problem { background: var(--dark); }
+        .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .problem-card { background: var(--dark-card); padding: 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s; }
+        .problem-card:hover { border-color: var(--gold); transform: translateY(-5px); }
+        .problem-icon { font-size: 2rem; color: var(--gold); margin-bottom: 20px; }
+        .problem-card h3 { margin-bottom: 15px; font-size: 1.3rem; }
+        .problem-card p { color: var(--gray); font-size: 1rem; }
+
+        /* SOLUTION */
+        .solution { background: var(--black); }
+        .solution-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .solution-list { list-style: none; margin-top: 30px; }
+        .solution-list li { margin-bottom: 20px; display: flex; align-items: flex-start; gap: 15px; font-size: 1.1rem; color: var(--gray); }
+        .solution-list li i { color: var(--gold); margin-top: 5px; }
+        .solution-list li strong { color: var(--white); }
+
+        /* HOW IT WORKS */
+        .steps { background: var(--dark); }
+        .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; position: relative; }
+        .step-card { text-align: center; padding: 20px; position: relative; z-index: 1; }
+        .step-number { width: 50px; height: 50px; background: var(--dark-card); border: 1px solid var(--gold); color: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; margin: 0 auto 20px; }
+        .step-card h3 { margin-bottom: 10px; font-size: 1.2rem; }
+        .step-card p { color: var(--gray); font-size: 0.95rem; }
+
+        /* SERVICES */
+        .services { background: var(--black); }
+        .service-card { background: var(--dark-card); padding: 50px; border-radius: 20px; border: 1px solid rgba(212, 168, 67, 0.1); text-align: center; transition: all 0.3s; }
+        .service-card:hover { border-color: var(--gold); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .service-price { font-size: 0.9rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: block; font-weight: 600; }
+        .service-card h3 { font-size: 1.8rem; margin-bottom: 20px; }
+        .service-card p { color: var(--gray); margin-bottom: 30px; }
+        .service-features { list-style: none; text-align: left; margin-bottom: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; }
+        .service-features li { margin-bottom: 12px; color: var(--gray); display: flex; align-items: center; gap: 10px; }
+        .service-features li i { color: var(--gold); font-size: 0.8rem; }
+
+        /* QUALIFICATION */
+        .qualification { background: var(--dark); }
+        .qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1000px; margin: 0 auto; }
+        .qual-box { padding: 40px; border-radius: 15px; }
+        .qual-box.for { background: rgba(212, 168, 67, 0.05); border: 1px solid rgba(212, 168, 67, 0.2); }
+        .qual-box.not-for { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .qual-box h3 { margin-bottom: 20px; font-size: 1.4rem; }
+        .qual-list li { margin-bottom: 15px; display: flex; align-items: flex-start; gap: 10px; color: var(--gray); }
+        .qual-box.for i { color: var(--gold); }
+        .qual-box.not-for i { color: #666; }
+
+        /* CTA */
+        .cta-section { padding: 120px 0; text-align: center; background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'); background-size: cover; background-attachment: fixed; }
+        
+        /* FOOTER */
+        footer { background: var(--dark); padding: 60px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); text-align: center; color: var(--gray); font-size: 0.9rem; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .solution-grid, .qual-grid { grid-template-columns: 1fr; }
+            .nav-cta { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="/"><img src="tyglogo2_0.png" alt="TYG Services" class="logo"></a>
+            <a href="#audit" class="nav-cta">Book Audit</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">AUTOMATION-FIRST OPERATIONS</div>
+                <h1>Scale Your Business<br><span>Without the Chaos.</span></h1>
+                <p class="hero-subtitle">Stop drowning in spreadsheets and repetitive tasks. We build custom automation ecosystems that replace manual work, eliminate human error, and give you back the time to focus on strategic growth.</p>
+                <a href="#audit" class="btn-primary">Book a Free Systems Audit</a>
+                <p style="margin-top: 20px; font-size: 0.9rem; color: var(--gray);"><i class="fas fa-check" style="color: var(--gold); margin-right: 8px;"></i> No commitment required</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="problem">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">THE PROBLEM</span>
+                <h2>The "Success" Trap</h2>
+                <p style="color: var(--gray);">As you grow, operations shouldn't get harder. But for most founders, they do.</p>
+            </div>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon"><i class="fas fa-copy"></i></div>
+                    <h3>Manual Data Entry</h3>
+                    <p>Copy-pasting between sheets, CRMs, and email tools. It's slow, boring, and prone to expensive typos.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon"><i class="fas fa-fire-extinguisher"></i></div>
+                    <h3>Constant Firefighting</h3>
+                    <p>You're fixing errors and chasing team members instead of working on strategy. You own a job, not a business.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon"><i class="fas fa-eye-slash"></i></div>
+                    <h3>Flying Blind</h3>
+                    <p>No real-time data. You don't know your true profit or inventory status until the end of the month.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="solution">
+        <div class="container">
+            <div class="solution-grid">
+                <div class="solution-content">
+                    <span class="section-badge">THE SOLUTION</span>
+                    <h2>Systems That Run While You Sleep</h2>
+                    <p style="color: var(--gray); margin-bottom: 30px;">We don't just "organize" your files; we engineer intelligent operational systems. By replacing manual workflows with automated pipelines, we turn your chaotic operations into a streamlined machine.</p>
+                    <ul class="solution-list">
+                        <li><i class="fas fa-check-circle"></i> <strong>Reclaim 20+ Hours Weekly:</strong> Automate low-value repetitive tasks instantly.</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Eliminate Human Error:</strong> Zero typos, zero missed orders, zero overselling.</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Real-Time Clarity:</strong> Live dashboards that show you exactly where your business stands.</li>
+                    </ul>
+                </div>
+                <div class="solution-visual">
+                    <div style="background: var(--dark-card); padding: 40px; border-radius: 20px; border: 1px solid rgba(212, 168, 67, 0.2); position: relative;">
+                        <div style="position: absolute; top: -20px; right: -20px; background: var(--black); border: 1px solid var(--gold); padding: 15px 25px; border-radius: 10px; color: var(--gold); font-weight: 600;">
+                            <i class="fas fa-robot" style="margin-right: 10px;"></i> Auto-Running
+                        </div>
+                        <h3 style="margin-bottom: 20px;">The Old Way</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; opacity: 0.5;">
+                            <div style="width: 10px; height: 10px; background: var(--gray); border-radius: 50%;"></div>
+                            <div style="height: 10px; background: var(--gray); width: 80%; border-radius: 5px;"></div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 30px; opacity: 0.5;">
+                            <div style="width: 10px; height: 10px; background: var(--gray); border-radius: 50%;"></div>
+                            <div style="height: 10px; background: var(--gray); width: 60%; border-radius: 5px;"></div>
+                        </div>
+                        <h3 style="margin-bottom: 20px; color: var(--gold);">The TYG Way</h3>
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                            <i class="fas fa-bolt" style="color: var(--gold);"></i>
+                            <span style="color: var(--white);">Order Received</span>
+                            <i class="fas fa-arrow-right" style="color: var(--gray);"></i>
+                            <span style="color: var(--white);">Inventory Updated</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <i class="fas fa-bolt" style="color: var(--gold);"></i>
+                            <span style="color: var(--white);">Invoice Sent</span>
+                            <i class="fas fa-arrow-right" style="color: var(--gray);"></i>
+                            <span style="color: var(--white);">Team Notified</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="steps">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">PROCESS</span>
+                <h2>How It Works</h2>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Audit</h3>
+                    <p>We analyze your current workflow to find bottlenecks and wasted time.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Design</h3>
+                    <p>We map out a custom automation architecture for your specific needs.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Build</h3>
+                    <p>We engineer and implement the systems, connecting your tools seamlessly.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Optimize</h3>
+                    <p>We monitor performance and refine the system as you scale.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="services">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">OFFERINGS</span>
+                <h2>Our Services</h2>
+                <p style="color: var(--gray);">Tailored solutions for every stage of growth.</p>
+            </div>
+            <div class="problem-grid">
+                <div class="service-card">
+                    <span class="service-price">Project-Based</span>
+                    <h3>Automation Build</h3>
+                    <p>Custom-engineered workflows that connect your existing tools into a unified ecosystem.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Custom API Integrations</li>
+                        <li><i class="fas fa-check"></i> Dashboard Creation</li>
+                        <li><i class="fas fa-check"></i> Workflow Mapping</li>
+                        <li><i class="fas fa-check"></i> Staff Training</li>
+                    </ul>
+                </div>
+                <div class="service-card" style="border-color: var(--gold); background: rgba(212, 168, 67, 0.05);">
+                    <span class="service-price">Monthly Retainer</span>
+                    <h3>Managed Operations</h3>
+                    <p>Comprehensive oversight of your daily operations. We handle the execution so you can lead.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Daily System Monitoring</li>
+                        <li><i class="fas fa-check"></i> Vendor Coordination</li>
+                        <li><i class="fas fa-check"></i> Quality Control</li>
+                        <li><i class="fas fa-check"></i> Weekly Reporting</li>
+                    </ul>
+                </div>
+                <div class="service-card">
+                    <span class="service-price">Ongoing Support</span>
+                    <h3>Optimization</h3>
+                    <p>Continuous analysis and refinement of your systems to prevent downtime.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Error Logging & Fixes</li>
+                        <li><i class="fas fa-check"></i> System Upgrades</li>
+                        <li><i class="fas fa-check"></i> New Feature Adds</li>
+                        <li><i class="fas fa-check"></i> Priority Support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="qualification">
+        <div class="container">
+            <div class="section-header">
+                <h2>Is This For You?</h2>
+            </div>
+            <div class="qual-grid">
+                <div class="qual-box for">
+                    <h3><i class="fas fa-check-circle" style="margin-right: 10px;"></i> Who This Is For</h3>
+                    <ul class="qual-list" style="list-style: none;">
+                        <li><i class="fas fa-check"></i> Founders generating revenue but drowning in admin work.</li>
+                        <li><i class="fas fa-check"></i> Businesses using Google Workspace, Slack, or common SaaS tools.</li>
+                        <li><i class="fas fa-check"></i> Leaders who value systems and long-term efficiency over quick fixes.</li>
+                    </ul>
+                </div>
+                <div class="qual-box not-for">
+                    <h3><i class="fas fa-times-circle" style="margin-right: 10px;"></i> Who This Is NOT For</h3>
+                    <ul class="qual-list" style="list-style: none;">
+                        <li><i class="fas fa-times"></i> Startups with zero revenue or undefined processes.</li>
+                        <li><i class="fas fa-times"></i> People looking for a cheap "virtual assistant" to micromanage.</li>
+                        <li><i class="fas fa-times"></i> Those unwilling to change their manual habits.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section" id="audit">
+        <div class="container">
+            <h2 style="font-size: 3rem; margin-bottom: 20px;">Stop Working IN Your Business.</h2>
+            <p style="font-size: 1.2rem; color: var(--white); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">Let's identify exactly where you're losing time and money. Book a free 30-minute systems audit with our team.</p>
+            <a href="https://calendly.com/tyg-services/audit" target="_blank" class="btn-primary">Book a Free Systems Audit</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <img src="tyglogo2_0.png" alt="TYG Services" style="height: 40px; margin-bottom: 20px; opacity: 0.7;">
+            <p>&copy; 2025 TYG Services. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

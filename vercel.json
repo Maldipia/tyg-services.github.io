@@ -1,0 +1,44 @@
+{
+  "regions": ["sin1"],
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/daily",
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/retry-webhooks",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/health",
+      "schedule": "*/5 * * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options",    "value": "nosniff" },
+        { "key": "X-Frame-Options",           "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection",          "value": "1; mode=block" },
+        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy",        "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin",  "value": "https://www.tyg-services.com" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PATCH,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,Authorization,x-tyg-signature" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/order",
+      "destination": "/order/page"
+    }
+  ]
+}

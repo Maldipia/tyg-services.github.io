@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChefHat, Delete } from 'lucide-react';
 
@@ -13,7 +13,7 @@ const KEYPAD = [
   ['','0','⌫'],
 ];
 
-export default function StaffLoginPage() {
+function StaffLoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tenantSlug] = useState('yani'); // In real app: from subdomain or URL
@@ -242,5 +242,17 @@ export default function StaffLoginPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function StaffLoginPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117' }}>
+        <div style={{ color: '#16a34a', fontSize: 18 }}>Loading...</div>
+      </div>
+    }>
+      <StaffLoginPageInner />
+    </Suspense>
   );
 }

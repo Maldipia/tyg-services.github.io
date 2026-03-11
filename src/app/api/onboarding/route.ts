@@ -8,7 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { hashPin } from '@/lib/auth/staff-auth';
-import { apiSuccess, apiError, getClientIp, ownerLoginRateLimit } from '@/lib/auth/middleware';
+import { apiSuccess, apiError, getClientIp } from "@/lib/auth/middleware";
+import { ownerLoginRateLimit } from "@/lib/redis/ratelimit";
 
 const OnboardingSchema = z.object({
   businessName: z.string().min(2).max(100).trim(),

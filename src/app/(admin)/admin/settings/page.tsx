@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Store, QrCode, Palette, ToggleRight,
@@ -55,7 +55,7 @@ const sectionStyle = {
   marginBottom: 16,
 };
 
-export default function SettingsPage() {
+function SettingsPageInner() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<SettingsTab>(
     (searchParams.get('tab') as SettingsTab) ?? 'general'
@@ -491,5 +491,17 @@ function ToggleRow({
         />
       </button>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117' }}>
+        <div style={{ color: '#16a34a', fontSize: 18 }}>Loading settings...</div>
+      </div>
+    }>
+      <SettingsPageInner />
+    </Suspense>
   );
 }

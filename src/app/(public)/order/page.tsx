@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { MenuItem, MenuCategory, CartItem } from '@/types';
 import MenuItemCard from '@/components/menu/MenuItemCard';
@@ -32,7 +32,7 @@ interface PlacedOrder {
   paymentStatus: string;
 }
 
-export default function OrderPage() {
+function OrderPageInner() {
   const searchParams = useSearchParams();
   const tableToken = searchParams.get('t');
   const tenantSlug = searchParams.get('tenant') ?? '';
@@ -321,5 +321,17 @@ export default function OrderPage() {
         primaryColor={tenant.primaryColor}
       />
     </div>
+  );
+}
+
+export default function OrderPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117' }}>
+        <div style={{ color: '#16a34a', fontSize: 18 }}>Loading menu...</div>
+      </div>
+    }>
+      <OrderPageInner />
+    </Suspense>
   );
 }

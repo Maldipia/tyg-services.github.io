@@ -1,6 +1,5 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
       {
@@ -10,7 +9,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Skip type checking and linting during build (env vars not set yet)
   typescript: {
     ignoreBuildErrors: true,
   },

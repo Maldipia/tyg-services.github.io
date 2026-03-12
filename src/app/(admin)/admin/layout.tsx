@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import AdminShell from '@/components/admin/layout/AdminShell';
 

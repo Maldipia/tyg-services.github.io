@@ -1,289 +1,256 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, ShoppingBag, Banknote, UtensilsCrossed,
-  QrCode, Users, BarChart3, Settings, CreditCard,
-  LogOut, Menu, X, ChefHat, HelpCircle, Bell,
-  ChevronRight, AlertTriangle, Zap,
+  LayoutDashboard, ShoppingBag, Banknote,
+  UtensilsCrossed, MapPin, Users,
+  BarChart3, Settings, CreditCard,
+  ChefHat, Menu, X, LogOut,
+  HelpCircle, AlertTriangle, Bell,
+  ChevronDown, Building2
 } from 'lucide-react';
 
-// ─── Role-gated navigation groups ─────────────────────────────
-// Each item specifies which roles can see it.
-// KITCHEN gets no sidebar — they go straight to KDS.
-interface NavItem {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  roles: string[];
-  badgeKey?: string;
-  planWarning?: boolean;
-}
-
-const NAV_GROUPS: { id: string; label: string; items: NavItem[] }[] = [
+const NAV_GROUPS = [
   {
-    id: 'operations',
-    label: 'Operations',
+    group: 'OPERATIONS',
     items: [
-      { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard',    roles: ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN'] },
-      { href: '/admin/orders',    icon: ShoppingBag,     label: 'Live Orders',  roles: ['OWNER','ADMIN','MANAGER','CASHIER'], badgeKey: 'pendingOrders' },
-      { href: '/admin/payments',  icon: Banknote,        label: 'Payments',     roles: ['OWNER','ADMIN','MANAGER','CASHIER'] },
+      { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { href: '/admin/orders',    icon: ShoppingBag,     label: 'Live Orders',   badge: true },
+      { href: '/admin/payments',  icon: Banknote,        label: 'Payments' },
     ],
   },
   {
-    id: 'setup',
-    label: 'Setup',
+    group: 'SETUP',
     items: [
-      { href: '/admin/menu',     icon: UtensilsCrossed, label: 'Menu & Pricing', roles: ['OWNER','ADMIN','MANAGER'] },
-      { href: '/admin/tables',   icon: QrCode,          label: 'Tables',         roles: ['OWNER','ADMIN','MANAGER'] },
-      { href: '/admin/staff',    icon: Users,           label: 'Staff & Roles',  roles: ['OWNER','ADMIN'] },
+      { href: '/admin/menu',   icon: UtensilsCrossed, label: 'Menu & Pricing' },
+      { href: '/admin/tables', icon: MapPin,          label: 'Tables' },
+      { href: '/admin/staff',  icon: Users,           label: 'Staff & Roles' },
     ],
   },
   {
-    id: 'business',
-    label: 'Business',
+    group: 'BUSINESS',
     items: [
-      { href: '/admin/analytics', icon: BarChart3,  label: 'Analytics',    roles: ['OWNER','ADMIN','MANAGER'] },
-      { href: '/admin/settings',  icon: Settings,   label: 'Settings',     roles: ['OWNER','ADMIN'] },
-      { href: '/admin/billing',   icon: CreditCard, label: 'Plan & Billing', roles: ['OWNER'], planWarning: true },
+      { href: '/admin/analytics', icon: BarChart3,  label: 'Analytics' },
+      { href: '/admin/settings',  icon: Settings,   label: 'Settings' },
+      { href: '/admin/billing',   icon: CreditCard, label: 'Plan & Billing', billing: true },
     ],
   },
 ];
 
-const PLAN_DAYS_MAP: Record<string, number | null> = {
-  TRIAL: null, // computed dynamically
+type StaffRole = 'OWNER' | 'MANAGER' | 'CASHIER' | 'KITCHEN';
+
+const ROLE_ACCESS: Record<StaffRole, string[]> = {
+  OWNER:   ['OPERATIONS','SETUP','BUSINESS'],
+  MANAGER: ['OPERATIONS','SETUP'],
+  CASHIER: ['OPERATIONS'],
+  KITCHEN: [],
 };
 
-const C = {
-  bg:       '#0c1018',
-  surface:  '#111722',
-  surface2: '#171f2e',
-  surface3: '#1d2538',
-  border:   'rgba(255,255,255,0.06)',
-  border2:  'rgba(255,255,255,0.10)',
-  text:     '#e8eaf0',
-  muted:    '#5a6a82',
-  dim:      '#8494a8',
-  brand:    '#22c55e',
-  amber:    '#f59e0b',
-  red:      '#ef4444',
-  violet:   '#7c3aed',
-};
+interface AdminShellProps { children: React.ReactNode; }
 
-const PLAN_BADGE: Record<string, { color: string; bg: string }> = {
-  TRIAL:      { color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
-  STARTER:    { color: '#818cf8', bg: 'rgba(99,102,241,0.15)' },
-  BUSINESS:   { color: '#22c55e', bg: 'rgba(34,197,94,0.15)' },
-  PRO:        { color: '#c084fc', bg: 'rgba(168,85,247,0.15)' },
-  ENTERPRISE: { color: '#fbbf24', bg: 'rgba(251,191,36,0.15)' },
-};
-
-interface SessionData {
-  tenantId?: string;
-  tenantSlug?: string;
-  tenantName?: string;
-  role?: string;
-  displayName?: string;
-  branchId?: string | null;
-  planTier?: string;
-  trialEndsAt?: string;
-}
-
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [session, setSession] = useState<SessionData>({});
-  const [pendingOrders, setPendingOrders] = useState(0);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const helpRef = useRef<HTMLDivElement>(null);
+  const router   = useRouter();
+  const [sidebarOpen,     setSidebarOpen]     = useState(false);
+  const [tenantName,      setTenantName]      = useState('Your Café');
+  const [tenantSlug,      setTenantSlug]      = useState('');
+  const [planTier,        setPlanTier]        = useState('TRIAL');
+  const [trialDaysLeft,   setTrialDaysLeft]   = useState<number | null>(null);
+  const [activeOrders,    setActiveOrders]    = useState(0);
+  const [staffRole,       setStaffRole]       = useState<StaffRole>('OWNER');
+  const [showBanner,      setShowBanner]      = useState(true);
+  const [helpOpen,        setHelpOpen]        = useState(false);
 
-  // Load session
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('tyg_session');
-      const tenant = localStorage.getItem('tyg_tenant');
-      const s = raw ? (JSON.parse(raw) as SessionData) : {};
-      const t = tenant ? (JSON.parse(tenant) as { plan?: string; trialEndsAt?: string }) : {};
-      setSession({ ...s, planTier: t.plan ?? 'TRIAL', ...(t.trialEndsAt ? { trialEndsAt: t.trialEndsAt } : {}) });
-    } catch { /* */ }
+    const stored  = localStorage.getItem('tyg_tenant');
+    const session = localStorage.getItem('tyg_session');
+    if (stored) {
+      try {
+        const t = JSON.parse(stored) as { name?: string; slug?: string; plan?: string; trial_ends_at?: string; role?: StaffRole };
+        setTenantName(t.name ?? 'Your Café');
+        setTenantSlug(t.slug ?? '');
+        setPlanTier(t.plan ?? 'TRIAL');
+        if (t.role) setStaffRole(t.role);
+        if (t.trial_ends_at) {
+          const days = Math.ceil((new Date(t.trial_ends_at).getTime() - Date.now()) / 86_400_000);
+          setTrialDaysLeft(days > 0 ? days : 0);
+        }
+      } catch { /* */ }
+    }
+    if (session) {
+      try {
+        const s = JSON.parse(session) as { role?: StaffRole };
+        if (s.role) setStaffRole(s.role);
+      } catch { /* */ }
+    }
   }, []);
 
-  // Poll pending order count every 30s
   useEffect(() => {
-    if (!session.tenantSlug) return;
-    const load = async () => {
+    if (!tenantSlug) return;
+    const fetch_ = async () => {
       try {
-        const res = await fetch(`/api/orders?tenantSlug=${session.tenantSlug}&status=active&limit=1`, { credentials: 'include' });
-        if (!res.ok) return;
-        const j = await res.json() as { data?: unknown[] };
-        setPendingOrders(j.data?.length ?? 0);
+        const r = await fetch(`/api/orders?tenantSlug=${tenantSlug}&status=active&limit=1`);
+        if (r.ok) { const d = await r.json() as { total?: number }; setActiveOrders(d.total ?? 0); }
       } catch { /* */ }
     };
-    void load();
-    const iv = setInterval(() => void load(), 30_000);
-    return () => clearInterval(iv);
-  }, [session.tenantSlug]);
+    void fetch_();
+    const id = setInterval(() => void fetch_(), 30_000);
+    return () => clearInterval(id);
+  }, [tenantSlug]);
 
-  // Close help dropdown on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (helpRef.current && !helpRef.current.contains(e.target as Node)) setHelpOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleSignOut = async () => {
-    await fetch('/api/auth/staff/login', { method: 'DELETE' }).catch(() => null);
+  const handleLogout = () => {
     localStorage.removeItem('tyg_session');
     localStorage.removeItem('tyg_tenant');
     router.push('/login');
   };
 
-  const role = session.role ?? 'CASHIER';
-  const planTier = session.planTier ?? 'TRIAL';
-  const planBadge = PLAN_BADGE[planTier] ?? PLAN_BADGE['TRIAL'] ?? { color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' };
-
-  // Trial days remaining
-  const trialDaysLeft = (() => {
-    if (planTier !== 'TRIAL' || !session.trialEndsAt) return null;
-    const diff = new Date(session.trialEndsAt).getTime() - Date.now();
-    const days = Math.ceil(diff / 86_400_000);
-    return days > 0 ? days : 0;
-  })();
-
-  const showTrialWarning = planTier === 'TRIAL' && trialDaysLeft !== null && trialDaysLeft <= 5;
-
-  // Current page label
-  const allItems = NAV_GROUPS.flatMap(g => g.items);
+  const allItems = NAV_GROUPS.flatMap(g => g.items as Array<{ href: string; label: string; icon: unknown; badge?: boolean; billing?: boolean }>);
   const currentLabel = allItems.find(n => pathname.startsWith(n.href))?.label ?? 'Admin';
+  const roleGroups = ROLE_ACCESS[staffRole as StaffRole] ?? ROLE_ACCESS.OWNER;
+  const visibleGroups = NAV_GROUPS.filter(g => roleGroups.includes(g.group));
+  const showTrialBanner = showBanner && planTier === 'TRIAL' && trialDaysLeft !== null && trialDaysLeft <= 5;
+
+  const planStyle: Record<string, { color: string; bg: string }> = {
+    TRIAL:      { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)'  },
+    STARTER:    { color: '#818cf8', bg: 'rgba(99,102,241,0.12)'  },
+    BUSINESS:   { color: '#22c55e', bg: 'rgba(34,197,94,0.12)'   },
+    PRO:        { color: '#c084fc', bg: 'rgba(168,85,247,0.12)'  },
+    ENTERPRISE: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)'  },
+  };
+  const ps = planStyle[planTier] ?? { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: C.bg, fontFamily: "'Sora','Inter',system-ui,sans-serif", color: C.text }}>
+    <div style={{ minHeight:'100vh', background:'#0f1117', display:'flex', fontFamily:"'Sora','DM Sans',system-ui,sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
-        *, *::before, *::after { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: #2a3547; border-radius: 99px; }
-        a { text-decoration: none; color: inherit; }
-        button { font-family: inherit; cursor: pointer; }
-
-        /* Nav item base */
-        .nav-link {
-          display: flex; align-items: center; gap: 10px;
-          padding: 9px 12px; border-radius: 9px; font-size: 13px; font-weight: 500;
-          color: ${C.muted}; border: 1px solid transparent;
-          transition: color 0.12s, background 0.12s, border-color 0.12s;
-          white-space: nowrap; position: relative;
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+        *{box-sizing:border-box}
+        :root{
+          --brand:#22c55e;--brand-dim:#16a34a;
+          --surface:#161b27;--surface-2:#1e2535;--surface-3:#252d3d;
+          --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.11);
+          --text:#e8eaf0;--text-muted:#6b7280;--text-dim:#9ca3af;
         }
-        .nav-link:hover { background: ${C.surface3}; color: ${C.text}; }
-        .nav-link.active {
-          background: linear-gradient(135deg, rgba(34,197,94,0.14), rgba(34,197,94,0.04));
-          color: ${C.brand}; border-color: rgba(34,197,94,0.22);
-          font-weight: 600;
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-thumb{background:#2d3748;border-radius:99px}
+        .nav-item{
+          display:flex;align-items:center;gap:11px;
+          padding:9px 13px;border-radius:9px;
+          color:var(--text-muted);font-size:13.5px;font-weight:500;
+          transition:all 0.13s;cursor:pointer;text-decoration:none;
+          white-space:nowrap;border:1px solid transparent;
         }
-        /* Group label */
-        .nav-group-label {
-          font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-          color: ${C.muted}; padding: 4px 12px 5px; margin-top: 4px;
-          opacity: 0.6;
+        .nav-item:hover{background:var(--surface-3);color:var(--text)}
+        .nav-item.active{
+          background:linear-gradient(135deg,rgba(34,197,94,0.14),rgba(34,197,94,0.05));
+          color:var(--brand);border-color:rgba(34,197,94,0.22);
         }
-        /* KDS button */
-        .kds-btn {
-          display: flex; align-items: center; gap: 10px; width: 100%;
-          padding: 11px 14px; border-radius: 10px; border: none;
-          background: linear-gradient(135deg, #f97316, #ef4444);
-          color: white; font-size: 13px; font-weight: 700;
-          box-shadow: 0 4px 20px rgba(249,115,22,0.3);
-          transition: transform 0.12s, box-shadow 0.12s;
-          cursor: pointer; font-family: inherit;
+        .nav-group-label{
+          font-size:9.5px;font-weight:700;letter-spacing:0.12em;
+          text-transform:uppercase;color:var(--text-muted);
+          padding:6px 13px 4px;font-family:'DM Mono',monospace;
         }
-        .kds-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(249,115,22,0.4); }
-        .kds-btn:active { transform: translateY(0); }
-
-        @keyframes page-in { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
-        .page-in { animation: page-in 0.18s ease forwards; }
-        @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-        .badge-pulse { animation: badge-pulse 2s ease infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .topbar-btn{
+          display:flex;align-items:center;justify-content:center;
+          width:36px;height:36px;border-radius:9px;
+          background:var(--surface-2);border:1px solid var(--border);
+          color:var(--text-muted);cursor:pointer;transition:all 0.13s;
+          position:relative;flex-shrink:0;
+        }
+        .topbar-btn:hover{background:var(--surface-3);color:var(--text)}
+        .kds-btn{
+          display:flex;align-items:center;justify-content:space-between;
+          padding:11px 14px;border-radius:11px;cursor:pointer;
+          text-decoration:none;border:none;width:100%;font-family:inherit;
+          font-size:13.5px;font-weight:700;
+          background:linear-gradient(135deg,#f97316,#ef4444);
+          color:white;transition:opacity 0.13s;margin-bottom:14px;
+        }
+        .kds-btn:hover{opacity:0.9}
+        .help-dropdown{
+          position:absolute;top:calc(100% + 8px);right:0;
+          background:var(--surface);border:1px solid var(--border2);
+          border-radius:12px;padding:8px;min-width:200px;
+          box-shadow:0 16px 40px rgba(0,0,0,0.4);z-index:100;
+          animation:fadeUp 0.15s ease;
+        }
+        .help-item{
+          display:flex;align-items:center;gap:9px;padding:9px 12px;
+          border-radius:8px;color:var(--text-dim);font-size:13px;
+          cursor:pointer;text-decoration:none;transition:all 0.1s;
+        }
+        .help-item:hover{background:var(--surface-3);color:var(--text)}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+        @keyframes slide-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+        .page-enter{animation:slide-in 0.22s ease forwards}
+        @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
+        .lg-sidebar{transform:none!important;position:relative!important}
+        @media(max-width:1023px){.lg-sidebar{position:fixed!important}}
+        .main-col{margin-left:0}
+        @media(min-width:1024px){.main-col{margin-left:244px}}
+        .hide-mobile{display:none}
+        @media(min-width:1024px){.hide-mobile{display:flex}}
+        .show-mobile{display:flex}
+        @media(min-width:1024px){.show-mobile{display:none!important}}
       `}</style>
 
-      {/* ── Mobile overlay ── */}
       {sidebarOpen && (
-        <div onClick={() => setSidebarOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 40, backdropFilter: 'blur(2px)' }} />
+        <div style={{ position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',zIndex:40 }}
+          onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* ══════════════════════════════════════════
-          SIDEBAR
-      ══════════════════════════════════════════ */}
-      <aside style={{
-        position: 'fixed', left: 0, top: 0, height: '100%', zIndex: 50,
-        width: 244, display: 'flex', flexDirection: 'column',
-        background: C.surface, borderRight: `1px solid ${C.border}`,
-        transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-        transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
-      }}>
-
-        {/* Logo + close */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 16px', borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10,
-              background: 'linear-gradient(135deg,#22c55e,#16a34a)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 14px rgba(34,197,94,0.35)' }}>
-              <ChefHat size={17} color="white" />
+      {/* ── Sidebar ── */}
+      <aside
+        className={sidebarOpen ? 'lg-sidebar' : ''}
+        style={{
+          position:'fixed',left:0,top:0,height:'100%',zIndex:50,
+          width:244,background:'var(--surface)',
+          borderRight:'1px solid var(--border)',
+          display:'flex',flexDirection:'column',
+          transform: sidebarOpen ? 'none' : 'translateX(-100%)',
+          transition:'transform 0.28s ease',
+        }}
+      >
+        {/* Logo */}
+        <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',
+          padding:'18px 16px 14px',borderBottom:'1px solid var(--border)' }}>
+          <div style={{ display:'flex',alignItems:'center',gap:10 }}>
+            <div style={{ width:32,height:32,borderRadius:9,
+              background:'linear-gradient(135deg,#22c55e,#16a34a)',
+              display:'flex',alignItems:'center',justifyContent:'center' }}>
+              <ChefHat size={16} color="white" />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 15, color: C.text, letterSpacing: '-0.01em' }}>TYG POS</div>
-              <div style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>Admin Console</div>
+              <div style={{ color:'var(--text)',fontWeight:800,fontSize:15,lineHeight:1 }}>TYG POS</div>
+              <div style={{ color:'var(--text-muted)',fontSize:10,marginTop:2,fontFamily:"'DM Mono',monospace" }}>
+                Admin Console
+              </div>
             </div>
           </div>
-          <button onClick={() => setSidebarOpen(false)}
-            style={{ background: 'none', border: 'none', color: C.muted, display: 'flex', padding: 4 }}>
+          <button className="topbar-btn show-mobile" onClick={() => setSidebarOpen(false)}>
             <X size={14} />
           </button>
         </div>
 
-        {/* ── KDS: persistent orange CTA ── */}
-        <div style={{ padding: '12px 12px 0' }}>
-          <Link href="/kitchen" onClick={() => setSidebarOpen(false)}>
-            <button className="kds-btn">
-              <ChefHat size={16} />
-              <span style={{ flex: 1, textAlign: 'left' }}>Kitchen Display</span>
-              <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.25)',
-                padding: '2px 7px', borderRadius: 99, fontWeight: 800, letterSpacing: '0.06em' }}>
-                LIVE
+        {/* Tenant card */}
+        <div style={{ padding:'12px 12px 10px',borderBottom:'1px solid var(--border)' }}>
+          <div style={{ background:'var(--surface-2)',borderRadius:11,
+            padding:'10px 12px',border:'1px solid var(--border)' }}>
+            <div style={{ display:'flex',alignItems:'center',gap:8,marginBottom:7 }}>
+              <Building2 size={13} style={{ color:'var(--text-muted)',flexShrink:0 }} />
+              <span style={{ color:'var(--text)',fontWeight:600,fontSize:13,
+                overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>
+                {tenantName}
               </span>
-            </button>
-          </Link>
-        </div>
-
-        {/* ── Tenant card ── */}
-        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ background: C.surface2, borderRadius: 10, padding: '10px 12px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.text,
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
-                {session.tenantName ?? 'Your Café'}
-              </div>
-              <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
-                {session.displayName ?? ''} · {role}
-              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 99,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: planBadge.color, background: planBadge.bg }}>
+            <div style={{ display:'flex',alignItems:'center',gap:6 }}>
+              <span style={{ fontSize:10,fontWeight:700,padding:'2px 8px',
+                borderRadius:99,letterSpacing:'0.07em',color:ps.color,background:ps.bg }}>
                 {planTier}
               </span>
-              {showTrialWarning && (
-                <span style={{ fontSize: 9, fontWeight: 700, color: C.red,
-                  background: 'rgba(239,68,68,0.15)', padding: '1px 6px', borderRadius: 99 }}>
+              {trialDaysLeft !== null && trialDaysLeft <= 7 && (
+                <span style={{ fontSize:10,color:'#ef4444',fontWeight:600 }}>
                   {trialDaysLeft}d left
                 </span>
               )}
@@ -291,175 +258,171 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        {/* ── Grouped nav ── */}
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
-          {NAV_GROUPS.map(group => {
-            // Filter items by role
-            const visible = group.items.filter(item => item.roles.includes(role));
-            if (visible.length === 0) return null;
-            return (
-              <div key={group.id} style={{ marginBottom: 6 }}>
-                <div className="nav-group-label">{group.label}</div>
-                {visible.map(item => {
-                  const isActive = pathname.startsWith(item.href);
-                  const badge = item.badgeKey === 'pendingOrders' ? pendingOrders : 0;
-                  const hasWarn = item.planWarning && showTrialWarning;
-                  return (
-                    <Link key={item.href} href={item.href}
-                      className={`nav-link ${isActive ? 'active' : ''}`}
-                      onClick={() => setSidebarOpen(false)}
-                      style={{ display: 'flex', marginBottom: 2 }}>
-                      <item.icon size={15} />
-                      <span style={{ flex: 1 }}>{item.label}</span>
-                      {badge > 0 && (
-                        <span className="badge-pulse" style={{ fontSize: 10, fontWeight: 800,
-                          background: C.amber, color: '#000',
-                          padding: '1px 7px', borderRadius: 99, minWidth: 20, textAlign: 'center' }}>
-                          {badge > 99 ? '99+' : badge}
-                        </span>
-                      )}
-                      {hasWarn && (
-                        <AlertTriangle size={12} style={{ color: C.amber }} />
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            );
-          })}
+        {/* KDS Persistent Button */}
+        <div style={{ padding:'12px 12px 0' }}>
+          <Link href={`/kitchen${tenantSlug ? `?tenant=${tenantSlug}` : ''}`}
+            className="kds-btn" onClick={() => setSidebarOpen(false)}>
+            <span style={{ display:'flex',alignItems:'center',gap:9 }}>
+              <ChefHat size={15} />
+              Kitchen Display
+            </span>
+            <span style={{ fontSize:10,background:'rgba(255,255,255,0.22)',
+              padding:'2px 7px',borderRadius:99,fontWeight:700 }}>LIVE</span>
+          </Link>
+        </div>
+
+        {/* Grouped Nav */}
+        <nav style={{ flex:1,overflowY:'auto',padding:'4px 10px 12px' }}>
+          {visibleGroups.map(({ group, items }) => (
+            <div key={group} style={{ marginBottom:16 }}>
+              <div className="nav-group-label">{group}</div>
+              {(items as Array<{ href: string; icon: React.ComponentType<{size: number}>; label: string; badge?: boolean; billing?: boolean }>).map(({ href, icon: NavIcon, label, badge, billing }) => {
+                const isActive = pathname.startsWith(href);
+                const billingUrgent = billing && planTier === 'TRIAL' && trialDaysLeft !== null && trialDaysLeft <= 5;
+                return (
+                  <Link key={href} href={href}
+                    className={`nav-item ${isActive ? 'active' : ''}`}
+                    onClick={() => setSidebarOpen(false)}>
+                    <NavIcon size={15} />
+                    <span style={{ flex:1 }}>{label}</span>
+                    {badge && activeOrders > 0 && (
+                      <span style={{ fontSize:10,fontWeight:800,minWidth:20,textAlign:'center',
+                        padding:'2px 6px',borderRadius:99,background:'#ef4444',color:'white' }}>
+                        {activeOrders}
+                      </span>
+                    )}
+                    {billingUrgent && !isActive && (
+                      <span style={{ fontSize:9,fontWeight:700,
+                        background:'rgba(239,68,68,0.18)',color:'#ef4444',
+                        padding:'2px 6px',borderRadius:99 }}>!</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
-        {/* ── Sign out ── */}
-        <div style={{ padding: '10px 10px 14px', borderTop: `1px solid ${C.border}` }}>
-          <button onClick={handleSignOut}
-            className="nav-link"
-            style={{ width: '100%', border: 'none', background: 'none',
-              color: '#ef4444', display: 'flex' }}>
+        {/* Logout */}
+        <div style={{ padding:'10px 10px 16px',borderTop:'1px solid var(--border)' }}>
+          <button onClick={handleLogout} className="nav-item"
+            style={{ width:'100%',color:'#ef4444',background:'none',border:'none' }}>
             <LogOut size={15} />
             Sign Out
           </button>
         </div>
       </aside>
 
-      {/* ══════════════════════════════════════════
-          MAIN CONTENT AREA
-      ══════════════════════════════════════════ */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      {/* ── Main ── */}
+      <div className="main-col" style={{ flex:1,display:'flex',flexDirection:'column',minWidth:0,overflow:'hidden' }}>
 
-        {/* ── Topbar ── */}
-        <header style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 20px', height: 60, flexShrink: 0,
-          background: C.surface, borderBottom: `1px solid ${C.border}`,
-          position: 'sticky', top: 0, zIndex: 30,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={() => setSidebarOpen(true)}
-              style={{ background: C.surface2, border: `1px solid ${C.border}`, borderRadius: 8,
-                width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: C.muted }}>
+        {/* Trial banner */}
+        {showTrialBanner && (
+          <div style={{ background:'linear-gradient(90deg,rgba(239,68,68,0.12),rgba(245,158,11,0.08))',
+            borderBottom:'1px solid rgba(239,68,68,0.2)',padding:'10px 24px',
+            display:'flex',alignItems:'center',justifyContent:'space-between',gap:12 }}>
+            <div style={{ display:'flex',alignItems:'center',gap:9 }}>
+              <AlertTriangle size={14} color="#f59e0b" />
+              <span style={{ fontSize:13,color:'var(--text)' }}>
+                <strong style={{ color:'#fbbf24' }}>Trial ends in {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}.</strong>
+                {' '}Upgrade to keep orders, data, and QR menus.
+              </span>
+            </div>
+            <div style={{ display:'flex',alignItems:'center',gap:8,flexShrink:0 }}>
+              <Link href="/admin/billing" style={{ fontSize:12,fontWeight:700,color:'white',
+                background:'#ef4444',padding:'5px 14px',borderRadius:8,textDecoration:'none' }}>
+                Upgrade Now
+              </Link>
+              <button onClick={() => setShowBanner(false)}
+                style={{ background:'none',border:'none',color:'var(--text-muted)',cursor:'pointer',padding:4 }}>
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Topbar */}
+        <header style={{ background:'var(--surface)',borderBottom:'1px solid var(--border)',
+          padding:'0 24px',height:62,display:'flex',alignItems:'center',
+          justifyContent:'space-between',flexShrink:0 }}>
+          <div style={{ display:'flex',alignItems:'center',gap:12 }}>
+            <button className="topbar-btn show-mobile" onClick={() => setSidebarOpen(true)}>
               <Menu size={16} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: C.muted, fontSize: 12 }}>TYG POS</span>
-              <span style={{ color: C.border, fontSize: 12 }}>/</span>
-              <h1 style={{ color: C.text, fontWeight: 700, fontSize: 16, margin: 0 }}>{currentLabel}</h1>
+            <div>
+              <h1 style={{ color:'var(--text)',fontWeight:700,fontSize:17,lineHeight:1 }}>{currentLabel}</h1>
+              <p style={{ color:'var(--text-muted)',fontSize:11,marginTop:2 }}>
+                {new Date().toLocaleDateString('en-PH',{weekday:'long',month:'short',day:'numeric'})}
+              </p>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {/* Trial warning pill in topbar */}
-            {showTrialWarning && (
-              <Link href="/admin/billing"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px',
-                  borderRadius: 99, background: 'rgba(239,68,68,0.12)',
-                  border: '1px solid rgba(239,68,68,0.25)', fontSize: 11, fontWeight: 700, color: C.red }}>
-                <Zap size={11} />
-                Trial: {trialDaysLeft}d left
+          <div style={{ display:'flex',alignItems:'center',gap:8 }}>
+            {activeOrders > 0 && (
+              <Link href="/admin/orders" style={{ display:'flex',alignItems:'center',gap:6,
+                fontSize:12,fontWeight:600,color:'#f59e0b',
+                background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.2)',
+                padding:'5px 12px',borderRadius:99,textDecoration:'none' }}>
+                <span style={{ width:7,height:7,borderRadius:'50%',background:'#f59e0b',
+                  display:'inline-block',animation:'pulse-dot 2s infinite' }} />
+                {activeOrders} active
               </Link>
             )}
 
-            {/* Help dropdown — replaces "Staff Guide" in nav */}
-            <div ref={helpRef} style={{ position: 'relative' }}>
-              <button onClick={() => setHelpOpen(p => !p)}
-                style={{ background: helpOpen ? C.surface3 : C.surface2, border: `1px solid ${C.border}`,
-                  borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', color: helpOpen ? C.text : C.muted }}>
+            <button className="topbar-btn" style={{ position:'relative' }}>
+              <Bell size={15} />
+              {activeOrders > 0 && (
+                <span style={{ position:'absolute',top:-3,right:-3,width:15,height:15,
+                  borderRadius:'50%',background:'#ef4444',fontSize:8,fontWeight:800,
+                  color:'white',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                  {activeOrders > 9 ? '9+' : activeOrders}
+                </span>
+              )}
+            </button>
+
+            {/* Help dropdown — replaces Staff Guide in nav */}
+            <div style={{ position:'relative' }}>
+              <button className="topbar-btn" onClick={() => setHelpOpen((h: boolean) => !h)}>
                 <HelpCircle size={15} />
               </button>
               {helpOpen && (
-                <div style={{ position: 'absolute', right: 0, top: 44, width: 200,
-                  background: C.surface2, border: `1px solid ${C.border2}`,
-                  borderRadius: 12, overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.5)', zIndex: 100 }}>
-                  <div style={{ padding: '10px 14px 6px', fontSize: 10, color: C.muted,
-                    fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    Help & Resources
-                  </div>
-                  {[
-                    { label: 'Staff Training Guide', href: '/admin/guide' },
-                    { label: 'Order Workflow', href: '/admin/guide#orders' },
-                    { label: 'Kitchen Display Guide', href: '/admin/guide#kitchen' },
-                    { label: 'View Platform Status', href: 'https://status.tyg-services.com', ext: true },
-                  ].map(({ label, href, ext }) => (
-                    <Link key={label} href={href} target={ext ? '_blank' : undefined}
-                      onClick={() => setHelpOpen(false)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '9px 14px', fontSize: 13, color: C.dim, borderTop: `1px solid ${C.border}` }}
-                      className="nav-link" >
-                      {label}
-                      <ChevronRight size={12} style={{ color: C.muted }} />
-                    </Link>
-                  ))}
+                <div className="help-dropdown" onClick={() => setHelpOpen(false)}>
+                  <Link href="/admin/guide" className="help-item">
+                    <ChefHat size={14} />
+                    Staff Training Guide
+                  </Link>
+                  <div style={{ height:1,background:'var(--border)',margin:'4px 0' }} />
+                  <a href="mailto:support@tyg-services.com" className="help-item">
+                    <Bell size={14} />
+                    Contact Support
+                  </a>
                 </div>
               )}
             </div>
 
-            {/* Notifications */}
-            <button style={{ background: C.surface2, border: `1px solid ${C.border}`, borderRadius: 8,
-              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: C.muted, position: 'relative' }}>
-              <Bell size={15} />
-              {pendingOrders > 0 && (
-                <span className="badge-pulse" style={{ position: 'absolute', top: 6, right: 6,
-                  width: 8, height: 8, borderRadius: '50%', background: C.amber,
-                  border: `2px solid ${C.surface}` }} />
-              )}
-            </button>
-
             {/* Avatar */}
-            <div style={{ width: 34, height: 34, borderRadius: 9,
-              background: 'linear-gradient(135deg,#22c55e,#16a34a)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 800, fontSize: 14, color: 'white',
-              boxShadow: '0 2px 10px rgba(34,197,94,0.3)' }}>
-              {(session.displayName ?? session.tenantName ?? 'A').charAt(0).toUpperCase()}
+            <div style={{ display:'flex',alignItems:'center',gap:7,
+              background:'var(--surface-2)',border:'1px solid var(--border)',
+              borderRadius:9,padding:'5px 10px 5px 6px',cursor:'pointer' }}>
+              <div style={{ width:26,height:26,borderRadius:7,
+                background:'linear-gradient(135deg,#22c55e,#16a34a)',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                fontSize:11,fontWeight:800,color:'white' }}>
+                {tenantName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize:12,fontWeight:600,color:'var(--text)',lineHeight:1 }}>
+                  {tenantName.split(' ')[0]}
+                </div>
+                <div style={{ fontSize:10,color:'var(--text-muted)',marginTop:1 }}>{staffRole}</div>
+              </div>
+              <ChevronDown size={11} color="var(--text-muted)" />
             </div>
           </div>
         </header>
 
-        {/* ── Trial banner (urgent ≤3 days) ── */}
-        {planTier === 'TRIAL' && trialDaysLeft !== null && trialDaysLeft <= 3 && (
-          <div style={{ background: 'linear-gradient(90deg, rgba(239,68,68,0.12), rgba(239,68,68,0.06))',
-            borderBottom: `1px solid rgba(239,68,68,0.2)`,
-            padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertTriangle size={14} style={{ color: C.red, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: C.text }}>
-                <strong style={{ color: C.red }}>Trial expires {trialDaysLeft === 0 ? 'today' : `in ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'}`}.</strong>
-                {' '}Upgrade now to keep orders, menu, and staff data.
-              </span>
-            </div>
-            <Link href="/admin/billing"
-              style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'white',
-                background: C.red, padding: '6px 14px', borderRadius: 8 }}>
-              Upgrade Now →
-            </Link>
-          </div>
-        )}
-
-        {/* ── Page content ── */}
-        <main className="page-in" style={{ flex: 1, overflowY: 'auto', padding: 22, background: C.bg }}>
+        {/* Page */}
+        <main style={{ flex:1,overflowY:'auto',padding:24 }} className="page-enter">
           {children}
         </main>
       </div>

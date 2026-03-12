@@ -97,7 +97,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       const tenant = localStorage.getItem('tyg_tenant');
       const s = raw ? (JSON.parse(raw) as SessionData) : {};
       const t = tenant ? (JSON.parse(tenant) as { plan?: string; trialEndsAt?: string }) : {};
-      setSession({ ...s, planTier: t.plan ?? 'TRIAL', trialEndsAt: t.trialEndsAt });
+      setSession({ ...s, planTier: t.plan ?? 'TRIAL', ...(t.trialEndsAt ? { trialEndsAt: t.trialEndsAt } : {}) });
     } catch { /* */ }
   }, []);
 

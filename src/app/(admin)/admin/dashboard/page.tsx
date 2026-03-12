@@ -28,7 +28,9 @@ const C = {
   violet: '#7c3aed', blue: '#3b82f6', orange: '#f97316',
 };
 
-const STATUS: Record<string, { color: string; bg: string; label: string; next: string | null; nextLabel: string | null }> = {
+type StatusEntry = { color: string; bg: string; label: string; next: string | null; nextLabel: string | null };
+const STATUS_DEFAULT: StatusEntry = { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', label: 'Pending', next: 'CONFIRMED', nextLabel: 'Confirm' };
+const STATUS: Record<string, StatusEntry> = {
   PENDING:   { color: C.amber,  bg: 'rgba(245,158,11,0.12)',  label: 'Pending',   next: 'CONFIRMED', nextLabel: 'Confirm' },
   CONFIRMED: { color: C.blue,   bg: 'rgba(59,130,246,0.12)',  label: 'Confirmed', next: 'PREPARING', nextLabel: 'Start Prep' },
   PREPARING: { color: C.orange, bg: 'rgba(249,115,22,0.12)',  label: 'Preparing', next: 'READY',     nextLabel: 'Mark Ready' },
@@ -68,7 +70,7 @@ function StatCard({ label, value, sub, icon: Icon, color, trend, loading }:
 function OrderCard({ order, onStatusChange }: { order: LiveOrder; onStatusChange: (id: string, status: string) => Promise<void> }) {
   const [expanded, setExpanded] = useState(false);
   const [bumping, setBumping] = useState(false);
-  const s = STATUS[order.status] ?? STATUS.PENDING;
+  const s: StatusEntry = STATUS[order.status] ?? STATUS_DEFAULT;
   const elapsed = Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000);
   const isLate = elapsed > 15 && !['COMPLETED','CANCELLED'].includes(order.status);
 
@@ -151,14 +153,7 @@ function OrderCard({ order, onStatusChange }: { order: LiveOrder; onStatusChange
 }
 
 // ─── Floor Plan widget ────────────────────────────────────────
-function FloorPlan({ tables, activeOrders }: { tables: TableRow[]; activeOrders: LiveOrder[] }) {
-  const occupiedIds = new Set(activeOrders.map(() => ''));
-
-  // Map order status to table display (simplified — shows any occupied table)
-  const tableStatus = (table: TableRow) => {
-    // For demo: alternate a few tables — in production would match table_id on orders
-    return null as string | null;
-  };
+function FloorPlan({ tables }: { tables: TableRow[]; activeOrders: LiveOrder[] }) {
 
   if (tables.length === 0) {
     return (

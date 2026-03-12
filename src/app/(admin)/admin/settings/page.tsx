@@ -203,7 +203,7 @@ function SettingsPageInner() {
                 <PaymentQRRow
                   key={method.key}
                   method={method}
-                  currentUrl={qrUploads[method.key]}
+                  currentUrl={qrUploads[method.key] ?? null}
                   onUpload={(file) => handleQrUpload(method.key, file)}
                 />
               ))}

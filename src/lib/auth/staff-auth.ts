@@ -40,7 +40,7 @@ export async function authenticateStaff(
     .from('staff')
     .select('*')
     .eq('tenant_id', tenantId)
-    .eq('display_name', displayName)
+    .ilike('display_name', displayName)   // case-insensitive — 'pia' matches 'Pia'
     .eq('is_active', true)
     .single();
 

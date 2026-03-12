@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { authenticateStaff, createStaffSession } from '@/lib/auth/staff-auth';
 import { pinLoginRateLimit } from '@/lib/redis/ratelimit';
 import { resolveTenant, apiSuccess, apiError, getClientIp, STAFF_SESSION_COOKIE } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 const LoginSchema = z.object({
   tenantSlug: z.string().min(3).max(50),
@@ -99,6 +100,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     maxAge: 8 * 60 * 60, // 8 hours
   });
 
+  // Log successful login
+  void logEvent({
+    eventType: 'STAFF_LOGIN',
+    entityType: 'STAFF',
+    entityId: staff.id as string,
+    tenantId: tenant.tenantId,
+    userId: staff.id as string,
+    userName: staff.display_name as string,
+    source: 'POS',
+    details: { role: staff.role, ip },
+  });
+
   return response;
 }
 
@@ -107,6 +120,23 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
   const token = req.cookies.get(STAFF_SESSION_COOKIE)?.value;
 
   if (token) {
+    // Attempt to capture who logged out for the log entry
+    try {
+      const { validateStaffSession } = await import('@/lib/auth/staff-auth');
+      const session = await validateStaffSession(token);
+      if (session) {
+        void logEvent({
+          eventType: 'STAFF_LOGOUT',
+          entityType: 'STAFF',
+          entityId: session.staffId,
+          tenantId: session.tenantId,
+          userId: session.staffId,
+          userName: session.displayName ?? undefined,
+          source: 'POS',
+          details: {},
+        });
+      }
+    } catch{/**/}
     await revokeStaffSession(token);
   }
 

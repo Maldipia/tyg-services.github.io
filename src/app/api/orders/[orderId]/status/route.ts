@@ -12,6 +12,7 @@ import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import type { OrderStatus, AuthContext } from '@/types';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
+import { logEvent } from '@/lib/logger';
 
 const CANCEL_REASONS = [
   'Customer changed mind',
@@ -123,6 +124,25 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
 
 
       // Fire-and-forget sheets webhook
+      void logEvent({
+        eventType: newStatus === 'COMPLETED' ? 'ORDER_COMPLETED'
+          : newStatus === 'CANCELLED'        ? 'ORDER_CANCELLED'
+          : newStatus === 'READY'            ? 'KITCHEN_STATUS_CHANGED'
+          : 'ORDER_UPDATED',
+        entityType: 'ORDER',
+        entityId: orderId,
+        tenantId: ctx.tenantId,
+        userId: ctx.staffId,
+        userName: ctx.displayName ?? undefined,
+        source: ['PREPARING','READY'].includes(newStatus) ? 'KITCHEN' : 'ADMIN',
+        details: {
+          fromStatus: currentStatus,
+          toStatus: newStatus,
+          orderNumber: order.order_number,
+          cancelReason: cancelReason ?? null,
+        },
+      });
+
       fireSheetsWebhook('UPDATE_ORDER', {
         orderNumber: (order as { order_number: string }).order_number ?? orderId,
         status: newStatus,

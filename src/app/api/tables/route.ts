@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError, resolveTenant } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 const CreateTableSchema = z.object({
   name: z.string().min(1).max(80).trim(),
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       is_active: true,
     }).select('id, name, capacity, is_active, qr_token').single();
     if (error) return apiError(`Failed to create table: ${error.message}`, 500);
+    void logEvent({ eventType: 'TABLE_CREATED', entityType: 'TABLE', entityId: (data as {id:string}).id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: { name: parsed.data.name, capacity: parsed.data.capacity } });
     return apiSuccess(data, 201);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }

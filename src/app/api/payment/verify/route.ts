@@ -6,6 +6,7 @@ import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { createServiceClient } from '@/lib/supabase/client';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 import type { AuthContext } from '@/types';
+import { logEvent } from '@/lib/logger';
 
 const VerifySchema = z.object({
   paymentId: z.string().uuid('Invalid paymentId'),
@@ -97,6 +98,21 @@ async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextRes
   });
 
   // Fire-and-forget Sheets sync
+  void logEvent({
+    eventType: action === 'verify' ? 'PAYMENT_VERIFIED' : 'PAYMENT_REJECTED',
+    entityType: 'PAYMENT',
+    entityId: paymentId,
+    tenantId: ctx.tenantId,
+    userId: ctx.staffId,
+    userName: ctx.displayName ?? undefined,
+    source: 'ADMIN',
+    details: {
+      orderId,
+      action,
+      reason: reason ?? null,
+    },
+  });
+
   fireSheetsWebhook('UPDATE_PAYMENT', {
     tenantId: ctx.tenantId,
     paymentId,

@@ -12,6 +12,7 @@ import { createServiceClient } from '@/lib/supabase/client';
 import { resolveTenant, apiSuccess, apiError, getClientIp, withStaffAuth } from '@/lib/auth/middleware';
 import { orderRateLimit } from '@/lib/redis/ratelimit';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
+import { logEvent } from '@/lib/logger';
 
 // ── Request Validation Schema ────────────────────────────────
 // Prices are intentionally NOT accepted from client — server re-fetches
@@ -307,6 +308,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
 
   // Fire-and-forget webhook to Google Sheets (never blocks response)
+  // Central event log
+  void logEvent({
+    eventType: 'ORDER_CREATED',
+    entityType: 'ORDER',
+    entityId: order.id,
+    tenantId: tenant.tenantId,
+    source: 'POS',
+    details: {
+      orderNumber: order.order_number,
+      customerName: input.customerName,
+      pax: input.pax,
+      totalAmount,
+      itemCount: pricedItems.length,
+      isTest: input.isTest ?? false,
+    },
+  });
+
   fireSheetsWebhook('LOG_ORDER', {
     orderNumber: order.order_number,
     createdAt: new Date().toISOString(),

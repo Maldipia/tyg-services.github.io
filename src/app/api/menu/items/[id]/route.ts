@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 const UpdateItemSchema = z.object({
   name: z.string().min(1).max(120).trim().optional(),
@@ -39,6 +40,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
       .eq('id', params.id).eq('tenant_id', ctx.tenantId)
       .select('id, name, base_price, status, is_featured, image_url, category_id').single();
     if (error) return apiError(`Failed to update item: ${error.message}`, 500);
+    void logEvent({ eventType: 'MENU_ITEM_UPDATED', entityType: 'MENU_ITEM', entityId: params.id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: { updatedFields: Object.keys(updatePayload) } });
     return apiSuccess(data);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }
@@ -52,6 +54,7 @@ export async function DELETE(req: NextRequest, { params }: Params): Promise<Next
       .update({ status: 'HIDDEN' })
       .eq('id', params.id).eq('tenant_id', ctx.tenantId);
     if (error) return apiError('Failed to delete item', 500);
+    void logEvent({ eventType: 'MENU_ITEM_DELETED', entityType: 'MENU_ITEM', entityId: params.id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: { softDelete: true } });
     return apiSuccess({ deleted: true });
   }, ['OWNER', 'ADMIN']);
 }

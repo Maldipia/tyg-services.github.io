@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 const CreateCatSchema = z.object({
   name: z.string().min(1).max(80).trim(),
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       is_active: true,
     }).select('id, name, description, sort_order, is_active').single();
     if (error) return apiError('Failed to create category', 500);
+    void logEvent({ eventType: 'MENU_CATEGORY_CREATED', entityType: 'MENU_CATEGORY', entityId: (data as {id:string}).id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: { name: parsed.data.name } });
     return apiSuccess(data, 201);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }

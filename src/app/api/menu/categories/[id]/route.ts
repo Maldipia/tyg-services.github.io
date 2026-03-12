@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 const UpdateCatSchema = z.object({
   name: z.string().min(1).max(80).trim().optional(),
@@ -31,6 +32,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
       .eq('id', params.id).eq('tenant_id', ctx.tenantId)
       .select('id, name, description, sort_order, is_active').single();
     if (error) return apiError('Failed to update category', 500);
+    void logEvent({ eventType: 'MENU_CATEGORY_UPDATED', entityType: 'MENU_CATEGORY', entityId: params.id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: { updatedFields: Object.keys(updatePayload) } });
     return apiSuccess(data);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }

@@ -34,6 +34,7 @@ function doPost(e) {
       case 'SYNC_MENU_TO_SUPA':  result = syncMenuToSupabase();            break;
       case 'DAILY_SUMMARY':      result = generateDailySummary();          break;
       case 'SETUP':              result = setupSheet();                    break;
+      case 'APPEND_SYSTEM_LOG':  result = appendSystemLog(payload.data);  break;
       default:
         return jsonResponse({ ok: false, error: `Unknown action: ${action}` }, 400);
     }
@@ -128,3 +129,7 @@ function createNightlyTrigger() {
     .create();
   SpreadsheetApp.getUi().alert('Nightly trigger created (11:55 PM PHT)');
 }
+
+// ── Added by centralized logger ───────────────────────────────────────────────
+// Handle APPEND_SYSTEM_LOG action (from logEvent() in backend)
+// Register in switch: case 'APPEND_SYSTEM_LOG': result = appendSystemLog(payload.data); break;

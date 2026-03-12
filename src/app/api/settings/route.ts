@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 const UpdateSettingsSchema = z.object({
   name: z.string().min(1).max(120).trim().optional(),
@@ -57,6 +58,16 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       .update(updatePayload).eq('id', ctx.tenantId)
       .select('id, name, phone, address, primary_color, accent_color, settings').single();
     if (error) return apiError('Failed to save settings', 500);
+    void logEvent({
+      eventType: 'SETTINGS_UPDATED',
+      entityType: 'SETTINGS',
+      entityId: ctx.tenantId,
+      tenantId: ctx.tenantId,
+      userId: ctx.staffId,
+      userName: ctx.displayName ?? undefined,
+      source: 'ADMIN',
+      details: { updatedFields: Object.keys(updatePayload).filter(k => k !== 'updated_at') },
+    });
     return apiSuccess(data);
   }, ['OWNER', 'ADMIN']);
 }

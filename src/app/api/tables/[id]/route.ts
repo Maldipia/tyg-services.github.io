@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 const UpdateTableSchema = z.object({
   name: z.string().min(1).max(80).trim().optional(),
@@ -29,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
       .eq('id', params.id).eq('tenant_id', ctx.tenantId)
       .select('id, name, capacity, is_active, qr_token').single();
     if (error) return apiError(`Failed to update table: ${error.message}`, 500);
+    void logEvent({ eventType: 'TABLE_UPDATED', entityType: 'TABLE', entityId: params.id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: { updatedFields: Object.keys(updatePayload) } });
     return apiSuccess(data);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }
@@ -41,6 +43,7 @@ export async function DELETE(req: NextRequest, { params }: Params): Promise<Next
       .update({ is_active: false })
       .eq('id', params.id).eq('tenant_id', ctx.tenantId);
     if (error) return apiError('Failed to delete table', 500);
+    void logEvent({ eventType: 'TABLE_DELETED', entityType: 'TABLE', entityId: params.id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: {} });
     return apiSuccess({ deleted: true });
   }, ['OWNER', 'ADMIN']);
 }

@@ -12,6 +12,7 @@ import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { createServiceClient } from '@/lib/supabase/client';
 import { hashPin } from '@/lib/auth/staff-auth';
 import type { StaffRole } from '@/types';
+import { logEvent } from '@/lib/logger';
 
 const STAFF_ROLES: StaffRole[] = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'KITCHEN'];
 
@@ -102,7 +103,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         return apiError('Failed to create staff member', 500);
       }
 
-      return apiSuccess(staff, 201);
+      void logEvent({
+      eventType: 'STAFF_CREATED',
+      entityType: 'STAFF',
+      entityId: staff.id as string,
+      tenantId: ctx.tenantId,
+      userId: ctx.staffId,
+      userName: ctx.displayName ?? undefined,
+      source: 'ADMIN',
+      details: { name: parsed.data.displayName, role: parsed.data.role },
+    });
+    return apiSuccess(staff, 201);
     },
     ['OWNER', 'ADMIN']
   );

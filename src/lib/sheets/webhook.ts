@@ -12,7 +12,8 @@ type SheetsAction =
   | 'VERIFY_PAYMENT'
   | 'REJECT_PAYMENT'
   | 'SYNC_MENU_TO_SHEET'
-  | 'DAILY_SUMMARY';
+  | 'DAILY_SUMMARY'
+  | 'APPEND_SYSTEM_LOG';
 
 interface SheetsWebhookPayload {
   action: SheetsAction;

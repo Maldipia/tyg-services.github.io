@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
+import { logEvent } from '@/lib/logger';
 
 // DB enum: AVAILABLE | SOLD_OUT | HIDDEN
 const CreateItemSchema = z.object({
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       sort_order: parsed.data.sortOrder,
     }).select('id, name, base_price, status, is_featured, image_url, category_id').single();
     if (error) return apiError(`Failed to create item: ${error.message}`, 500);
+    void logEvent({ eventType: 'MENU_ITEM_CREATED', entityType: 'MENU_ITEM', entityId: (data as {id:string}).id, tenantId: ctx.tenantId, userId: ctx.staffId, userName: ctx.displayName ?? undefined, source: 'ADMIN', details: { name: parsed.data.name, basePrice: parsed.data.basePrice, categoryId: parsed.data.categoryId } });
     return apiSuccess(data, 201);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }

@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/supabase/client';
 
 type SheetsAction =
   | 'LOG_ORDER'
+  | 'UPDATE_PAYMENT'
   | 'UPDATE_ORDER'
   | 'LOG_PAYMENT'
   | 'VERIFY_PAYMENT'

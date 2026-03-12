@@ -122,7 +122,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
 
       // Fire-and-forget sheets webhook
       fireSheetsWebhook('UPDATE_ORDER', {
-        orderNumber: (currentOrder as { order_number: string }).order_number ?? orderId,
+        orderNumber: (order as { order_number: string }).order_number ?? orderId,
         status: newStatus,
         updatedAt: new Date().toISOString(),
       }).catch(() => {});

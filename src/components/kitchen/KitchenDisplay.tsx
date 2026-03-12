@@ -110,7 +110,7 @@ export default function KitchenDisplay({ tenantId, branchId, tenantName }: Props
                 if (data) {
                   setOrders((prev) => [
                     ...prev,
-                    { ...(data as Order), minutesAgo: 0 },
+                    ({ ...(data as Order), minutesAgo: 0 } as KitchenOrder),
                   ]);
                 }
               });

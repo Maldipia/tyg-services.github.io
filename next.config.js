@@ -1,7 +1,15 @@
-{
-  "message": "Not Found",
-  "documentation_url": "https://docs.github.com/rest/repos/contents#get-repository-content",
-  "status": "404"
-}
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'srgimbdbyrrijlppvkrn.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
+};
 
-// GAS webhook activated: 2026-03-12
+module.exports = nextConfig;

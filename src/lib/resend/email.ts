@@ -27,7 +27,7 @@ export async function sendOrderReceipt(
             ${item.size_label ? `<span style="color:#9ca3af"> (${item.size_label})</span>` : ''}
           </td>
           <td style="padding:8px 0;text-align:right;color:#374151;font-weight:600">
-            ₱${((item.line_total + item.addon_total * item.qty) ?? 0).toFixed(2)}
+            ₱${(item.line_total + item.addon_total * item.qty).toFixed(2)}
           </td>
         </tr>`
     )

@@ -52,10 +52,10 @@ export async function GET(
     data: {
       tenant,
       stats: {
-        order_count: orders.count ?? 0,
+        order_count: (orders.data ?? []).length,
         total_revenue: revenue,
-        staff_count: staff.count ?? 0,
-        menu_item_count: menuItems.count ?? 0,
+        staff_count: (staff.data ?? []).length,
+        menu_item_count: (menuItems.data ?? []).length,
         orders_by_status: byStatus,
       },
       staff: staff.data ?? [],

@@ -135,7 +135,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   const role = session.role ?? 'CASHIER';
   const planTier = session.planTier ?? 'TRIAL';
-  const planBadge = PLAN_BADGE[planTier] ?? PLAN_BADGE.TRIAL;
+  const planBadge = PLAN_BADGE[planTier] ?? PLAN_BADGE['TRIAL'] ?? { color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' };
 
   // Trial days remaining
   const trialDaysLeft = (() => {

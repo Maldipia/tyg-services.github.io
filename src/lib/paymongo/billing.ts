@@ -1,5 +1,5 @@
 // ============================================================
-// TYG POS — PayMongo Subscription Billing
+// TYG POS — PayMongo Checkout Billing
 // PH-native: GCash, credit card, bank transfer
 // ============================================================
 
@@ -40,16 +40,23 @@ async function paymongoRequest<T>(
   return json as T;
 }
 
-// ── Plan Prices (PayMongo Price IDs — set in Dashboard) ──────
-// These come from your PayMongo dashboard product configuration
+// ── Plan Pricing (PHP, stored as centavos for PayMongo) ──────
+// 1 PHP = 100 centavos
 export const PLAN_PRICES = {
-  STARTER:    { monthly: 'pri_starter_monthly',    annual: 'pri_starter_annual' },
-  BUSINESS:   { monthly: 'pri_business_monthly',   annual: 'pri_business_annual' },
-  PRO:        { monthly: 'pri_pro_monthly',         annual: 'pri_pro_annual' },
-  ENTERPRISE: { monthly: 'pri_enterprise_monthly',  annual: 'pri_enterprise_annual' },
+  STARTER:    { monthly: 59900,   annual: 599900   }, // ₱599/mo  | ₱5,999/yr
+  BUSINESS:   { monthly: 129900,  annual: 1299900  }, // ₱1,299/mo | ₱12,999/yr
+  PRO:        { monthly: 249900,  annual: 2499900  }, // ₱2,499/mo | ₱24,999/yr
+  ENTERPRISE: { monthly: 499900,  annual: 4999900  }, // ₱4,999/mo | ₱49,999/yr
 } as const;
 
-// ── Create a checkout session for subscription upgrade ───────
+export const PLAN_LABELS = {
+  STARTER:    { name: 'TYG POS Starter',    desc: 'QR ordering, KDS, basic analytics' },
+  BUSINESS:   { name: 'TYG POS Business',   desc: 'SMS alerts, hourly heatmap, priority support' },
+  PRO:        { name: 'TYG POS Pro',        desc: 'Multi-branch, BIR OR generation' },
+  ENTERPRISE: { name: 'TYG POS Enterprise', desc: 'White-label, API access, dedicated support' },
+} as const;
+
+// ── Create a checkout session for plan upgrade ───────────────
 export async function createCheckoutSession(params: {
   tenantId: string;
   tenantSlug: string;
@@ -58,7 +65,9 @@ export async function createCheckoutSession(params: {
   ownerEmail: string;
   businessName: string;
 }): Promise<{ checkoutUrl: string; sessionId: string }> {
-  const priceId = PLAN_PRICES[params.planTier][params.billingCycle];
+  const amount = PLAN_PRICES[params.planTier][params.billingCycle];
+  const label = PLAN_LABELS[params.planTier];
+  const cycleLabel = params.billingCycle === 'monthly' ? 'Monthly' : 'Annual';
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
   const data = await paymongoRequest<{
@@ -73,32 +82,35 @@ export async function createCheckoutSession(params: {
         line_items: [
           {
             currency: 'PHP',
-            amount: 0, // determined by price ID
-            description: `TYG POS ${params.planTier} — ${params.billingCycle}`,
-            name: `TYG POS ${params.planTier}`,
+            amount,
+            description: `${label.desc} — ${cycleLabel} subscription`,
+            name: `${label.name} (${cycleLabel})`,
             quantity: 1,
           },
         ],
-        payment_method_types: ['gcash', 'card', 'dob', 'billease'],
-        success_url: `${appUrl}/admin/billing/success?tenant=${params.tenantSlug}&plan=${params.planTier}`,
-        cancel_url: `${appUrl}/admin/billing?tenant=${params.tenantSlug}`,
+        payment_method_types: ['gcash', 'card', 'dob', 'billease', 'grab_pay'],
+        success_url: `${appUrl}/admin/billing/success?tenant=${params.tenantSlug}&plan=${params.planTier}&cycle=${params.billingCycle}`,
+        cancel_url:  `${appUrl}/admin/billing`,
         metadata: {
-          tenantId: params.tenantId,
-          planTier: params.planTier,
+          tenantId:     params.tenantId,
+          tenantSlug:   params.tenantSlug,
+          planTier:     params.planTier,
           billingCycle: params.billingCycle,
         },
+        send_email_receipt: true,
+        show_description:   true,
+        show_line_items:    true,
       },
     },
   });
 
   return {
     checkoutUrl: data.data.attributes.checkout_url,
-    sessionId: data.data.id,
+    sessionId:   data.data.id,
   };
 }
 
-// ── Handle PayMongo Webhook ───────────────────────────────────
-// Called from /api/webhooks/paymongo
+// ── Verify PayMongo Webhook Signature ────────────────────────
 export async function verifyWebhookSignature(
   rawBody: string,
   signatureHeader: string
@@ -107,9 +119,11 @@ export async function verifyWebhookSignature(
   if (!webhookSecret) return false;
 
   const crypto = await import('crypto');
-  const [timestamp, signature] = signatureHeader.split(',');
-  const ts = timestamp?.replace('t=', '');
-  const sig = signature?.replace('te=', '') ?? signature?.replace('li=', '');
+  const parts = Object.fromEntries(
+    signatureHeader.split(',').map(p => p.split('=') as [string, string])
+  );
+  const ts  = parts['t'];
+  const sig = parts['te'] ?? parts['li'];
 
   if (!ts || !sig) return false;
 
@@ -118,8 +132,12 @@ export async function verifyWebhookSignature(
     .update(`${ts}.${rawBody}`)
     .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(sig, 'hex'),
-    Buffer.from(expectedSig, 'hex')
-  );
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(sig, 'hex'),
+      Buffer.from(expectedSig, 'hex')
+    );
+  } catch {
+    return false;
+  }
 }

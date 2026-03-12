@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { resolveTenant, apiSuccess, apiError, getClientIp } from '@/lib/auth/middleware';
 import { orderRateLimit } from '@/lib/redis/ratelimit';
+import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 
 // ── Request Validation Schema ────────────────────────────────
 // Prices are intentionally NOT accepted from client — server re-fetches
@@ -288,6 +289,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     to_status: 'PENDING',
     metadata: { ip, itemCount: pricedItems.length },
   });
+
+
+  // Fire-and-forget webhook to Google Sheets (never blocks response)
+  fireSheetsWebhook('LOG_ORDER', {
+    orderNumber: order.order_number,
+    createdAt: new Date().toISOString(),
+    customerName: input.customerName,
+    pax: input.pax,
+    subtotal,
+    vatAmount,
+    totalAmount,
+    status: 'PENDING',
+    paymentStatus: 'UNPAID',
+    notes: input.notes ?? '',
+    isTest: input.isTest ?? false,
+    items: pricedItems.map(i => ({
+      itemName: i.item_name,
+      sizeLabel: i.size_label,
+      qty: i.qty,
+      unitPrice: i.unit_price,
+    })),
+  }).catch(() => {}); // fire-and-forget
 
   return apiSuccess(
     {

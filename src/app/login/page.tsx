@@ -61,7 +61,7 @@ function StaffLoginForm() {
       }
       if (data.data) {
         const d = data.data;
-        localStorage.setItem('tyg_tenant', JSON.stringify({ id: d.tenantId, slug: d.tenantSlug, name: d.tenantName, address: d.tenantAddress, plan: d.planTier }));
+        localStorage.setItem('tyg_tenant', JSON.stringify({ id: d.tenantId, slug: d.tenantSlug, name: d.tenantName, address: d.tenantAddress, plan: d.planTier, trialEndsAt: d.trialEndsAt }));
         localStorage.setItem('tyg_session', JSON.stringify({ tenantId: d.tenantId, tenantSlug: d.tenantSlug, tenantName: d.tenantName, tenantAddress: d.tenantAddress, staffId: d.staffId, displayName: d.displayName, role: d.role, branchId: d.branchId }));
       }
       router.push(searchParams.get('redirect') ?? '/admin/dashboard');

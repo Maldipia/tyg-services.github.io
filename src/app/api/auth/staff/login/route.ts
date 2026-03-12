@@ -67,7 +67,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const db = createServiceClient();
   const { data: tenantData } = await db
     .from('tenants')
-    .select('id, name, slug, address, plan_tier, plan_status')
+    .select('id, name, slug, address, plan_tier, plan_status, trial_ends_at')
     .eq('id', tenant.tenantId)
     .single();
 
@@ -88,6 +88,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     tenantAddress: tenantData?.address ?? null,
     planTier: tenant.planTier,
     planStatus: tenant.planStatus,
+    trialEndsAt: tenantData?.trial_ends_at ?? null,
   });
 
   response.cookies.set(STAFF_SESSION_COOKIE, rawToken, {

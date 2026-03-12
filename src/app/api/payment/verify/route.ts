@@ -1,40 +1,47 @@
 export const dynamic = 'force-dynamic';
 
-// src/app/api/payment/verify/route.ts
-// PATCH — Staff verifies a payment proof
-// Triggers Drive file move to PAYMENT/processed/ via Apps Script
-
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { createServiceClient } from '@/lib/supabase/client';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 import type { AuthContext } from '@/types';
 
-interface VerifyBody {
-  paymentId: string;
-  orderId: string;
-  action: 'verify' | 'reject';
-  reason?: string; // required when action === 'reject'
-}
+const VerifySchema = z.object({
+  paymentId: z.string().uuid('Invalid paymentId'),
+  orderId:   z.string().uuid('Invalid orderId'),
+  action:    z.enum(['verify', 'reject'], { errorMap: () => ({ message: 'action must be verify or reject' }) }),
+  reason:    z.string().max(500).optional(),
+});
 
 export function PATCH(req: NextRequest) {
   return withStaffAuth(req, handleVerify, ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER']);
 }
 
-async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextResponse> {
-  const body = await req.json() as VerifyBody;
-  const { paymentId, orderId, action, reason } = body;
+// Handle CORS preflight
+export function OPTIONS() {
+  return new NextResponse(null, { status: 204 });
+}
 
-  if (!paymentId || !orderId || !action) {
-    return apiError('paymentId, orderId, and action are required', 400);
+async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextResponse> {
+  let raw: unknown;
+  try { raw = await req.json(); }
+  catch { return apiError('Invalid JSON', 400); }
+
+  const parsed = VerifySchema.safeParse(raw);
+  if (!parsed.success) {
+    return apiError(parsed.error.errors[0]?.message ?? 'Validation error', 400);
   }
+
+  const { paymentId, orderId, action, reason } = parsed.data;
+
   if (action === 'reject' && !reason?.trim()) {
     return apiError('reason is required when rejecting a payment', 400);
   }
 
   const supabase = createServiceClient();
 
-  // ── Fetch payment + order ──────────────────────────────────
+  // Fetch payment + ensure it belongs to this tenant's order
   const { data: payment, error: pmtErr } = await supabase
     .from('payments')
     .select('id, order_id, status, proof_url, method, amount')
@@ -45,79 +52,59 @@ async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextRes
   if (pmtErr || !payment) return apiError('Payment not found', 404);
   if (payment.status === 'VERIFIED') return apiError('Payment already verified', 409);
 
-  // ── Fetch order for tenant isolation check ────────────────
+  // Verify order belongs to this tenant
   const { data: order, error: ordErr } = await supabase
     .from('orders')
-    .select('id, tenant_id, order_number, customer_name, customer_email')
+    .select('id, tenant_id, order_number, total_amount, customer_name')
     .eq('id', orderId)
     .eq('tenant_id', ctx.tenantId)
     .single();
 
   if (ordErr || !order) return apiError('Order not found or access denied', 404);
 
+  const newStatus = action === 'verify' ? 'VERIFIED' : 'REJECTED';
   const now = new Date().toISOString();
-  const newPaymentStatus = action === 'verify' ? 'VERIFIED' : 'FAILED';
-  const newOrderPaymentStatus = action === 'verify' ? 'VERIFIED' : 'FAILED';
 
-  // ── Update payment in Supabase ────────────────────────────
-  const { error: updatePmtErr } = await supabase
+  // Update payment
+  const { error: updateErr } = await supabase
     .from('payments')
     .update({
-      status:       newPaymentStatus,
-      verified_by:  ctx.staffId ?? null,
-      verified_at:  now,
-      notes:        action === 'reject' ? reason : null,
+      status: newStatus,
+      verified_at: action === 'verify' ? now : null,
+      verified_by: ctx.staffId,
+      rejection_reason: action === 'reject' ? reason : null,
     })
     .eq('id', paymentId);
 
-  if (updatePmtErr) return apiError('Failed to update payment', 500);
+  if (updateErr) return apiError('Failed to update payment', 500);
 
-  // ── Update order payment_status ───────────────────────────
-  await supabase
-    .from('orders')
-    .update({ payment_status: newOrderPaymentStatus, updated_at: now })
-    .eq('id', orderId);
-
-  // ── Log order event ───────────────────────────────────────
-  await supabase.from('order_events').insert({
-    order_id:   orderId,
-    tenant_id:  ctx.tenantId,
-    event_type: `PAYMENT_${action.toUpperCase()}ED`,
-    from_status: payment.status,
-    to_status:   newPaymentStatus,
-    staff_id:    ctx.staffId ?? null,
-    notes:       action === 'reject' ? reason : null,
-  });
-
-  // ── Fire Drive routing webhook (fire-and-forget) ──────────
-  const supabaseFilePath = payment.proof_url?.replace(/^.*payment-proofs\//, '') ?? '';
-
+  // If verified: mark order as payment-complete
   if (action === 'verify') {
-    void fireSheetsWebhook('VERIFY_PAYMENT', {
-      payment_id:          paymentId,
-      order_id:            orderId,
-      order_number:        order.order_number,
-      verified_by:         ctx.displayName ?? 'Staff',
-      supabase_file_path:  supabaseFilePath,
-    });
-  } else {
-    void fireSheetsWebhook('REJECT_PAYMENT', {
-      payment_id:          paymentId,
-      order_id:            orderId,
-      order_number:        order.order_number,
-      rejected_by:         ctx.displayName ?? 'Staff',
-      reason:              reason,
-      supabase_file_path:  supabaseFilePath,
-    });
+    await supabase
+      .from('orders')
+      .update({ payment_status: 'PAID', updated_at: now })
+      .eq('id', orderId)
+      .eq('tenant_id', ctx.tenantId);
   }
 
-  return apiSuccess({
+  // Audit log
+  await supabase.from('audit_log').insert({
+    actor: ctx.staffId,
+    action: action === 'verify' ? 'PAYMENT_VERIFY' : 'PAYMENT_REJECT',
+    target_type: 'payment',
+    target_id: paymentId,
+    metadata: { orderId, amount: order.total_amount, reason: reason ?? null },
+  });
+
+  // Fire-and-forget Sheets sync
+  fireSheetsWebhook('UPDATE_PAYMENT', {
+    tenantId: ctx.tenantId,
     paymentId,
     orderId,
-    action,
-    newStatus: newPaymentStatus,
-    message: action === 'verify'
-      ? 'Payment verified. Proof moving to Drive/processed.'
-      : 'Payment rejected. Proof moving to Drive/reject.',
-  });
+    orderNumber: order.order_number,
+    status: newStatus,
+    verifiedBy: ctx.displayName,
+  }).catch(() => {});
+
+  return apiSuccess({ paymentId, status: newStatus });
 }

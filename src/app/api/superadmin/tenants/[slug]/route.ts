@@ -105,5 +105,14 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Audit log every superadmin plan change
+  await db.from("audit_log").insert({
+    actor: "superadmin",
+    action: "PLAN_CHANGE",
+    target_type: "tenant",
+    target_id: data.id as string,
+    metadata: { slug, updates, note: body.note ?? null },
+  }).catch(() => {}); // non-blocking
+
   return NextResponse.json({ data });
 }

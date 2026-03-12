@@ -23,6 +23,10 @@ const CreateStaffSchema = z.object({
   branchId: z.string().uuid().nullable().optional(),
 });
 
+export function OPTIONS() {
+  return new Response(null, { status: 204 });
+}
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(
     req,

@@ -35,6 +35,10 @@ const CreateOrderSchema = z.object({
   isTest: z.boolean().optional().default(false),
 });
 
+export function OPTIONS() {
+  return new Response(null, { status: 204 });
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── 1. Rate limiting (Upstash Redis — never in-memory) ──────
   const ip = getClientIp(req);
@@ -61,6 +65,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const input = parseResult.data;
+
+  // isTest guard: only staff sessions may create test orders
+  if (input.isTest) {
+    const staffCookie = req.cookies.get('tyg-staff-session')?.value;
+    if (!staffCookie) {
+      return apiError('Test orders require staff authentication', 403, 'TEST_ORDER_FORBIDDEN');
+    }
+  }
+
   const db = createServiceClient();
 
   // ── 3. Resolve tenant ────────────────────────────────────────

@@ -55,7 +55,7 @@ function StaffLoginForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantSlug, displayName: displayName.trim(), pin }),
       });
-      const data = await res.json() as { data?: { staffId: string; displayName: string; role: string; branchId: string | null; tenantId: string; tenantSlug: string; tenantName: string; tenantAddress: string | null; planTier: string; planStatus: string; }; error: string | null; };
+      const data = await res.json() as { data?: { staffId: string; displayName: string; role: string; branchId: string | null; tenantId: string; tenantSlug: string; tenantName: string; tenantAddress: string | null; planTier: string; planStatus: string; trialEndsAt: string | null; }; error: string | null; };
       if (!res.ok || data.error) {
         setError(data.error ?? 'Incorrect PIN'); setPin(''); triggerShake(); setLoading(false); return;
       }

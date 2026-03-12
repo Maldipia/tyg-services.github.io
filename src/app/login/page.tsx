@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChefHat, Delete } from 'lucide-react';
 
@@ -12,6 +12,14 @@ const KEYPAD = [
 ];
 
 export default function StaffLoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0f1117', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ color: 'white', opacity: 0.5 }}>Loading...</div></div>}>
+      <StaffLoginForm />
+    </Suspense>
+  );
+}
+
+function StaffLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tenantSlug] = useState(() => searchParams.get('tenant') ?? 'yani');

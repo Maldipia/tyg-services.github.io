@@ -12,7 +12,16 @@ import {
 // ─── Role-gated navigation groups ─────────────────────────────
 // Each item specifies which roles can see it.
 // KITCHEN gets no sidebar — they go straight to KDS.
-const NAV_GROUPS = [
+interface NavItem {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  roles: string[];
+  badgeKey?: string;
+  planWarning?: boolean;
+}
+
+const NAV_GROUPS: { id: string; label: string; items: NavItem[] }[] = [
   {
     id: 'operations',
     label: 'Operations',

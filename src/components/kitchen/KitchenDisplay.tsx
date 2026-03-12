@@ -59,7 +59,7 @@ export default function KitchenDisplay({ tenantId, branchId, tenantName }: Props
           (data as Order[]).map((o) => ({
             ...o,
             minutesAgo: minutesAgo(o.created_at),
-          }))
+          })) as KitchenOrder[]
         );
       }
       setLoading(false);

@@ -26,7 +26,7 @@ async function paymongoRequest<T>(
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
 
   const json = await res.json() as T | { errors: PayMongoError['errors'] };

@@ -2,7 +2,7 @@
 // PATCH — Staff verifies a payment proof
 // Triggers Drive file move to PAYMENT/processed/ via Apps Script
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { createServiceClient } from '@/lib/supabase/client';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
@@ -19,7 +19,7 @@ export function PATCH(req: NextRequest) {
   return withStaffAuth(req, handleVerify, ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER']);
 }
 
-async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<Response> {
+async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextResponse> {
   const body = await req.json() as VerifyBody;
   const { paymentId, orderId, action, reason } = body;
 

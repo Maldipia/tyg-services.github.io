@@ -10,19 +10,20 @@ export function POST(req: NextRequest) {
 }
 
 async function handleCheckout(req: NextRequest, ctx: OwnerCtx): Promise<NextResponse> {
-  const body = await req.json() as { tier?: string; cycle?: 'monthly' | 'annual' };
-  const { tier, cycle } = body;
-  if (!tier || !cycle) return apiError('tier and cycle are required', 400);
+  const body = await req.json() as { planTier?: string; billingCycle?: 'monthly' | 'annual' };
+  const { planTier, billingCycle } = body;
+  if (!planTier || !billingCycle) return apiError('planTier and billingCycle are required', 400);
 
   try {
-    const session = await createCheckoutSession({
+    const result = await createCheckoutSession({
       tenantId: ctx.tenantId,
       tenantSlug: ctx.tenantSlug,
-      tier: tier as never,
-      cycle,
-      email: '',
+      planTier: planTier as 'STARTER' | 'BUSINESS' | 'PRO' | 'ENTERPRISE',
+      billingCycle,
+      ownerEmail: '',
+      businessName: ctx.tenantSlug,
     });
-    return apiSuccess({ checkoutUrl: session.attributes.checkout_url });
+    return apiSuccess({ checkoutUrl: result.checkoutUrl });
   } catch (err) {
     console.error('Billing checkout error:', err);
     return apiError('Failed to create checkout session', 500);

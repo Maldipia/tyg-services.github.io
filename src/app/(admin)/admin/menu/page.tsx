@@ -59,8 +59,18 @@ export default function MenuPage() {
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<MenuItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [tenantSlug, setTenantSlug] = useState('yani'); // default fallback
 
   const supabase = createBrowserClient();
+
+  useEffect(() => {
+    const tenant = localStorage.getItem('tyg_tenant');
+    const session = localStorage.getItem('tyg_session');
+    let slug = 'yani';
+    if (tenant)  { try { const t = JSON.parse(tenant)  as { slug?: string }; if (t.slug) slug = t.slug; } catch { /* */ } }
+    if (session) { try { const s = JSON.parse(session) as { tenantSlug?: string }; if (s.tenantSlug) slug = s.tenantSlug; } catch { /* */ } }
+    setTenantSlug(slug);
+  }, []);
 
   const showToast = (msg: string, type: 'ok' | 'err' = 'ok') => {
     setToast({ msg, type });
@@ -68,7 +78,7 @@ export default function MenuPage() {
   };
 
   const loadMenu = useCallback(async () => {
-    const res = await fetch('/api/menu?tenant=yani'); // tenant from session in production
+    const res = await fetch('/api/menu?tenant=' + tenantSlug);
     const data = await res.json() as { data: { categories: (MenuCategory & { items: MenuItem[] })[] } | null };
     if (data.data) {
       const cats = data.data.categories.map(c => ({

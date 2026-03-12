@@ -2,7 +2,6 @@
 import React from 'react';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createBrowserClient } from '@/lib/supabase/client';
 import { Check, X, Eye, Clock, RefreshCw, CreditCard, AlertCircle, Phone, Mail } from 'lucide-react';
 
 interface Payment {
@@ -44,21 +43,18 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('PENDING_VERIFICATION');
-  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [tenantSlug, setTenantSlug] = useState<string | null>(null);
   const [selected, setSelected] = useState<Payment | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [notes, setNotes] = useState('');
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null);
-  const supabase = createBrowserClient();
-
   useEffect(() => {
-    const stored = localStorage.getItem('tyg_session');
-    if (stored) {
-      try {
-        const s = JSON.parse(stored) as { tenantId?: string };
-        setTenantId(s.tenantId ?? null);
-      } catch { /* */ }
-    }
+    const tenant = localStorage.getItem('tyg_tenant');
+    const session = localStorage.getItem('tyg_session');
+    let slug = '';
+    if (tenant)  { try { const t = JSON.parse(tenant)  as { slug?: string }; slug = t.slug ?? ''; } catch { /* */ } }
+    if (session) { try { const s = JSON.parse(session) as { tenantSlug?: string }; if (s.tenantSlug) slug = s.tenantSlug; } catch { /* */ } }
+    setTenantSlug(slug || null);
   }, []);
 
   const showToast = (msg: string, type: 'ok' | 'err' = 'ok') => {
@@ -67,23 +63,17 @@ export default function PaymentsPage() {
   };
 
   const loadPayments = useCallback(async () => {
-    if (!tenantId) return;
+    if (!tenantSlug) return;
     setLoading(true);
-    let query = supabase
-      .from('payments')
-      .select(`
-        id, order_id, method, status, amount, reference_number, proof_url, notes, created_at,
-        orders(order_number, customer_name, customer_phone, customer_email, total_amount, status)
-      `)
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (filter !== 'ALL') query = query.eq('status', filter);
-    const { data } = await query;
-    setPayments(((data as unknown) as Payment[]) ?? []);
-    setLoading(false);
-  }, [tenantId, filter, supabase]);
+    try {
+      const statusParam = filter !== 'ALL' ? `&status=${filter}` : '';
+      const r = await fetch(`/api/payments?tenantSlug=${tenantSlug}${statusParam}&limit=100`, { credentials: 'include' });
+      if (r.ok) {
+        const d = await r.json() as { data?: Payment[] };
+        setPayments(d.data ?? []);
+      }
+    } catch { /* silent */ } finally { setLoading(false); }
+  }, [tenantSlug, filter]);
 
   useEffect(() => { void loadPayments(); }, [loadPayments]);
 
@@ -98,7 +88,7 @@ export default function PaymentsPage() {
         body: JSON.stringify({
           paymentId: selected.id,
           orderId: selected.order_id,
-          action,
+          action: action === "VERIFY" ? "verify" : "reject",
           notes: notes.trim() || undefined,
         }),
       });

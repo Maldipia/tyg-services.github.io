@@ -91,8 +91,8 @@ export default function AdminShell({ children }: AdminShellProps) {
     if (!tenantSlug) return;
     const fetch_ = async () => {
       try {
-        const r = await fetch(`/api/orders?tenantSlug=${tenantSlug}&status=active&limit=1`);
-        if (r.ok) { const d = await r.json() as { total?: number }; setActiveOrders(d.total ?? 0); }
+        const r = await fetch(`/api/orders?tenantSlug=${tenantSlug}&status=active&limit=50`, { credentials: 'include' });
+        if (r.ok) { const d = await r.json() as { data?: unknown[] }; setActiveOrders(d.data?.length ?? 0); }
       } catch { /* */ }
     };
     void fetch_();

@@ -9,7 +9,7 @@ const UpdateItemSchema = z.object({
   description: z.string().max(500).optional(),
   basePrice: z.number().min(0).max(99999).optional(),
   categoryId: z.string().uuid().optional(),
-  status: z.enum(['AVAILABLE','UNAVAILABLE','HIDDEN']).optional(),
+  status: z.enum(['AVAILABLE', 'SOLD_OUT', 'HIDDEN']).optional(),
   isFeatured: z.boolean().optional(),
   imageUrl: z.string().url().nullable().optional(),
   sortOrder: z.number().int().optional(),
@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
       .update(updatePayload)
       .eq('id', params.id).eq('tenant_id', ctx.tenantId)
       .select('id, name, base_price, status, is_featured, image_url, category_id').single();
-    if (error) return apiError('Failed to update item', 500);
+    if (error) return apiError(`Failed to update item: ${error.message}`, 500);
     return apiSuccess(data);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }
@@ -47,6 +47,7 @@ export async function DELETE(req: NextRequest, { params }: Params): Promise<Next
   return withStaffAuth(req, async (_, ctx) => {
     if (!params.id || !/^[0-9a-f-]{36}$/i.test(params.id)) return apiError('Invalid ID', 400);
     const db = createServiceClient();
+    // Soft delete — set status to HIDDEN
     const { error } = await db.from('menu_items')
       .update({ status: 'HIDDEN' })
       .eq('id', params.id).eq('tenant_id', ctx.tenantId);

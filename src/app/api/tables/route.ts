@@ -7,10 +7,9 @@ import { withStaffAuth, apiSuccess, apiError, resolveTenant } from '@/lib/auth/m
 const CreateTableSchema = z.object({
   name: z.string().min(1).max(80).trim(),
   capacity: z.number().int().min(1).max(50).optional().default(4),
-  description: z.string().max(200).optional(),
 });
 
-export function OPTIONS() { return new Response(null,{status:204}); }
+export function OPTIONS() { return new Response(null, { status: 204 }); }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
@@ -21,8 +20,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   if (!tenant) return apiError('Tenant not found', 404);
   const { data, error } = await db
     .from('restaurant_tables')
-    .select('id, name, capacity, description, is_active, qr_token, created_at')
+    .select('id, name, capacity, is_active, qr_token, branch_id')
     .eq('tenant_id', tenant.tenantId)
+    .eq('is_active', true)
     .order('name');
   if (error) return apiError('Failed to fetch tables', 500);
   return apiSuccess(data ?? []);
@@ -35,18 +35,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const parsed = CreateTableSchema.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.errors[0]?.message ?? 'Validation error', 400);
     const db = createServiceClient();
-    const { data: branch } = await db.from('branches').select('id').eq('tenant_id', ctx.tenantId).limit(1).single();
-    const qrToken = `${ctx.tenantId.slice(0,8)}-${Date.now().toString(36)}`;
+    // branch_id is required — get the tenant's primary branch
+    const { data: branch } = await db
+      .from('branches')
+      .select('id')
+      .eq('tenant_id', ctx.tenantId)
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+    if (!branch) return apiError('No active branch found for this tenant', 400);
     const { data, error } = await db.from('restaurant_tables').insert({
       tenant_id: ctx.tenantId,
-      branch_id: branch?.id ?? null,
+      branch_id: branch.id,
       name: parsed.data.name,
       capacity: parsed.data.capacity,
-      description: parsed.data.description ?? null,
       is_active: true,
-      qr_token: qrToken,
-    }).select('id, name, capacity, description, is_active, qr_token').single();
-    if (error) return apiError('Failed to create table', 500);
+    }).select('id, name, capacity, is_active, qr_token').single();
+    if (error) return apiError(`Failed to create table: ${error.message}`, 500);
     return apiSuccess(data, 201);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }

@@ -7,7 +7,6 @@ import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 const UpdateTableSchema = z.object({
   name: z.string().min(1).max(80).trim().optional(),
   capacity: z.number().int().min(1).max(50).optional(),
-  description: z.string().max(200).nullable().optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -24,13 +23,12 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
     const updatePayload: Record<string, unknown> = {};
     if (parsed.data.name !== undefined) updatePayload['name'] = parsed.data.name;
     if (parsed.data.capacity !== undefined) updatePayload['capacity'] = parsed.data.capacity;
-    if (parsed.data.description !== undefined) updatePayload['description'] = parsed.data.description;
     if (parsed.data.isActive !== undefined) updatePayload['is_active'] = parsed.data.isActive;
     const { data, error } = await db.from('restaurant_tables')
       .update(updatePayload)
       .eq('id', params.id).eq('tenant_id', ctx.tenantId)
       .select('id, name, capacity, is_active, qr_token').single();
-    if (error) return apiError('Failed to update table', 500);
+    if (error) return apiError(`Failed to update table: ${error.message}`, 500);
     return apiSuccess(data);
   }, ['OWNER', 'ADMIN', 'MANAGER']);
 }

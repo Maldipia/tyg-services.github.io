@@ -6,17 +6,19 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, UtensilsCrossed, ShoppingBag,
   Users, Settings, CreditCard, LogOut, Menu, X,
-  ChefHat, BarChart3, QrCode, Bell
+  ChefHat, BarChart3, QrCode, Bell, BookOpen
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/orders',    icon: ShoppingBag,      label: 'Orders' },
   { href: '/admin/menu',      icon: UtensilsCrossed,  label: 'Menu' },
+  { href: '/admin/tables',    icon: QrCode,           label: 'Tables & QR' },
   { href: '/admin/staff',     icon: Users,            label: 'Staff' },
   { href: '/admin/analytics', icon: BarChart3,        label: 'Analytics' },
   { href: '/admin/settings',  icon: Settings,         label: 'Settings' },
   { href: '/admin/billing',   icon: CreditCard,       label: 'Billing' },
+  { href: '/admin/guide',     icon: BookOpen,         label: 'Staff Guide' },
 ];
 
 interface AdminShellProps {

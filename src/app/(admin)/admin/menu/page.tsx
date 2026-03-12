@@ -56,6 +56,8 @@ export default function MenuPage() {
   const [editItem, setEditItem] = useState<MenuItem | null>(null);
   const [editCat, setEditCat] = useState<MenuCategory | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<MenuItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const supabase = createBrowserClient();
 
@@ -65,7 +67,7 @@ export default function MenuPage() {
   };
 
   const loadMenu = useCallback(async () => {
-    const res = await fetch('/api/menu?tenant=demo'); // replace with real tenant
+    const res = await fetch('/api/menu?tenant=yani'); // tenant from session in production
     const data = await res.json() as { data: { categories: (MenuCategory & { items: MenuItem[] })[] } | null };
     if (data.data) {
       const cats = data.data.categories.map(c => ({
@@ -84,16 +86,41 @@ export default function MenuPage() {
 
   useEffect(() => { void loadMenu(); }, [loadMenu]);
 
+  const deleteItem = async (item: MenuItem) => {
+    setDeleting(true);
+    const r = await fetch(`/api/menu/items/${item.id}`, { method: 'DELETE', credentials: 'include' });
+    const json = await r.json() as { data?: { hidden?: boolean; reason?: string }; error?: string };
+    setDeleting(false);
+    setConfirmDelete(null);
+    if (json.error) { showToast(json.error, 'err'); return; }
+    if (json.data?.hidden) {
+      showToast(`"${item.name}" marked as Hidden (has order history)`, 'ok');
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: 'HIDDEN' as ItemStatus } : i));
+    } else {
+      showToast(`"${item.name}" deleted`);
+      setItems(prev => prev.filter(i => i.id !== item.id));
+    }
+  };
+
   const filteredItems = selectedCategory
     ? items.filter(i => i.category_id === selectedCategory)
     : items;
 
   const toggleItemStatus = async (item: MenuItem) => {
     const next: ItemStatus = item.status === 'AVAILABLE' ? 'SOLD_OUT' : 'AVAILABLE';
-    // Optimistic
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next } : i));
-    // Persist (would call PATCH /api/menu/items/[id] in production)
-    showToast(`${item.name} marked as ${next.toLowerCase().replace('_', ' ')}`);
+    const r = await fetch(`/api/menu/items/${item.id}`, {
+      method: 'PATCH', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: next }),
+    });
+    const json = await r.json() as { error?: string };
+    if (json.error) {
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: item.status } : i));
+      showToast(json.error, 'err');
+    } else {
+      showToast(`${item.name} marked as ${next.toLowerCase().replace('_', ' ')}`);
+    }
   };
 
   return (
@@ -210,7 +237,7 @@ export default function MenuPage() {
                     item={item}
                     onEdit={() => { setEditItem(item); setShowItemForm(true); }}
                     onToggleStatus={() => toggleItemStatus(item)}
-                    onDelete={() => showToast('Item deleted')}
+                    onDelete={() => setConfirmDelete(item)}
                   />
                 ))}
               </div>
@@ -280,11 +307,47 @@ export default function MenuPage() {
           onSave={(msg) => { showToast(msg); void loadMenu(); }}
         />
       )}
+      {/* ── Delete Confirmation Modal ────────────────────── */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden"
+            style={{ background: 'var(--surface)', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'rgba(239,68,68,0.1)' }}>
+                <Trash2 size={22} style={{ color: '#ef4444' }} />
+              </div>
+              <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 8 }}>
+                Delete &ldquo;{confirmDelete.name}&rdquo;?
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+                If this item has order history, it will be hidden instead of permanently deleted.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold"
+                  style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => void deleteItem(confirmDelete)}
+                  disabled={deleting}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold"
+                  style={{ background: deleting ? 'var(--surface-3)' : 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// ── Menu Item Row ─────────────────────────────────────────────
 function MenuItemRow({
   item, onEdit, onToggleStatus, onDelete,
 }: {
@@ -386,14 +449,45 @@ function ItemFormModal({
   const [categoryId, setCategoryId] = useState(item?.category_id ?? categories[0]?.id ?? '');
   const [status, setStatus] = useState<ItemStatus>(item?.status ?? 'AVAILABLE');
   const [isFeatured, setIsFeatured] = useState(item?.is_featured ?? false);
+  const [imageUrl, setImageUrl] = useState<string | null>(item?.image_url ?? null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Only image files allowed'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Max 5MB per image'); return; }
+
+    setUploading(true);
+    const { createBrowserClient: createClient } = await import('@/lib/supabase/client');
+    const sb = createClient();
+    const ext = file.name.split('.').pop() ?? 'jpg';
+    const path = `menu/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await sb.storage.from('menu-images').upload(path, file, { upsert: false });
+    if (error || !data) { alert('Upload failed: ' + (error?.message ?? 'unknown')); setUploading(false); return; }
+    const { data: urlData } = sb.storage.from('menu-images').getPublicUrl(data.path);
+    setImageUrl(urlData.publicUrl);
+    setUploading(false);
+  };
 
   const handleSave = async () => {
     if (!name.trim() || !basePrice) return;
     setSaving(true);
-    // In production: call POST /api/menu/items or PATCH /api/menu/items/[id]
-    await new Promise(r => setTimeout(r, 600)); // simulate
+    const url = item ? `/api/menu/items/${item.id}` : '/api/menu/items';
+    const method = item ? 'PATCH' : 'POST';
+    const r = await fetch(url, {
+      method, credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(), description: description.trim() || null,
+        basePrice: parseFloat(basePrice), categoryId,
+        status, isFeatured, imageUrl,
+      }),
+    });
+    const json = await r.json() as { error?: string };
     setSaving(false);
+    if (json.error) { onSave(json.error); return; }
     onSave(item ? `${name} updated` : `${name} added to menu`);
     onClose();
   };
@@ -413,6 +507,47 @@ function ItemFormModal({
         </div>
 
         <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+          {/* Image Upload */}
+          <div>
+            <label style={labelStyle}>Photo</label>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                {imageUrl
+                  ? <Image src={imageUrl} alt="preview" width={80} height={80} className="w-full h-full object-cover" />
+                  : <ImageIcon size={22} style={{ color: 'var(--text-muted)' }} />
+                }
+              </div>
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="menu-img-upload"
+                  className="hidden"
+                  onChange={e => void handleImageUpload(e)}
+                />
+                <label
+                  htmlFor="menu-img-upload"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer inline-flex"
+                  style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                >
+                  <ImageIcon size={14} />
+                  {uploading ? 'Uploading...' : imageUrl ? 'Change Photo' : 'Upload Photo'}
+                </label>
+                {imageUrl && (
+                  <button
+                    onClick={() => setImageUrl(null)}
+                    className="mt-2 block text-xs"
+                    style={{ color: '#ef4444' }}
+                  >
+                    Remove photo
+                  </button>
+                )}
+                <p style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 6 }}>JPG, PNG or WebP · Max 5MB</p>
+              </div>
+            </div>
+          </div>
+
           {/* Name */}
           <div>
             <label style={labelStyle}>Item Name *</label>
@@ -511,14 +646,14 @@ function ItemFormModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={!name.trim() || !basePrice || saving}
+            disabled={!name.trim() || !basePrice || saving || uploading}
             className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
             style={{
-              background: name.trim() && basePrice ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'var(--surface-3)',
-              color: name.trim() && basePrice ? 'white' : 'var(--text-muted)',
+              background: name.trim() && basePrice && !uploading ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'var(--surface-3)',
+              color: name.trim() && basePrice && !uploading ? 'white' : 'var(--text-muted)',
             }}
           >
-            {saving ? 'Saving...' : item ? 'Save Changes' : 'Add Item'}
+            {uploading ? 'Uploading...' : saving ? 'Saving...' : item ? 'Save Changes' : 'Add Item'}
           </button>
         </div>
       </div>
@@ -541,8 +676,16 @@ function CategoryFormModal({
   const handleSave = async () => {
     if (!name.trim()) return;
     setSaving(true);
-    await new Promise(r => setTimeout(r, 500));
+    const url = cat ? `/api/menu/categories/${cat.id}` : '/api/menu/categories';
+    const method = cat ? 'PATCH' : 'POST';
+    const r = await fetch(url, {
+      method, credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), description: description.trim() || null }),
+    });
+    const json = await r.json() as { error?: string };
     setSaving(false);
+    if (json.error) { onSave(json.error); return; }
     onSave(cat ? 'Category updated' : `"${name}" category created`);
     onClose();
   };

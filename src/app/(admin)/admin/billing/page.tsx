@@ -104,10 +104,26 @@ export default function BillingPage() {
 
   const handleUpgrade = async (tier: PlanTier) => {
     setUpgrading(tier);
-    // In production: POST /api/billing/checkout → redirect to PayMongo checkout
-    await new Promise(r => setTimeout(r, 800));
-    setUpgrading(null);
-    alert(`Redirecting to PayMongo checkout for ${tier} plan...`);
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planTier: tier, billingCycle: cycle }),
+      });
+      const json = await res.json() as { data?: { checkoutUrl?: string }; error?: string };
+      if (!res.ok || json.error) {
+        alert(json.error ?? 'Checkout failed. Please try again.');
+        return;
+      }
+      if (json.data?.checkoutUrl) {
+        window.location.href = json.data.checkoutUrl;
+      }
+    } catch {
+      alert('Network error. Please try again.');
+    } finally {
+      setUpgrading(null);
+    }
   };
 
   const annualSavings = (plan: Plan) =>

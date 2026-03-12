@@ -8,7 +8,7 @@ import {
 import type { StaffRole } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyIcon = LucideIcon | any;
+type AnyIcon = any;
 
 interface StaffMember {
   id: string;
@@ -20,7 +20,7 @@ interface StaffMember {
   last_login: string | null;
 }
 
-const ROLE_CONFIG: Record<StaffRole, { label: string; color: string; bg: string; icon: AnyIcon; // LucideIcon or custom SVG desc: string }> = {
+const ROLE_CONFIG: Record<StaffRole, { label: string; color: string; bg: string; icon: AnyIcon; desc: string }> = {
   OWNER:   { label: 'Owner',   color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  icon: Crown,   desc: 'Full access to everything' },
   ADMIN:   { label: 'Admin',   color: '#c084fc', bg: 'rgba(192,132,252,0.12)', icon: Shield,  desc: 'Manage staff, menu, settings' },
   MANAGER: { label: 'Manager', color: '#6366f1', bg: 'rgba(99,102,241,0.12)',  icon: BarChart3,desc: 'Orders + analytics' },

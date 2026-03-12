@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 // /signup/confirm — Supabase calls this after email confirmation.
 // Reads pending onboarding data from URL, creates the tenant, then redirects to login.

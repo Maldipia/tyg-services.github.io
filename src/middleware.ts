@@ -26,18 +26,25 @@ export function middleware(req: NextRequest): NextResponse {
     }
   }
 
-  // ── Super Admin: require superadmin cookie ────────────────
+  // ── Super Admin: require superadmin cookie (existence check) ─
+  // Full HMAC verification happens in the API route handlers (async).
+  // Edge middleware: check presence + basic non-empty value.
   if (pathname.startsWith('/superadmin') && !pathname.startsWith('/superadmin/login')) {
     const saCookie = req.cookies.get('tyg_superadmin');
-    if (!saCookie) {
+    if (!saCookie?.value || saCookie.value.length < 10) {
       return NextResponse.redirect(new URL('/superadmin/login', req.url));
     }
   }
 
   // ── CRON routes: require CRON_SECRET ─────────────────────
   if (pathname.startsWith('/api/cron')) {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+      // If CRON_SECRET is not set, block all cron access
+      return NextResponse.json({ error: 'Cron not configured' }, { status: 503 });
+    }
     const authHeader = req.headers.get('Authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }

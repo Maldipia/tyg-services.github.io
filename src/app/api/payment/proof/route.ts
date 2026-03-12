@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/client';
 import { resolveTenant, apiSuccess, apiError, getClientIp } from '@/lib/auth/middleware';
 import { paymentUploadRateLimit } from '@/lib/redis/ratelimit';
+import { validateImageFile } from '@/lib/utils/file-validation';
 
 const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
@@ -41,14 +42,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const tenant = await resolveTenant(tenantSlug);
   if (!tenant) return apiError('Tenant not found', 404);
 
-  if (!ALLOWED_MIME.has(file.type)) {
-    return apiError('Only JPEG, PNG, WebP, and HEIC images are accepted', 400, 'INVALID_FILE_TYPE');
-  }
-
-  const fileSizeMB = file.size / 1024 / 1024;
-  if (fileSizeMB > MAX_FILE_SIZE_MB) {
-    return apiError(`File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB`, 400, 'FILE_TOO_LARGE');
-  }
+  // Magic byte validation (not just MIME header trust)
+  const validation = await validateImageFile(file, { maxSizeMb: 5 });
+  if (!validation.valid) return apiError(validation.error ?? 'Invalid file', 400);
 
   const db = createServiceClient();
 

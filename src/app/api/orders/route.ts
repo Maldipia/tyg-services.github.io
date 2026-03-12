@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
-import { resolveTenant, apiSuccess, apiError, getClientIp } from '@/lib/auth/middleware';
+import { resolveTenant, apiSuccess, apiError, getClientIp, withStaffAuth } from '@/lib/auth/middleware';
 import { orderRateLimit } from '@/lib/redis/ratelimit';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 
@@ -337,4 +337,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     },
     201
   );
+}
+
+// GET /api/orders?tenantSlug=yani&status=active&limit=8
+// Returns active orders for the dashboard. Requires staff auth.
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  return withStaffAuth(req, async (request, ctx) => {
+    const { searchParams } = new URL(request.url);
+    const statusFilter = searchParams.get('status'); // 'active' | null
+    const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 50);
+
+    const db = createServiceClient();
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+
+    let query = db.from('orders')
+      .select('id, order_number, status, payment_status, total_amount, customer_name, created_at, pax')
+      .eq('tenant_id', ctx.tenantId)
+      .eq('is_test', false)
+      .gte('created_at', todayStart.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (statusFilter === 'active') {
+      query = query.in('status', ['PENDING', 'CONFIRMED', 'PREPARING', 'READY']);
+    }
+
+    const { data, error } = await query;
+    if (error) return apiError('Failed to fetch orders', 500);
+    return apiSuccess(data ?? []);
+  }, ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'KITCHEN']);
 }

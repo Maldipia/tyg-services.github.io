@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 import { useState } from 'react';
 import { Check, Zap, Building2, Crown, Rocket, ExternalLink, CreditCard, Calendar, ChevronRight, AlertTriangle } from 'lucide-react';

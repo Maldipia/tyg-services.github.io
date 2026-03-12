@@ -1,30 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { setSuperAdminCookie, clearSuperAdminCookie } from '@/lib/auth/superadmin';
+import { setSuperAdminCookie, clearSuperAdminCookie, checkSuperAdminRateLimit, logSecurityEvent } from '@/lib/auth/superadmin';
 import { getClientIp } from '@/lib/auth/middleware';
-
-// Simple in-memory rate limiter for superadmin (edge-safe)
-const attempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 15 * 60 * 1000; // 15 min
-
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  const record = attempts.get(ip);
-
-  if (!record || now > record.resetAt) {
-    attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return { allowed: true, remaining: MAX_ATTEMPTS - 1 };
-  }
-
-  if (record.count >= MAX_ATTEMPTS) {
-    return { allowed: false, remaining: 0 };
-  }
-
-  record.count++;
-  return { allowed: true, remaining: MAX_ATTEMPTS - record.count };
-}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const ip = getClientIp(req);
@@ -39,9 +17,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return clearSuperAdminCookie(NextResponse.json({ ok: true }));
   }
 
-  // Rate limit login attempts
-  const { allowed, remaining } = checkRateLimit(ip);
+  // Rate limit with Upstash Redis (persistent across serverless instances)
+  const { allowed, remaining } = await checkSuperAdminRateLimit(ip);
   if (!allowed) {
+    logSecurityEvent('SUPERADMIN_RATE_LIMITED', ip);
     return NextResponse.json(
       { error: 'Too many attempts. Try again in 15 minutes.' },
       { status: 429, headers: { 'Retry-After': '900' } }
@@ -55,14 +34,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   if (!secret || secret !== SECRET) {
+    logSecurityEvent('SUPERADMIN_LOGIN_FAILED', ip, { remaining });
     return NextResponse.json(
       { error: `Invalid password. ${remaining} attempts remaining.` },
       { status: 401 }
     );
   }
 
-  // Clear rate limit on success
-  attempts.delete(ip);
-
+  logSecurityEvent('SUPERADMIN_LOGIN_SUCCESS', ip);
   return setSuperAdminCookie(NextResponse.json({ ok: true }));
 }

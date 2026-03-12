@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { createServiceClient } from '@/lib/supabase/client';
 
+import { validateImageFile } from '@/lib/utils/file-validation';
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(req, async (_, ctx) => {
     const formData = await req.formData();
@@ -12,16 +14,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     if (!file) return apiError('No file provided', 400);
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
-    if (!allowedTypes.includes(file.type)) {
-      return apiError('Invalid file type. Use JPEG, PNG, or WebP.', 400);
-    }
-
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      return apiError('File too large. Maximum 2MB.', 400);
-    }
+    // Validate with magic byte checking (not just MIME header)
+    const validation = await validateImageFile(file, { maxSizeMb: 2, allowedTypes: ['image/jpeg', 'image/png', 'image/webp'] });
+    if (!validation.valid) return apiError(validation.error ?? 'Invalid file', 400);
 
     const db = createServiceClient();
     const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';

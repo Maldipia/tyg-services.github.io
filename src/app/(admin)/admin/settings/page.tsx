@@ -62,13 +62,14 @@ function SettingsPageInner() {
     (searchParams.get('tab') as SettingsTab) ?? 'general'
   );
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // General
-  const [businessName, setBusinessName] = useState('YANI Garden Café');
-  const [slug, setSlug] = useState('yani');
-  const [phone, setPhone] = useState('09171234567');
-  const [address, setAddress] = useState('Amadeo, Cavite');
+  const [businessName, setBusinessName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [receiptFooter, setReceiptFooter] = useState('Thank you for dining with us! 🌿');
 
   // Operations
@@ -89,12 +90,55 @@ function SettingsPageInner() {
     GCASH: null, MAYA: null, BPI: null, BDO: null, UNIONBANK: null,
   });
 
+  // Load real settings from API on mount
+  useEffect(() => {
+    fetch('/api/settings', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { data?: { name?: string; slug?: string; phone?: string; address?: string; primary_color?: string; accent_color?: string; settings?: Record<string, unknown> } } | null) => {
+        if (!d?.data) return;
+        const t = d.data;
+        if (t.name) setBusinessName(t.name);
+        if (t.slug) setSlug(t.slug);
+        if (t.phone) setPhone(t.phone);
+        if (t.address) setAddress(t.address);
+        if (t.primary_color) setPrimaryColor(t.primary_color);
+        if (t.accent_color) setAccentColor(t.accent_color);
+        const s = t.settings ?? {};
+        if (typeof s['orderingEnabled'] === 'boolean') setOrderingEnabled(s['orderingEnabled']);
+        if (typeof s['requireCustomerName'] === 'boolean') setRequireName(s['requireCustomerName']);
+        if (typeof s['requireCustomerPhone'] === 'boolean') setRequirePhone(s['requireCustomerPhone']);
+        if (typeof s['vatEnabled'] === 'boolean') setVatEnabled(s['vatEnabled']);
+        if (typeof s['vatRate'] === 'number') setVatRate(String(s['vatRate']));
+        if (typeof s['pwdDiscountEnabled'] === 'boolean') setPwdDiscount(s['pwdDiscountEnabled']);
+        if (typeof s['smsEnabled'] === 'boolean') setSmsEnabled(s['smsEnabled']);
+        if (typeof s['receiptFooter'] === 'string') setReceiptFooter(s['receiptFooter']);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   const handleSave = async () => {
-    setSaved(false);
-    // In production: PATCH /api/admin/settings
-    await new Promise(r => setTimeout(r, 700));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setSaved(false); setError(null);
+    try {
+      const r = await fetch('/api/settings', {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: businessName, phone, address,
+          primaryColor, accentColor,
+          settings: {
+            orderingEnabled, requireCustomerName: requireName,
+            requireCustomerPhone: requirePhone, vatEnabled,
+            vatRate: parseFloat(vatRate) || 12,
+            pwdDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
+          },
+        }),
+      });
+      const d = await r.json() as { error?: string };
+      if (!r.ok) { setError(d.error ?? 'Failed to save'); return; }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch { setError('Network error'); }
   };
 
   const handleQrUpload = (method: string, file: File) => {

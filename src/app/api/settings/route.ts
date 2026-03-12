@@ -1,0 +1,62 @@
+export const dynamic = 'force-dynamic';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { createServiceClient } from '@/lib/supabase/client';
+import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
+
+const UpdateSettingsSchema = z.object({
+  name: z.string().min(1).max(120).trim().optional(),
+  phone: z.string().max(20).optional(),
+  address: z.string().max(300).optional(),
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  settings: z.object({
+    orderingEnabled: z.boolean().optional(),
+    requireCustomerName: z.boolean().optional(),
+    requireCustomerPhone: z.boolean().optional(),
+    vatEnabled: z.boolean().optional(),
+    vatRate: z.number().min(0).max(30).optional(),
+    pwdDiscountEnabled: z.boolean().optional(),
+    receiptFooter: z.string().max(300).optional(),
+    smsEnabled: z.boolean().optional(),
+  }).optional(),
+}).strict();
+
+export function OPTIONS() { return new Response(null,{status:204}); }
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  return withStaffAuth(req, async (_, ctx) => {
+    const db = createServiceClient();
+    const { data, error } = await db.from('tenants')
+      .select('id, name, slug, phone, address, primary_color, accent_color, settings, plan_tier, plan_status, trial_ends_at, owner_email')
+      .eq('id', ctx.tenantId).single();
+    if (error || !data) return apiError('Tenant not found', 404);
+    return apiSuccess(data);
+  }, ['OWNER', 'ADMIN']);
+}
+
+export async function PATCH(req: NextRequest): Promise<NextResponse> {
+  return withStaffAuth(req, async (request, ctx) => {
+    let body: unknown;
+    try { body = await request.json(); } catch { return apiError('Invalid JSON', 400); }
+    const parsed = UpdateSettingsSchema.safeParse(body);
+    if (!parsed.success) return apiError(parsed.error.errors[0]?.message ?? 'Validation error', 400);
+    const db = createServiceClient();
+    const updatePayload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (parsed.data.name !== undefined) updatePayload['name'] = parsed.data.name;
+    if (parsed.data.phone !== undefined) updatePayload['phone'] = parsed.data.phone;
+    if (parsed.data.address !== undefined) updatePayload['address'] = parsed.data.address;
+    if (parsed.data.primaryColor !== undefined) updatePayload['primary_color'] = parsed.data.primaryColor;
+    if (parsed.data.accentColor !== undefined) updatePayload['accent_color'] = parsed.data.accentColor;
+    if (parsed.data.settings !== undefined) {
+      // Merge settings JSONB — don't overwrite existing keys
+      const { data: existing } = await db.from('tenants').select('settings').eq('id', ctx.tenantId).single();
+      updatePayload['settings'] = { ...(existing?.settings ?? {}), ...parsed.data.settings };
+    }
+    const { data, error } = await db.from('tenants')
+      .update(updatePayload).eq('id', ctx.tenantId)
+      .select('id, name, phone, address, primary_color, accent_color, settings').single();
+    if (error) return apiError('Failed to save settings', 500);
+    return apiSuccess(data);
+  }, ['OWNER', 'ADMIN']);
+}

@@ -59,7 +59,7 @@ function SignupForm() {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [done, setDone] = useState<{ slug: string } | null>(null);
+  const [done, setDone] = useState<{ slug: string; needsConfirmation?: boolean } | null>(null);
 
   const set = (key: keyof FormData, value: string) =>
     setForm(prev => {
@@ -81,86 +81,123 @@ function SignupForm() {
     setError('');
     const sb = createBrowserClient();
 
+    // Encode pending tenant data for the confirm callback
+    const pendingData = {
+      businessName: form.businessName,
+      slug: form.slug,
+      ownerPin: form.ownerPin,
+      phone: form.phone || undefined,
+      address: form.address,
+      timezone: form.timezone,
+    };
+    const pendingParam = encodeURIComponent(btoa(JSON.stringify(pendingData)));
+    const redirectTo = `${window.location.origin}/signup/confirm?pending=${pendingParam}`;
+
     // Step 1: Create Supabase Auth account
     const { data: authData, error: authErr } = await sb.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { full_name: form.ownerName } },
+      options: {
+        data: { full_name: form.ownerName },
+        emailRedirectTo: redirectTo,
+      },
     });
 
-    if (authErr || !authData.session) {
-      setError(authErr?.message ?? 'Sign-up failed. Email may already be registered.');
+    if (authErr) {
+      setError(authErr.message ?? 'Sign-up failed. Email may already be registered.');
       setSubmitting(false);
       return;
     }
 
-    const token = authData.session.access_token;
-
-    // Step 2: Create tenant via onboarding API
-    const r = await fetch('/api/onboarding', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        businessName: form.businessName,
-        slug: form.slug,
-        ownerPin: form.ownerPin,
-        phone: form.phone || undefined,
-        address: form.address,
-        timezone: form.timezone,
-      }),
-    });
-
-    const json = await r.json() as { data?: { slug: string }; error?: string };
-    setSubmitting(false);
-
-    if (json.error) {
-      if (json.error.includes('already taken')) { setStep(0); }
-      setError(json.error);
+    // If we got a session immediately (email confirmation disabled), create tenant now
+    if (authData.session) {
+      const token = authData.session.access_token;
+      const r = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(pendingData),
+      });
+      const json = await r.json() as { data?: { slug: string }; error?: string };
+      setSubmitting(false);
+      if (json.error) {
+        if (json.error.includes('already taken')) setStep(0);
+        setError(json.error);
+        return;
+      }
+      setDone({ slug: json.data?.slug ?? form.slug });
       return;
     }
 
-    setDone({ slug: json.data?.slug ?? form.slug });
+    // Email confirmation required — tenant will be created after email confirm
+    setSubmitting(false);
+    setDone({ slug: form.slug, needsConfirmation: true });
   };
 
   if (done) {
     return (
       <div className="text-center space-y-6">
         <div className="relative inline-flex items-center justify-center mb-2">
-          <div className="absolute w-28 h-28 rounded-full bg-green-500 opacity-10 animate-ping" />
+          <div className="absolute w-28 h-28 rounded-full opacity-10 animate-ping"
+            style={{ background: done.needsConfirmation ? '#6366f1' : '#22c55e' }} />
           <div className="w-20 h-20 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(34,197,94,0.15)', border: '2px solid rgba(34,197,94,0.4)' }}>
-            <Check size={36} style={{ color: '#22c55e' }} />
+            style={{
+              background: done.needsConfirmation ? 'rgba(99,102,241,0.15)' : 'rgba(34,197,94,0.15)',
+              border: done.needsConfirmation ? '2px solid rgba(99,102,241,0.4)' : '2px solid rgba(34,197,94,0.4)',
+            }}>
+            <Check size={36} style={{ color: done.needsConfirmation ? '#6366f1' : '#22c55e' }} />
           </div>
         </div>
         <div>
           <h1 style={{ color: 'white', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>
-            {/* eslint-disable-next-line react/no-unescaped-entities */}
-            You&apos;re all set! \ud83c\udf89
+            {done.needsConfirmation ? 'Check your email! 📬' : "You're all set! 🎉"}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>
-            Your 14-day free trial has started. Check your email to verify your account.
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.6 }}>
+            {done.needsConfirmation
+              ? `We sent a confirmation link to ${form.email}. Click it to activate, then log in.`
+              : 'Your 14-day free trial has started. Welcome to TYG POS!'}
           </p>
         </div>
-        <div className="rounded-2xl p-5 text-left space-y-2.5"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 10 }}>Your quick links:</p>
-          {[
-            { label: '\ud83d\udccb Customer Order Page', href: `/order?tenant=${done.slug}` },
-            { label: '\ud83d\udc68\u200d\ud83d\udcbc Admin Dashboard',  href: `/admin/dashboard` },
-            { label: '\ud83c\udf73 Kitchen Display',      href: `/kitchen?tenant=${done.slug}` },
-          ].map(l => (
-            <a key={l.label} href={l.href} target="_blank" rel="noreferrer"
-              className="flex items-center justify-between px-4 py-3 rounded-xl"
-              style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', textDecoration: 'none' }}>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{l.label}</span>
-              <ChevronRight size={14} style={{ color: '#22c55e' }} />
-            </a>
-          ))}
-        </div>
-        <button onClick={() => router.push(`/login?tenant=${done.slug}`)}
+        {done.needsConfirmation ? (
+          <div className="rounded-2xl p-5 text-left space-y-3"
+            style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+            <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 8 }}>After confirming your email:</p>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold"
+                style={{ background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>1</div>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Click the confirmation link in your inbox</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold"
+                style={{ background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>2</div>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Return here and log in at the PIN screen</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold"
+                style={{ background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>3</div>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
+                Display name: <strong style={{ color: 'white' }}>Owner</strong> &mdash; PIN: <strong style={{ color: 'white' }}>{form.ownerPin}</strong>
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl p-5 text-left space-y-2.5"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 10 }}>Your quick links:</p>
+            {[
+              { label: '📋 Customer Order Page', href: `/order?tenant=${done.slug}` },
+              { label: '👨‍💼 Admin Dashboard',  href: `/admin/dashboard` },
+              { label: '🍳 Kitchen Display',      href: `/kitchen?tenant=${done.slug}` },
+            ].map(l => (
+              <a key={l.label} href={l.href} target="_blank" rel="noreferrer"
+                className="flex items-center justify-between px-4 py-3 rounded-xl"
+                style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', textDecoration: 'none' }}>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{l.label}</span>
+                <ChevronRight size={14} style={{ color: '#22c55e' }} />
+              </a>
+            ))}
+          </div>
+        )}
+        <button onClick={() => router.push('/login')}
           className="w-full py-3 rounded-xl text-sm font-bold"
           style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: 'white' }}>
           Go to Login
@@ -168,6 +205,7 @@ function SignupForm() {
       </div>
     );
   }
+
 
   return (
     <>

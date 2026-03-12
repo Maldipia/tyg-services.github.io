@@ -36,7 +36,7 @@ const MOCK_TOP = [
   { item_name: 'Cheese Sticks',      total_qty_sold: 76,  total_revenue: 7600  },
 ];
 
-const PLAN_TIER = 'BUSINESS'; // In production: from session
+const PLAN_TIER: string = 'BUSINESS'; // In production: from session
 
 export default function AnalyticsPage() {
   const [range, setRange] = useState('7d');

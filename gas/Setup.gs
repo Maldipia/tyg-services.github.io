@@ -10,6 +10,7 @@ const TAB = {
   PAYMENTS:      'PAYMENTS',
   DAILY_SUMMARY: 'DAILY_SUMMARY',
   CONFIG:        'CONFIG',
+  SYSTEM_LOGS:   'SYSTEM_LOGS',
 };
 
 const TAB_COLOR = {
@@ -19,6 +20,7 @@ const TAB_COLOR = {
   PAYMENTS:      '#f59e0b',
   DAILY_SUMMARY: '#dc2626',
   CONFIG:        '#374151',
+  SYSTEM_LOGS:   '#0f766e',
 };
 
 function setupSheet() {
@@ -38,6 +40,7 @@ function setupSheet() {
   setupPaymentsTab(ss);
   setupDailySummaryTab(ss);
   setupConfigTab(ss);
+  setupSystemLogsSheet(); // Centralized audit log
 
   // Move Sheet1 to end and rename if still exists
   const default_ = ss.getSheetByName('Sheet1');
@@ -47,7 +50,7 @@ function setupSheet() {
   }
 
   SpreadsheetApp.getActiveSpreadsheet().toast(
-    'All 6 tabs created successfully. Fill in CONFIG tab folder IDs before going live.',
+    'All 7 tabs created (incl. SYSTEM_LOGS audit log). Fill in CONFIG tab folder IDs before going live.',
     '✅ TYG POS Setup Complete',
     10
   );

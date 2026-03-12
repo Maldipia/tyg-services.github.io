@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — /api/staff/[staffId]
 // PATCH: update staff (reset PIN, change role, toggle active)

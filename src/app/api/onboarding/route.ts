@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — POST /api/onboarding
 // Creates new tenant after Supabase Auth signup.

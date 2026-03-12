@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — GET /api/cron/daily
 // Vercel Cron: runs at midnight Asia/Manila (UTC+8 = 16:00 UTC)

@@ -56,9 +56,10 @@ export default function KitchenDisplay({ tenantId, branchId, tenantName }: Props
       const { data, error } = await query;
       if (!error && data) {
         setOrders(
-          (data as Order[]).map((o) => ({
+          (data as unknown as Order[]).map((o) => ({
             ...o,
             minutesAgo: minutesAgo(o.created_at),
+            items: (o as unknown as { order_items?: KitchenOrder['items'] }).order_items ?? [],
           })) as KitchenOrder[]
         );
       }
@@ -110,7 +111,7 @@ export default function KitchenDisplay({ tenantId, branchId, tenantName }: Props
                 if (data) {
                   setOrders((prev) => [
                     ...prev,
-                    ({ ...(data as Order), items: (data as Order & { items?: OrderItem[] }).items ?? [], minutesAgo: 0 } as KitchenOrder),
+                    { ...(data as Order), minutesAgo: 0 } as KitchenOrder,
                   ]);
                 }
               });

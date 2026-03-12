@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — POST /api/orders
 // Creates an order. Server ALWAYS re-prices from DB.

@@ -3,6 +3,8 @@
 // PIN-based staff authentication. Rate limited via Upstash Redis.
 // ============================================================
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticateStaff, createStaffSession } from '@/lib/auth/staff-auth';
@@ -60,6 +62,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return apiError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
   }
 
+  // Fetch tenant name for UI display
+  const { createServiceClient } = await import('@/lib/supabase/client');
+  const db = createServiceClient();
+  const { data: tenantData } = await db
+    .from('tenants')
+    .select('id, name, slug, address, plan_tier, plan_status')
+    .eq('id', tenant.tenantId)
+    .single();
+
   // Create session
   const userAgent = req.headers.get('user-agent') ?? '';
   const rawToken = await createStaffSession(staff, ip, userAgent);
@@ -70,6 +81,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     displayName: staff.display_name,
     role: staff.role,
     branchId: staff.branch_id,
+    // Tenant context for frontend localStorage
+    tenantId: tenant.tenantId,
+    tenantSlug: tenant.tenantSlug,
+    tenantName: tenantData?.name ?? tenantSlug,
+    tenantAddress: tenantData?.address ?? null,
+    planTier: tenant.planTier,
+    planStatus: tenant.planStatus,
   });
 
   response.cookies.set(STAFF_SESSION_COOKIE, rawToken, {

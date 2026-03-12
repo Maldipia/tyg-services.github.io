@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — POST /api/billing/checkout
 // Creates a PayMongo checkout session for plan upgrades.

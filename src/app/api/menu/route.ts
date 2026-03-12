@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — GET /api/menu?tenant=slug&branch=id
 // Public endpoint — customers fetch menu when they scan QR.

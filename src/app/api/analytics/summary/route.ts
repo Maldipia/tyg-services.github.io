@@ -4,6 +4,8 @@
 // STARTER: basic; BUSINESS+: hourly heatmap; PRO+: exports
 // ============================================================
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { withStaffAuth, apiSuccess, apiError, requirePlan } from '@/lib/auth/middleware';
 import { createServiceClient } from '@/lib/supabase/client';

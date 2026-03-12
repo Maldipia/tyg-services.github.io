@@ -1,8 +1,6 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-import { useState, useRef, useEffect, Suspense } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChefHat, Delete } from 'lucide-react';
 
@@ -13,10 +11,10 @@ const KEYPAD = [
   ['','0','⌫'],
 ];
 
-function StaffLoginPageInner() {
+export default function StaffLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [tenantSlug] = useState('yani'); // In real app: from subdomain or URL
+  const [tenantSlug] = useState(() => searchParams.get('tenant') ?? 'yani');
   const [displayName, setDisplayName] = useState('');
   const [pin, setPin] = useState('');
   const [step, setStep] = useState<'name' | 'pin'>('name');
@@ -62,7 +60,14 @@ function StaffLoginPageInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantSlug, displayName: displayName.trim(), pin }),
       });
-      const data = await res.json() as { data: unknown; error: string | null };
+      const data = await res.json() as {
+        data?: {
+          staffId: string; displayName: string; role: string; branchId: string | null;
+          tenantId: string; tenantSlug: string; tenantName: string; tenantAddress: string | null;
+          planTier: string; planStatus: string;
+        };
+        error: string | null;
+      };
 
       if (!res.ok || data.error) {
         setError(data.error ?? 'Invalid credentials');
@@ -70,6 +75,28 @@ function StaffLoginPageInner() {
         triggerShake();
         setLoading(false);
         return;
+      }
+
+      // Save tenant & session info to localStorage for admin pages
+      if (data.data) {
+        const d = data.data;
+        localStorage.setItem('tyg_tenant', JSON.stringify({
+          id: d.tenantId,
+          slug: d.tenantSlug,
+          name: d.tenantName,
+          address: d.tenantAddress,
+          plan: d.planTier,
+        }));
+        localStorage.setItem('tyg_session', JSON.stringify({
+          tenantId: d.tenantId,
+          tenantSlug: d.tenantSlug,
+          tenantName: d.tenantName,
+          tenantAddress: d.tenantAddress,
+          staffId: d.staffId,
+          displayName: d.displayName,
+          role: d.role,
+          branchId: d.branchId,
+        }));
       }
 
       const redirect = searchParams.get('redirect') ?? '/admin/dashboard';
@@ -242,17 +269,5 @@ function StaffLoginPageInner() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function StaffLoginPage() {
-  return (
-    <Suspense fallback={
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117' }}>
-        <div style={{ color: '#16a34a', fontSize: 18 }}>Loading...</div>
-      </div>
-    }>
-      <StaffLoginPageInner />
-    </Suspense>
   );
 }

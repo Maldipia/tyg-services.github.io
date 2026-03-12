@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // src/app/api/cron/retry-webhooks/route.ts
 // Runs every 15 min — retries failed Apps Script webhook calls
 // Reads from pending_webhook_syncs table in Supabase

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // src/app/api/payment/verify/route.ts
 // PATCH — Staff verifies a payment proof
 // Triggers Drive file move to PAYMENT/processed/ via Apps Script

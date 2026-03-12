@@ -78,9 +78,15 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    // In real app: get tenantId from session/cookie
-    const stored = localStorage.getItem('tyg_tenant');
-    const tid = stored ? (JSON.parse(stored) as { id: string }).id : 'demo';
+    // Read tenant ID from session stored at login
+    const session = localStorage.getItem('tyg_session');
+    const tenant = localStorage.getItem('tyg_tenant');
+    let tid = 'demo';
+    if (session) {
+      try { tid = (JSON.parse(session) as { tenantId?: string }).tenantId ?? 'demo'; } catch { /* */ }
+    } else if (tenant) {
+      try { tid = (JSON.parse(tenant) as { id?: string }).id ?? 'demo'; } catch { /* */ }
+    }
     setTenantId(tid);
     void loadData(tid);
   }, []);

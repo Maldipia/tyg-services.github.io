@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — /api/staff
 // GET: list staff (OWNER/ADMIN)

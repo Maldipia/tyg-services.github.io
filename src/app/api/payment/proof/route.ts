@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — POST /api/payment/proof
 // Customer uploads screenshot proof of GCash/Maya payment.

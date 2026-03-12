@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';

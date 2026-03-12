@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — PATCH /api/orders/[orderId]/status
 // Staff-only endpoint. All auth guards enforced here.

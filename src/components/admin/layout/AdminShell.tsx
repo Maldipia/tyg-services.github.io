@@ -6,12 +6,13 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, UtensilsCrossed, ShoppingBag,
   Users, Settings, CreditCard, LogOut, Menu, X,
-  ChefHat, BarChart3, QrCode, Bell, BookOpen
+  ChefHat, BarChart3, QrCode, Bell, BookOpen, Banknote
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/orders',    icon: ShoppingBag,      label: 'Orders' },
+  { href: '/admin/payments',  icon: Banknote,         label: 'Payments' },
   { href: '/admin/menu',      icon: UtensilsCrossed,  label: 'Menu' },
   { href: '/admin/tables',    icon: QrCode,           label: 'Tables & QR' },
   { href: '/admin/staff',     icon: Users,            label: 'Staff' },

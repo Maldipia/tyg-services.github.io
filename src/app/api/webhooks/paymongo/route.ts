@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // ============================================================
 // TYG POS — POST /api/webhooks/paymongo
 // Handles: payment.paid, payment.failed, checkout.session.completed

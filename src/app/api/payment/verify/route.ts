@@ -7,6 +7,7 @@ import { createServiceClient } from '@/lib/supabase/client';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 import type { AuthContext } from '@/types';
 import { logEvent } from '@/lib/logger';
+import { sendPaymentVerifiedEmail } from '@/lib/resend/email';
 
 const VerifySchema = z.object({
   paymentId: z.string().uuid('Invalid paymentId'),
@@ -56,7 +57,7 @@ async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextRes
   // Verify order belongs to this tenant
   const { data: order, error: ordErr } = await supabase
     .from('orders')
-    .select('id, tenant_id, order_number, total_amount, customer_name')
+    .select('id, tenant_id, order_number, total_amount, customer_name, customer_email')
     .eq('id', orderId)
     .eq('tenant_id', ctx.tenantId)
     .single();
@@ -86,6 +87,25 @@ async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextRes
       .update({ payment_status: 'PAID', updated_at: now })
       .eq('id', orderId)
       .eq('tenant_id', ctx.tenantId);
+  }
+
+  // Send payment verified email to customer (fire-and-forget)
+  if (action === 'verify') {
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('name')
+      .eq('id', ctx.tenantId)
+      .single();
+    const orderWithEmail = order as typeof order & { customer_email?: string };
+    if (orderWithEmail.customer_email) {
+      void sendPaymentVerifiedEmail(
+        orderWithEmail.customer_email,
+        order.customer_name as string,
+        order.order_number as string,
+        Number(order.total_amount),
+        tenant?.name ?? 'TYG POS'
+      ).catch((e) => console.error('Payment email failed:', e));
+    }
   }
 
   // Audit log

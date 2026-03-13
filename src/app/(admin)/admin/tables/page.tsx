@@ -143,7 +143,7 @@ export default function TablesPage() {
     setTimeout(() => window.print(), 600);
   };
 
-  const orderUrl = (t: Table) => `${APP_URL}/order?tenant=${tenantSlug}&table=${t.id}`;
+  const orderUrl = (t: Table) => `${APP_URL}/order?tenant=${tenantSlug}&t=${t.qr_token}`;
   const trackUrl = (t: Table) => `${APP_URL}/orders/track?tenant=${tenantSlug}`;
 
   const downloadQR = async (t: Table) => {

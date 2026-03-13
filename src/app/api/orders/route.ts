@@ -348,6 +348,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   return apiSuccess(
     {
       orderId: order.id,
+      trackUrl: `/orders/track?id=${order.id}`,
       orderNumber: order.order_number,
       totalAmount: order.total_amount,
       status: order.status,

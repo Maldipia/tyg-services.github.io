@@ -144,6 +144,23 @@ export default function TablesPage() {
   };
 
   const orderUrl = (t: Table) => `${APP_URL}/order?tenant=${tenantSlug}&table=${t.id}`;
+  const trackUrl = (t: Table) => `${APP_URL}/orders/track?tenant=${tenantSlug}`;
+
+  const downloadQR = async (t: Table) => {
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(orderUrl(t))}&color=000000&bgcolor=ffffff&qzone=3`;
+    try {
+      const res  = await fetch(qrUrl);
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `QR-${t.name.replace(/\s+/g, '-')}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Download failed — right-click the QR image and save manually.');
+    }
+  };
 
   return (
     <div style={{ color: 'var(--text)' }} ref={printRef}>
@@ -258,6 +275,9 @@ export default function TablesPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => printSingle(t)} className="flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)' }}>
                     <Printer size={14} /> Print
+                  </button>
+                  <button onClick={() => void downloadQR(t)} className="flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', cursor: 'pointer', flex: 1 }}>
+                    <Download size={14} /> Download PNG
                   </button>
                   <a href={orderUrl(t)} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
                     <QrCode size={14} /> Preview

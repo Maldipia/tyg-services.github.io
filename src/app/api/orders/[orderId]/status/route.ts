@@ -13,6 +13,8 @@ import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import type { OrderStatus, AuthContext } from '@/types';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 import { logEvent } from '@/lib/logger';
+import { sendOrderReceipt } from '@/lib/resend/email';
+import { sendSMS, orderReadySMS, orderConfirmedSMS } from '@/lib/semaphore/sms';
 
 const CANCEL_REASONS = [
   'Customer changed mind',
@@ -59,7 +61,13 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
       // Fetch order — MUST belong to this staff's tenant
       const { data: order, error: fetchError } = await db
         .from('orders')
-        .select('id, tenant_id, branch_id, status, order_number')
+        .select(`
+        id, tenant_id, branch_id, status, order_number,
+        customer_name, customer_email, customer_phone,
+        total_amount, subtotal_override, vat_amount, discount_amount,
+        discount_type, or_number,
+        order_items ( id, item_name, qty, unit_price, line_total, size_label, addon_total, notes )
+      `)
         .eq('id', orderId)
         .eq('tenant_id', ctx.tenantId) // ← tenant isolation enforced here
         .single();
@@ -67,6 +75,17 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
       if (fetchError || !order) {
         return apiError('Order not found', 404, 'NOT_FOUND');
       }
+
+      // Fetch tenant info for notifications
+      const { data: tenant } = await db
+        .from('tenants')
+        .select('name, plan_tier, settings')
+        .eq('id', ctx.tenantId)
+        .single();
+      const tenantName    = tenant?.name ?? 'TYG POS';
+      const planTier      = tenant?.plan_tier ?? 'TRIAL';
+      const receiptFooter = (tenant?.settings as Record<string, string> | null)?.receipt_footer
+        ?? `Thank you for visiting ${tenantName}!`;
 
       // Branch-level staff can only update orders from their branch
       if (
@@ -123,7 +142,49 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
       });
 
 
-      // Fire-and-forget sheets webhook
+      // ── Notifications (fire-and-forget, never block POS) ────────
+      const orderFull = order as {
+        order_number: string;
+        customer_name: string;
+        customer_email: string | null;
+        customer_phone: string | null;
+        total_amount: number;
+        subtotal_override: number;
+        vat_amount: number;
+        discount_amount: number;
+        discount_type: string | null;
+        or_number: string | null;
+        order_items: Array<{ id: string; item_name: string; qty: number; unit_price: number; line_total: number; size_label?: string; addon_total?: number; notes?: string }>;
+      };
+
+      if (newStatus === 'COMPLETED' && orderFull.customer_email) {
+        void sendOrderReceipt(
+          {
+            ...orderFull,
+            id: orderId,
+            tenant_id: ctx.tenantId,
+            branch_id: order.branch_id as string | null,
+            status: 'COMPLETED',
+            payment_status: 'VERIFIED' as const,
+            items: orderFull.order_items,
+          } as Parameters<typeof sendOrderReceipt>[0],
+          tenantName,
+          receiptFooter
+        ).catch((e) => console.error('Email receipt failed:', e));
+      }
+
+      // SMS: BUSINESS+ plan only
+      if (['BUSINESS', 'PRO', 'ENTERPRISE'].includes(planTier) && orderFull.customer_phone) {
+        if (newStatus === 'CONFIRMED') {
+          void sendSMS(orderFull.customer_phone, orderConfirmedSMS(orderFull.order_number, tenantName))
+            .catch((e) => console.error('SMS confirmed failed:', e));
+        } else if (newStatus === 'READY') {
+          void sendSMS(orderFull.customer_phone, orderReadySMS(orderFull.order_number, tenantName))
+            .catch((e) => console.error('SMS ready failed:', e));
+        }
+      }
+
+      // ── Fire-and-forget sheets webhook
       void logEvent({
         eventType: newStatus === 'COMPLETED' ? 'ORDER_COMPLETED'
           : newStatus === 'CANCELLED'        ? 'ORDER_CANCELLED'

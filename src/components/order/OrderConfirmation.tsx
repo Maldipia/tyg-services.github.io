@@ -111,6 +111,16 @@ export default function OrderConfirmation({ order, tenantName, receiptFooter }: 
         </div>
       )}
 
+      {/* Track link */}
+      <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <a
+          href={`/orders/track?id=${order.orderId}`}
+          style={{ color: '#22c55e', fontSize: 13, textDecoration: 'underline', fontWeight: 600 }}
+        >
+          📍 View order tracking page →
+        </a>
+      </div>
+
       {/* Footer */}
       <p className="text-center text-gray-400 text-sm px-4">{receiptFooter || `Thank you for ordering at ${tenantName}!`}</p>
     </div>

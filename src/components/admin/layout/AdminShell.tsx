@@ -100,7 +100,13 @@ export default function AdminShell({ children }: AdminShellProps) {
     return () => clearInterval(id);
   }, [tenantSlug]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Revoke server-side session token
+      await fetch('/api/auth/staff/login', { method: 'DELETE' });
+    } catch {
+      // Non-fatal — clear client state regardless
+    }
     localStorage.removeItem('tyg_session');
     localStorage.removeItem('tyg_tenant');
     router.push('/login');

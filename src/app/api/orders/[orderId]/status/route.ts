@@ -167,7 +167,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
             status: 'COMPLETED',
             payment_status: 'VERIFIED' as const,
             items: orderFull.order_items,
-          } as Parameters<typeof sendOrderReceipt>[0],
+          } as unknown as Parameters<typeof sendOrderReceipt>[0],
           tenantName,
           receiptFooter
         ).catch((e) => console.error('Email receipt failed:', e));

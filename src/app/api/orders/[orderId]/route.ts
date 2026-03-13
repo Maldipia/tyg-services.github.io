@@ -92,11 +92,15 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
     createdAt: order.created_at,
     updatedAt: order.updated_at,
     items: order.order_items ?? [],
-    tenant: {
-      slug: (order.tenants as { slug: string; name: string; primary_color: string }).slug,
-      name: (order.tenants as { slug: string; name: string; primary_color: string }).name,
-      primaryColor: (order.tenants as { slug: string; name: string; primary_color: string }).primary_color,
-    },
+    tenant: (() => {
+      const t = Array.isArray(order.tenants) ? order.tenants[0] : order.tenants;
+      const tenant = t as { slug: string; name: string; primary_color: string } | null;
+      return {
+        slug: tenant?.slug ?? '',
+        name: tenant?.name ?? '',
+        primaryColor: tenant?.primary_color ?? '#22c55e',
+      };
+    })(),
   };
 
   return NextResponse.json({ data: safeOrder, error: null });

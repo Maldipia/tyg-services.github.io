@@ -6,9 +6,14 @@
 import { Resend } from 'resend';
 import type { Order } from '@/types';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@tygpos.com';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://tygpos.com';
+// Lazy init — avoids build-time crash when RESEND_API_KEY is not set
+function getResend() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error('RESEND_API_KEY not configured');
+  return new Resend(key);
+}
+const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@tyg-services.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.tyg-services.com';
 
 // ── Send order receipt ───────────────────────────────────────
 export async function sendOrderReceipt(
@@ -33,7 +38,7 @@ export async function sendOrderReceipt(
     )
     .join('');
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: order.customer_email,
     subject: `Order Confirmed — ${tenantName} #${order.order_number}`,
@@ -110,7 +115,7 @@ export async function sendTrialReminderEmail(
   businessName: string,
   daysLeft: number
 ): Promise<void> {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: `${daysLeft} day${daysLeft === 1 ? '' : 's'} left on your TYG POS trial`,
@@ -137,7 +142,7 @@ export async function sendPaymentVerifiedEmail(
   amount: number,
   tenantName: string
 ): Promise<void> {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: `Payment Confirmed — ${tenantName} #${orderNumber}`,

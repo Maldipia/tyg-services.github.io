@@ -199,7 +199,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{ borderTop: `1px solid ${BORDER}`, padding: '32px 24px', textAlign: 'center', color: MUTED, fontSize: 13 }}>
         <div style={{ marginBottom: 12 }}>
-          {[['Staff Login', '/login'], ['Sign Up', '/signup'], ['Live Demo', '/order?tenant=yani']].map(([label, href]) => (
+          {([['Staff Login', '/login'], ['Sign Up', '/signup'], ['Live Demo', '/order?tenant=yani']] as [string, string][]).map(([label, href]) => (
             <Link key={label} href={href} style={{ color: MUTED, textDecoration: 'none', margin: '0 16px' }}>{label}</Link>
           ))}
         </div>

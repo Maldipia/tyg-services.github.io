@@ -141,7 +141,7 @@ function TrackPageInner() {
     );
   }
 
-  const info      = STATUS_INFO[order.status] ?? STATUS_INFO.PENDING;
+  const info      = STATUS_INFO[order.status] ?? { label: 'Unknown', emoji: '❓', desc: 'Status unknown', color: '#6b7280' };
   const stepIndex = STATUS_STEPS.indexOf(order.status);
   const isCancelled = order.status === 'CANCELLED';
   const isActive  = !['COMPLETED', 'CANCELLED'].includes(order.status);

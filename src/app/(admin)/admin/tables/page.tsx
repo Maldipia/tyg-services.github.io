@@ -6,6 +6,14 @@ import { QrCode, Printer, Plus, Pencil, Trash2, Check, AlertCircle, Users, Downl
 
 interface Table { id: string; name: string; capacity: number; qr_token: string; is_active: boolean; }
 interface SessionData { tenantId?: string; tenantSlug?: string; tenantName?: string; tenantAddress?: string; }
+interface ActiveOrder { id: string; order_number: string; status: string; table_id: string | null; total_amount: number; }
+
+const STATUS_COLOR: Record<string, { bg: string; color: string; label: string }> = {
+  PENDING:    { bg: 'rgba(234,179,8,0.12)',  color: '#ca8a04', label: '⏳ Pending' },
+  CONFIRMED:  { bg: 'rgba(59,130,246,0.12)', color: '#2563eb', label: '✅ Confirmed' },
+  PREPARING:  { bg: 'rgba(249,115,22,0.12)', color: '#ea580c', label: '🍳 Preparing' },
+  READY:      { bg: 'rgba(34,197,94,0.15)',  color: '#16a34a', label: '🔔 Ready' },
+};
 
 const card: CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16 };
 const inp: CSSProperties = { width: '100%', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 14, outline: 'none' };
@@ -35,6 +43,7 @@ export default function TablesPage() {
   const [capacity, setCapacity] = useState('4');
   const [saving, setSaving]     = useState(false);
   const [session, setSession]   = useState<SessionData>({ tenantSlug: 'yani', tenantName: 'Your Café' });
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,6 +70,21 @@ export default function TablesPage() {
     setTables(json.data ?? []); setLoading(false);
   };
   useEffect(() => { void loadTables(); }, [tenantSlug]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadActiveOrders = async () => {
+    try {
+      const r = await fetch(`/api/orders?tenantSlug=${tenantSlug}&status=active&limit=100`);
+      if (r.ok) {
+        const json = await r.json() as { data?: ActiveOrder[] };
+        setActiveOrders(json.data ?? []);
+      }
+    } catch { /**/ }
+  };
+  useEffect(() => {
+    void loadActiveOrders();
+    const interval = setInterval(() => void loadActiveOrders(), 30_000);
+    return () => clearInterval(interval);
+  }, [tenantSlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openForm = (t?: Table) => { setEditTable(t ?? null); setName(t?.name ?? ''); setCapacity(String(t?.capacity ?? 4)); setShowForm(true); };
 
@@ -185,9 +209,19 @@ export default function TablesPage() {
           <button onClick={() => openForm()} style={{ marginTop: 24, padding: '12px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: 'white', border: 'none', cursor: 'pointer' }}>Add First Table</button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-          {tables.map(t => (
-            <div key={t.id} style={{ ...card, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,280px), 1fr))', gap: 16 }}>
+          {tables.map(t => {
+            const tableOrder = activeOrders.find(o => o.table_id === t.id);
+            const statusCfg = tableOrder ? (STATUS_COLOR[tableOrder.status] ?? null) : null;
+            return (
+            <div key={t.id} style={{ ...card, overflow: 'hidden', outline: tableOrder ? `2px solid ${statusCfg?.color ?? '#22c55e'}` : 'none' }}>
+              {/* Active order banner */}
+              {tableOrder && statusCfg && (
+                <div style={{ background: statusCfg.bg, borderBottom: `1px solid ${statusCfg.color}22`, padding: '6px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: statusCfg.color }}>{statusCfg.label}</span>
+                  <span style={{ fontSize: 12, color: statusCfg.color, fontWeight: 600 }}>#{tableOrder.order_number} · ₱{Number(tableOrder.total_amount).toFixed(2)}</span>
+                </div>
+              )}
               <div onClick={() => printSingle(t)} title="Click to print" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, cursor: 'pointer', background: 'white' }}>
                 <QRCodeSVG value={orderUrl(t)} size={150} />
                 <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#999' }}><Printer size={11} /> Click to print</div>
@@ -211,7 +245,8 @@ export default function TablesPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
           <button onClick={() => openForm()} style={{ borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32, border: '2px dashed rgba(34,197,94,0.25)', background: 'transparent', color: 'var(--text-muted)', minHeight: 280, cursor: 'pointer' }}>
             <Plus size={28} style={{ color: '#22c55e' }} />
             <span style={{ fontSize: 14, fontWeight: 600 }}>Add Table</span>

@@ -11,7 +11,7 @@ interface DailySummary {
   gross_sales: number;
   net_sales: number;
 }
-interface TopItem { item_name: string; total_qty_sold: number; total_revenue: number; }
+interface TopItem { itemName: string; totalQty: number; totalRevenue: number; }
 interface Totals {
   completedOrders: number; cancelledOrders: number;
   grossSales: number; netSales: number; totalVat: number;
@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
   useEffect(() => { if (tenantSlug) void load(tenantSlug, range); }, [tenantSlug, range, load]);
 
   const maxRevenue = Math.max(...daily.map(d => Number(d.gross_sales)), 1);
-  const maxBar = Math.max(...topItems.map(i => Number(i.total_revenue)), 1);
+  const maxBar = Math.max(...topItems.map(i => Number(i.totalRevenue)), 1);
 
   // Compare last half vs first half of period for trend
   const mid = Math.floor(daily.length / 2);
@@ -190,16 +190,16 @@ export default function AnalyticsPage() {
                         fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                         {i+1}
                       </span>
-                      <span style={{ fontSize:13, fontWeight:600 }}>{item.item_name}</span>
+                      <span style={{ fontSize:13, fontWeight:600 }}>{item.itemName}</span>
                     </div>
                     <div style={{ textAlign:'right' as const }}>
-                      <div style={{ fontSize:13, fontWeight:700 }}>{fmt(Number(item.total_revenue))}</div>
-                      <div style={{ fontSize:10, color:'var(--text-muted)' }}>{item.total_qty_sold} sold</div>
+                      <div style={{ fontSize:13, fontWeight:700 }}>{fmt(Number(item.totalRevenue))}</div>
+                      <div style={{ fontSize:10, color:'var(--text-muted)' }}>{item.totalQty} sold</div>
                     </div>
                   </div>
                   <div style={{ height:4, background:'var(--surface-3)', borderRadius:99, overflow:'hidden' }}>
                     <div style={{ height:'100%', borderRadius:99, background:'linear-gradient(90deg,#22c55e,#16a34a)',
-                      width:`${(Number(item.total_revenue)/maxBar)*100}%`, transition:'width 0.5s ease' }}/>
+                      width:`${(Number(item.totalRevenue)/maxBar)*100}%`, transition:'width 0.5s ease' }}/>
                   </div>
                 </div>
               ))

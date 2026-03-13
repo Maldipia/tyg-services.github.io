@@ -68,6 +68,11 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
   const { data: order, error } = await query.maybeSingle();
 
   if (error) {
+    // PGRST116 = no rows found, treat as 404 not 500
+    const isNotFound = error.code === 'PGRST116' || error.message?.includes('0 rows');
+    if (isNotFound) {
+      return NextResponse.json({ data: null, error: 'Order not found' }, { status: 404 });
+    }
     console.error('GET /api/orders/[orderId] error:', error);
     return NextResponse.json({ data: null, error: 'Failed to fetch order' }, { status: 500 });
   }

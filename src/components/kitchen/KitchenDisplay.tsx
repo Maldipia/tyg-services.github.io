@@ -1,257 +1,220 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import type { OrderStatus } from '@/types';
 
-import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@/lib/supabase/client';
-import type { Order, OrderItem } from '@/types';
+interface KitchenItem {
+  id: string;
+  item_name: string;
+  size_label?: string | null;
+  qty: number;
+  notes?: string | null;
+  addon_total?: number;
+}
 
-// KDS is staff-facing — loaded after PIN login
-// Tenant + branch context passed as props from server component
+interface KitchenOrder {
+  id: string;
+  order_number: number;
+  status: OrderStatus;
+  payment_status: string;
+  created_at: string;
+  updated_at?: string;
+  customer_name: string;
+  pax: number;
+  notes?: string | null;
+  table_id?: string | null;
+  branch_id?: string | null;
+  total_amount: number;
+  items: KitchenItem[];
+  minutesAgo: number;
+}
+
 interface Props {
   tenantId: string;
   branchId: string | null;
   tenantName: string;
 }
 
-interface KitchenOrder extends Order {
-  items: OrderItem[];
-  minutesAgo: number;
+const KITCHEN_STATUSES = ['PENDING', 'CONFIRMED', 'PREPARING'];
+
+const NEXT_ACTION: Record<string, { label: string; status: string; bg: string }> = {
+  PENDING:   { label: 'Confirm',       status: 'CONFIRMED', bg: '#7c3aed' },
+  CONFIRMED: { label: 'Start Cooking', status: 'PREPARING', bg: '#d97706' },
+  PREPARING: { label: 'Mark Ready 🔔', status: 'READY',     bg: '#16a34a' },
+};
+
+const LEFT_COLOR: Record<string, string> = {
+  PENDING:   '#60a5fa',
+  CONFIRMED: '#a78bfa',
+  PREPARING: '#fbbf24',
+};
+
+function minsAgo(ts: string) {
+  return Math.floor((Date.now() - new Date(ts).getTime()) / 60_000);
 }
 
-export default function KitchenDisplay({ tenantId, branchId, tenantName }: Props) {
-  const [orders, setOrders] = useState<KitchenOrder[]>([]);
+export default function KitchenDisplay({ branchId, tenantName }: Props) {
+  const [orders,  setOrders]  = useState<KitchenOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tick, setTick] = useState(0);
-  const supabase = createBrowserClient();
+  const [tick,    setTick]    = useState(0);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Re-calculate "minutes ago" every 30 seconds
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await fetch('/api/orders?status=active&limit=100', { credentials: 'include' });
+      if (!res.ok) { setLoading(false); return; }
+      const json = await res.json() as { data?: KitchenOrder[] };
+      const raw = json.data ?? [];
+      const kitchen = raw
+        .filter(o => KITCHEN_STATUSES.includes(o.status))
+        .filter(o => !branchId || !o.branch_id || o.branch_id === branchId)
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map(o => ({ ...o, minutesAgo: minsAgo(o.created_at), items: (o.items ?? []) as KitchenItem[] }));
+      setOrders(kitchen);
+    } catch {/**/ } finally { setLoading(false); }
+  }, [branchId]);
+
+  // Initial load
+  useEffect(() => { void fetchOrders(); }, [fetchOrders]);
+
+  // Poll every 10s
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 30_000);
-    return () => clearInterval(interval);
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(() => void fetchOrders(), 10_000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [fetchOrders]);
+
+  // Tick every 30s to update "minutes ago"
+  useEffect(() => {
+    tickRef.current = setInterval(() => setTick(t => t + 1), 30_000);
+    return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, []);
 
-  const minutesAgo = (createdAt: string) =>
-    Math.floor((Date.now() - new Date(createdAt).getTime()) / 60_000);
-
-  // ── Initial fetch ────────────────────────────────────────
   useEffect(() => {
-    const fetchOrders = async () => {
-      let query = supabase
-        .from('orders')
-        .select(`
-          id, order_number, status, created_at, updated_at,
-          customer_name, pax, notes, table_id, branch_id,
-          items:order_items(
-            id, item_name, size_label, qty, notes, addons, addon_total, line_total
-          )
-        `)
-        .eq('tenant_id', tenantId)
-        .in('status', ['PENDING', 'CONFIRMED', 'PREPARING'])
-        .eq('is_test', false)
-        .order('created_at', { ascending: true });
-
-      if (branchId) {
-        query = query.eq('branch_id', branchId);
-      }
-
-      const { data, error } = await query;
-      if (!error && data) {
-        setOrders(
-          (data as unknown as Order[]).map((o) => ({
-            ...o,
-            minutesAgo: minutesAgo(o.created_at),
-            items: (o as unknown as { order_items?: KitchenOrder['items'] }).order_items ?? [],
-          })) as KitchenOrder[]
-        );
-      }
-      setLoading(false);
-    };
-
-    void fetchOrders();
-  }, [tenantId, branchId, supabase]);
-
-  // Update minutesAgo on tick
-  useEffect(() => {
-    setOrders((prev) =>
-      prev.map((o) => ({ ...o, minutesAgo: minutesAgo(o.created_at) }))
-    );
+    if (tick === 0) return;
+    setOrders(prev => prev.map(o => ({ ...o, minutesAgo: minsAgo(o.created_at) })));
   }, [tick]);
 
-  // ── Supabase Realtime — LISTEN/NOTIFY (never polling) ────
-  useEffect(() => {
-    const channel = supabase
-      .channel(`kds-${tenantId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          const updated = payload.new as Order;
-          const isKitchenStatus = ['PENDING', 'CONFIRMED', 'PREPARING'].includes(
-            updated.status
-          );
-
-          if (payload.eventType === 'INSERT' && isKitchenStatus) {
-            // Fetch full order with items
-            void supabase
-              .from('orders')
-              .select(`
-                id, order_number, status, created_at, updated_at,
-                customer_name, pax, notes, table_id, branch_id,
-                items:order_items(
-                  id, item_name, size_label, qty, notes, addons, addon_total, line_total
-                )
-              `)
-              .eq('id', updated.id)
-              .single()
-              .then(({ data }) => {
-                if (data) {
-                  setOrders((prev) => [
-                    ...prev,
-                    { ...(data as Order), minutesAgo: 0 } as KitchenOrder,
-                  ]);
-                }
-              });
-          } else if (payload.eventType === 'UPDATE') {
-            if (!isKitchenStatus) {
-              // Remove from KDS when READY/COMPLETED/CANCELLED
-              setOrders((prev) => prev.filter((o) => o.id !== updated.id));
-            } else {
-              setOrders((prev) =>
-                prev.map((o) =>
-                  o.id === updated.id
-                    ? { ...o, status: updated.status, updated_at: updated.updated_at }
-                    : o
-                )
-              );
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [tenantId, supabase]);
-
-  // ── Status update (CONFIRM / PREPARING / READY) ──────────
-  const updateStatus = async (orderId: string, newStatus: string) => {
+  const updateStatus = async (orderId: string, status: string) => {
     const res = await fetch(`/api/orders/${orderId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
+      credentials: 'include',
+      body: JSON.stringify({ status }),
     });
-    if (!res.ok) {
+    if (res.ok) {
+      // Optimistic: remove from KDS if moving to READY/DONE
+      if (['READY', 'COMPLETED', 'CANCELLED'].includes(status)) {
+        setOrders(prev => prev.filter(o => o.id !== orderId));
+      } else {
+        setOrders(prev => prev.map(o =>
+          o.id === orderId ? { ...o, status: status as OrderStatus } : o
+        ));
+      }
+      // Refetch in 1s to sync
+      setTimeout(() => void fetchOrders(), 1000);
+    } else {
       const err = await res.json() as { error: string };
-      alert(err.error ?? 'Failed to update status');
+      alert(err.error ?? 'Failed');
     }
+  };
+
+  // ── Styles ─────────────────────────────────────────────
+  const s = {
+    root:   { minHeight: '100vh', background: '#111827', padding: 16, fontFamily: 'system-ui, sans-serif' },
+    hdr:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+    title:  { color: '#fff', fontSize: 24, fontWeight: 700, margin: 0 },
+    sub:    { color: '#9ca3af', fontSize: 14, margin: '2px 0 0' },
+    live:   { display: 'flex', alignItems: 'center', gap: 8, color: '#4ade80', fontSize: 13 },
+    dot:    { width: 8, height: 8, borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s infinite' },
+    empty:  { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', height: 240, color: '#6b7280', fontSize: 18 },
+    grid:   { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 },
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading orders...</div>
+      <div style={{ ...s.root, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#fff', fontSize: 20 }}>Loading orders…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4">
+    <div style={s.root}>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}} @keyframes ping{75%,100%{transform:scale(2);opacity:0}}`}</style>
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={s.hdr}>
         <div>
-          <h1 className="text-white text-2xl font-bold">🍳 Kitchen Display</h1>
-          <p className="text-gray-400 text-sm">{tenantName}</p>
+          <h1 style={s.title}>🍳 Kitchen Display</h1>
+          <p style={s.sub}>{tenantName} · {orders.length} active order{orders.length !== 1 ? 's' : ''}</p>
         </div>
-        <div className="flex items-center gap-2 text-green-400 text-sm">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-          </span>
-          Live
+        <div style={s.live}>
+          <span style={s.dot} />
+          Live · 10s poll
         </div>
       </div>
 
+      {/* Orders */}
       {orders.length === 0 ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="text-5xl mb-4">✅</div>
-            <p className="text-gray-400 text-xl">All orders caught up!</p>
-          </div>
+        <div style={s.empty}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
+          <p>All caught up! No active orders.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {orders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onUpdateStatus={updateStatus}
-            />
-          ))}
+        <div style={s.grid}>
+          {orders.map(order => <OrderCard key={order.id} order={order} onUpdate={updateStatus} />)}
         </div>
       )}
     </div>
   );
 }
 
-function OrderCard({
-  order,
-  onUpdateStatus,
-}: {
-  order: KitchenOrder;
-  onUpdateStatus: (id: string, status: string) => void;
-}) {
-  const isUrgent = order.minutesAgo >= 15;
-  const isWarning = order.minutesAgo >= 8;
+function OrderCard({ order, onUpdate }: { order: KitchenOrder; onUpdate: (id: string, status: string) => void }) {
+  const urgent  = order.minutesAgo >= 15;
+  const warning = order.minutesAgo >= 8;
+  const action  = NEXT_ACTION[order.status];
+  const lc      = LEFT_COLOR[order.status] ?? '#6b7280';
 
-  const statusColor = {
-    PENDING:   'border-l-blue-400',
-    CONFIRMED: 'border-l-purple-400',
-    PREPARING: 'border-l-amber-400',
-    READY:     'border-l-green-400',
-    COMPLETED: 'border-l-gray-400',
-    CANCELLED: 'border-l-red-400',
-  }[order.status] ?? 'border-l-gray-400';
-
-  const nextAction = {
-    PENDING:   { label: 'Confirm', status: 'CONFIRMED', color: 'bg-purple-500 hover:bg-purple-600' },
-    CONFIRMED: { label: 'Start Cooking', status: 'PREPARING', color: 'bg-amber-500 hover:bg-amber-600' },
-    PREPARING: { label: 'Mark Ready 🔔', status: 'READY', color: 'bg-green-500 hover:bg-green-600' },
-  }[order.status as 'PENDING' | 'CONFIRMED' | 'PREPARING'];
+  const card: React.CSSProperties = {
+    background: '#1f2937',
+    borderRadius: 12,
+    borderLeft: `4px solid ${lc}`,
+    padding: 16,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+    outline: urgent ? '2px solid #ef4444' : warning ? '1px solid #f59e0b' : 'none',
+    animation: urgent ? 'pulse 2s infinite' : 'none',
+  };
 
   return (
-    <div
-      className={`bg-gray-800 rounded-xl border-l-4 ${statusColor} p-4 flex flex-col gap-3 ${
-        isUrgent ? 'ring-2 ring-red-500 animate-pulse' : isWarning ? 'ring-1 ring-amber-500' : ''
-      }`}
-    >
-      {/* Order header */}
-      <div className="flex items-start justify-between">
+    <div style={card}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <span className="text-white font-bold text-lg">#{order.order_number}</span>
-          <p className="text-gray-400 text-sm">{order.customer_name} • {order.pax} pax</p>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 20 }}>#{order.order_number}</span>
+          <p style={{ color: '#9ca3af', fontSize: 13, margin: '3px 0 0' }}>
+            {order.customer_name} · {order.pax} pax
+          </p>
         </div>
-        <div className={`text-sm font-bold ${isUrgent ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-gray-400'}`}>
-          {order.minutesAgo}m ago
-        </div>
+        <span style={{
+          fontSize: 13, fontWeight: 700,
+          color: urgent ? '#f87171' : warning ? '#fbbf24' : '#6b7280',
+        }}>
+          {order.minutesAgo}m
+        </span>
       </div>
 
       {/* Items */}
-      <ul className="space-y-1.5">
-        {(order.items ?? []).map((item) => (
-          <li key={item.id} className="text-gray-200">
-            <span className="font-semibold text-white">×{item.qty}</span>{' '}
+      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {order.items.map(item => (
+          <li key={item.id} style={{ color: '#e5e7eb' }}>
+            <span style={{ fontWeight: 700, color: '#fff' }}>×{item.qty}</span>{' '}
             {item.item_name}
-            {item.size_label && (
-              <span className="text-gray-400 text-xs"> ({item.size_label})</span>
-            )}
+            {item.size_label && <span style={{ color: '#6b7280', fontSize: 12 }}> ({item.size_label})</span>}
             {item.notes && (
-              <p className="text-amber-300 text-xs ml-4">⚠ {item.notes}</p>
+              <p style={{ color: '#fcd34d', fontSize: 12, marginLeft: 16, marginTop: 2 }}>⚠ {item.notes}</p>
             )}
           </li>
         ))}
@@ -259,20 +222,22 @@ function OrderCard({
 
       {/* Order notes */}
       {order.notes && (
-        <p className="text-amber-300 text-xs bg-amber-900/30 rounded px-2 py-1">
+        <p style={{ color: '#fcd34d', fontSize: 12, background: 'rgba(120,53,15,0.3)', borderRadius: 6, padding: '4px 8px', margin: 0 }}>
           📝 {order.notes}
         </p>
       )}
 
-      {/* Status badge */}
-      <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-700">
-        <span className="text-xs text-gray-500 uppercase tracking-wide">{order.status}</span>
-        {nextAction && (
+      {/* Footer */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 'auto' }}>
+        <span style={{ color: '#6b7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          {order.status}
+        </span>
+        {action && (
           <button
-            onClick={() => onUpdateStatus(order.id, nextAction.status)}
-            className={`px-3 py-1.5 rounded-lg text-white text-sm font-semibold transition-colors ${nextAction.color}`}
+            onClick={() => onUpdate(order.id, action.status)}
+            style={{ padding: '7px 14px', borderRadius: 8, background: action.bg, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
           >
-            {nextAction.label}
+            {action.label}
           </button>
         )}
       </div>

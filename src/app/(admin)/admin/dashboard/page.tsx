@@ -40,8 +40,8 @@ function fmtTime(iso: string) {
 
 // ── Token shortcuts
 const S = {
-  card: { background:'#141820', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12 } as React.CSSProperties,
-  text: '#F0F2F7', muted: '#8892A4', dim: '#4B5563',
+  card: { background:'#161b27', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12 } as React.CSSProperties,
+  text: '#e8eaf0', muted: '#9ca3af', dim: '#6b7280',
   brand: '#22c55e', brandDim: 'rgba(34,197,94,0.10)', brandBorder: 'rgba(34,197,94,0.20)',
 };
 
@@ -124,7 +124,7 @@ export default function DashboardPage() {
   const handleRefresh = () => { setRefreshing(true); void loadOrders(tenantSlug); };
 
   const tBg: Record<string, string> = { EMPTY:'transparent', OCCUPIED:'rgba(245,158,11,0.08)', READY:'rgba(34,197,94,0.08)' };
-  const tTxt: Record<string, string> = { EMPTY:'#4B5563', OCCUPIED:'#F59E0B', READY:'#22c55e' };
+  const tTxt: Record<string, string> = { EMPTY:'#6b7280', OCCUPIED:'#F59E0B', READY:'#22c55e' };
   const tBdr: Record<string, string> = { EMPTY:'rgba(255,255,255,0.05)', OCCUPIED:'rgba(245,158,11,0.2)', READY:'rgba(34,197,94,0.2)' };
 
   const pct = stats.todayOrders > 0 ? Math.round((stats.completedOrders / stats.todayOrders) * 100) : 0;
@@ -151,7 +151,7 @@ export default function DashboardPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={handleRefresh}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#1A1F2C', border: '1px solid rgba(255,255,255,0.08)', color: S.muted, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#1e2535', border: '1px solid rgba(255,255,255,0.08)', color: S.muted, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
             <RefreshCw size={12} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
             Refresh
           </button>
@@ -235,7 +235,7 @@ export default function DashboardPage() {
                 const urgent = mins > 15 && order.status === 'PENDING';
                 return (
                   <div key={order.id}
-                    style={{ borderRadius: 9, marginBottom: 2, overflow: 'hidden', border: `1px solid ${expanded ? 'rgba(255,255,255,0.09)' : urgent ? 'rgba(239,68,68,0.15)' : 'transparent'}`, background: expanded ? '#1A1F2C' : urgent ? 'rgba(239,68,68,0.04)' : 'transparent', transition: 'all 0.12s' }}>
+                    style={{ borderRadius: 9, marginBottom: 2, overflow: 'hidden', border: `1px solid ${expanded ? 'rgba(255,255,255,0.09)' : urgent ? 'rgba(239,68,68,0.15)' : 'transparent'}`, background: expanded ? '#1e2535' : urgent ? 'rgba(239,68,68,0.04)' : 'transparent', transition: 'all 0.12s' }}>
                     <div onClick={() => setExpandedOrder(expanded ? null : order.id)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', cursor: 'pointer' }}>
                       {/* Status bar */}
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                   <span style={{ fontSize: 11, color: S.dim }}>Completion rate</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: pct >= 80 ? '#22c55e' : pct >= 50 ? '#F59E0B' : S.muted }}>{pct}%</span>
                 </div>
-                <div style={{ height: 4, background: '#1A1F2C', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ height: 4, background: '#1e2535', borderRadius: 99, overflow: 'hidden' }}>
                   <div style={{ height: '100%', borderRadius: 99, width: `${pct}%`, background: pct >= 80 ? 'linear-gradient(90deg,#22c55e,#16a34a)' : 'linear-gradient(90deg,#F59E0B,#f97316)', transition: 'width 0.6s ease' }} />
                 </div>
               </div>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
                 <ArrowRight size={12} />
               </Link>
               <Link href="/admin/analytics"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 13px', borderRadius: 9, textDecoration: 'none', fontSize: 12, fontWeight: 600, background: '#1A1F2C', color: S.muted, border: '1px solid rgba(255,255,255,0.06)' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 13px', borderRadius: 9, textDecoration: 'none', fontSize: 12, fontWeight: 600, background: '#1e2535', color: S.muted, border: '1px solid rgba(255,255,255,0.06)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><BarChart2 size={13} /> View Analytics</span>
                 <ArrowRight size={12} />
               </Link>

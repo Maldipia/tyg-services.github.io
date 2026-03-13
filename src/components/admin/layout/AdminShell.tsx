@@ -121,16 +121,16 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const displayName = staffName || tenantName.split(' ')[0] || 'Staff';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0A0C10', display: 'flex', fontFamily: "'Sora','DM Sans',system-ui,sans-serif" }}>
+    <div style={{ height: '100vh', background: '#0f1117', display: 'flex', fontFamily: "'Sora','DM Sans',system-ui,sans-serif", overflow: 'hidden' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
         *{box-sizing:border-box}
         :root{
           --brand:#22c55e;--brand-amber:#F59E0B;
-          --bg:#0A0C10;--sidebar:#0D1018;
-          --surface:#141820;--surface-2:#1A1F2C;--surface-3:#1E2433;
+          --bg:#0f1117;--sidebar:#111827;
+          --surface:#161b27;--surface-2:#1e2535;--surface-3:#252d3d;
           --border:rgba(255,255,255,0.06);--border-2:rgba(255,255,255,0.10);
-          --text:#F0F2F7;--text-muted:#8892A4;--text-dim:#4B5563;
+          --text:#e8eaf0;--text-muted:#9ca3af;--text-dim:#6b7280;
         }
         ::-webkit-scrollbar{width:4px;height:4px}
         ::-webkit-scrollbar-thumb{background:#2d3748;border-radius:99px}
@@ -196,7 +196,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       {/* ── Sidebar ───────────────────────────── */}
       <aside className={`main-sidebar${sidebarOpen ? ' open' : ''}`}
         style={{
-          width: 240, background: '#0D1018', borderRight: '1px solid rgba(255,255,255,0.06)',
+          width: 240, background: '#111827', borderRight: '1px solid rgba(255,255,255,0.06)',
           display: 'flex', flexDirection: 'column', flexShrink: 0,
           height: '100vh', position: 'sticky', top: 0, zIndex: 50, overflow: 'hidden',
         }}>
@@ -206,8 +206,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>☕</div>
             <div>
-              <div style={{ color: '#F0F2F7', fontWeight: 700, fontSize: 14 }}>TYG POS</div>
-              <div style={{ color: '#4B5563', fontSize: 10, fontFamily: "'JetBrains Mono',monospace" }}>v2.0</div>
+              <div style={{ color: '#e8eaf0', fontWeight: 700, fontSize: 14 }}>TYG POS</div>
+              <div style={{ color: '#6b7280', fontSize: 10, fontFamily: "'JetBrains Mono',monospace" }}>v2.0</div>
             </div>
           </div>
           <button className="topbar-btn show-mobile" onClick={() => setSidebarOpen(false)} style={{ width: 28, height: 28 }}>
@@ -268,13 +268,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
         {/* User + plan */}
         <div style={{ padding: '10px 12px 14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 9, background: '#1A1F2C', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 9, background: '#1e2535', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white', flexShrink: 0 }}>
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#F0F2F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</div>
-              <div style={{ fontSize: 10, color: '#4B5563' }}>{staffRole}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#e8eaf0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</div>
+              <div style={{ fontSize: 10, color: '#6b7280' }}>{staffRole}</div>
             </div>
             <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: ps.bg, color: ps.color }}>{planTier}</span>
           </div>
@@ -286,12 +286,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </aside>
 
       {/* ── Main content ────────────────────── */}
-      <div className="main-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+      <div className="main-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
 
         {/* Trial banner */}
         {showTrialBanner && (
           <div style={{ background: 'linear-gradient(90deg,rgba(245,158,11,0.1),rgba(239,68,68,0.06))', borderBottom: '1px solid rgba(245,158,11,0.2)', padding: '9px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <span style={{ fontSize: 12, color: '#F0F2F7' }}>
+            <span style={{ fontSize: 12, color: '#e8eaf0' }}>
               ⚠️ <strong style={{ color: '#F59E0B' }}>Trial ends in {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}.</strong>
               {' '}Upgrade to keep your orders, data & QR menus.
             </span>
@@ -299,21 +299,21 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               <Link href="/admin/billing" style={{ fontSize: 11, fontWeight: 700, color: '#000', background: '#F59E0B', padding: '5px 14px', borderRadius: 7, textDecoration: 'none' }}>
                 Upgrade Now
               </Link>
-              <button onClick={() => setShowBanner(false)} style={{ background: 'none', border: 'none', color: '#4B5563', cursor: 'pointer', padding: 4, fontSize: 14 }}>✕</button>
+              <button onClick={() => setShowBanner(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 4, fontSize: 14 }}>✕</button>
             </div>
           </div>
         )}
 
         {/* Topbar */}
-        <header style={{ background: '#141820', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'sticky', top: 0, zIndex: 30 }}>
+        <header style={{ background: '#161b27', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'sticky', top: 0, zIndex: 30 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button className="topbar-btn show-mobile" onClick={() => setSidebarOpen(true)}>
               <Menu size={15} />
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, color: '#4B5563' }}>{tenantName}</span>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>{tenantName}</span>
               <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: 14 }}>/</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#F0F2F7' }}>{currentLabel}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#e8eaf0' }}>{currentLabel}</span>
             </div>
           </div>
 
@@ -351,18 +351,18 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#1A1F2C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '5px 10px 5px 6px', cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#1e2535', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '5px 10px 5px 6px', cursor: 'pointer' }}>
               <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: 'white' }}>
                 {displayName.charAt(0).toUpperCase()}
               </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#F0F2F7' }}>{displayName}</span>
-              <ChevronDown size={10} style={{ color: '#4B5563' }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#e8eaf0' }}>{displayName}</span>
+              <ChevronDown size={10} style={{ color: '#6b7280' }} />
             </div>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="page-enter" style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        <main className="page-enter" style={{ flex: 1, padding: 24 }}>
           {children}
         </main>
       </div>

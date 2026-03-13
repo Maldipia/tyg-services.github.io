@@ -148,15 +148,25 @@ function SettingsPageInner() {
 
   return (
     <div style={{ color: 'var(--text)' }}>
+      <style>{`
+        .settings-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .settings-tabs{display:flex;gap:4px;padding:4px;border-radius:20px;margin-bottom:24px;overflow-x:auto;flex-wrap:nowrap;background:var(--surface);border:1px solid var(--border)}
+        .settings-tab-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:500;flex-shrink:0;cursor:pointer;border:none;font-family:inherit}
+        @media(max-width:540px){
+          .settings-2col{grid-template-columns:1fr!important}
+          .settings-tab-btn span{display:none}
+          .settings-tab-btn{padding:10px 14px}
+          .settings-tabs{gap:2px}
+        }
+      `}</style>
       {/* Tab nav */}
-      <div
-        style={{ display:"flex", gap:4, padding:4, borderRadius:20, marginBottom:24, overflowX:"auto", flexWrap:"nowrap", background: 'var(--surface)', border: '1px solid var(--border)' }}
-      >
+      <div className="settings-tabs">
         {TAB_CONFIG.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 16px", borderRadius:12, fontSize:13, fontWeight:500, flexShrink:0, cursor:"pointer", border:"none", ...(activeTab===t.id?{background:"#22c55e",color:"white"}:{background:"transparent",color:"var(--text-muted)"}), ...(activeTab === t.id ? { background: '#22c55e', color: 'white' } : { color: 'var(--text-muted)' }) }}
+            className="settings-tab-btn"
+            style={{ ...(activeTab===t.id ? { background:'#22c55e', color:'white' } : { background:'transparent', color:'var(--text-muted)' }) }}
           >
             <t.icon size={15} />
             <span>{t.label}</span>
@@ -192,7 +202,7 @@ function SettingsPageInner() {
                   />
                 </div>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+              <div className="settings-2col">
                 <div>
                   <label style={labelStyle}>Contact Number</label>
                   <div style={{ display:"flex" }}>
@@ -255,7 +265,7 @@ function SettingsPageInner() {
         <div style={{ maxWidth: 640 }}>
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Brand Colors</h3>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+            <div className="settings-2col" style={{ gap:24 }}>
               <div>
                 <label style={labelStyle}>Primary Color</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 10 }}>

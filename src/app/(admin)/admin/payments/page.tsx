@@ -113,6 +113,14 @@ export default function PaymentsPage() {
 
   return (
     <div style={{ color: 'var(--text)' }}>
+      <style>{`
+        .pay-card{border-radius:20px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+        .pay-card-actions{display:flex;gap:8px;flex-shrink:0}
+        @media(max-width:540px){
+          .pay-card{flex-wrap:wrap;gap:10px}
+          .pay-card-actions{width:100%;border-top:1px solid var(--border);padding-top:10px;justify-content:flex-end}
+        }
+      `}</style>
 
       {/* Toast */}
       {toast && (
@@ -161,7 +169,7 @@ export default function PaymentsPage() {
             const cfg = STATUS_CONFIG[p.status] ?? STATUS_CONFIG['PENDING_VERIFICATION']!;
             const order = p.orders;
             return (
-              <div key={p.id} style={{ borderRadius:20, padding:16, display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, background: 'var(--surface)', border: p.status === 'PENDING_VERIFICATION' ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid var(--border)' }}>
+              <div key={p.id} className="pay-card" style={{ background: 'var(--surface)', border: p.status === 'PENDING_VERIFICATION' ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid var(--border)' }}>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{order?.order_number ?? 'Unknown Order'}</span>                     <span style={{ padding:"2px 8px", borderRadius:999, fontSize:11, fontWeight:600, background: cfg?.bg, color: cfg?.color }}>{cfg?.label}</span>
@@ -174,7 +182,7 @@ export default function PaymentsPage() {
                     <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(p.created_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                   </div>
                 </div>
-                <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                <div className="pay-card-actions">
                   {p.proof_url && (
                     <a href={p.proof_url} target="_blank" rel="noreferrer"
                       style={{ width:36, height:36, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', border: '1px solid rgba(99, 102, 241, 0.2)' }}

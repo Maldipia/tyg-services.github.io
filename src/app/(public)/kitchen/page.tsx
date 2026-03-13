@@ -84,34 +84,37 @@ function KitchenPageInner() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f1117' }}>
+      <style>{`
+        .kds-topbar{background:#161b27;border-bottom:1px solid rgba(255,255,255,0.07);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .kds-topbar-title{font-size:16px}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @media(max-width:480px){
+          .kds-topbar{padding:10px 14px}
+          .kds-topbar-title{font-size:13px}
+          .kds-staff-label{display:none}
+        }
+      `}</style>
       {/* Top bar */}
-      <div style={{
-        background: '#161b27',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        padding: '12px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
+      <div className="kds-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 10, height: 10, borderRadius: '50%',
             background: '#22c55e',
             boxShadow: '0 0 8px #22c55e',
             animation: 'pulse 2s ease-in-out infinite',
+            flexShrink: 0,
           }} />
-          <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
-          <span style={{ color: '#e8eaf0', fontWeight: 700, fontSize: 16 }}>
+          <span className="kds-topbar-title" style={{ color: '#e8eaf0', fontWeight: 700 }}>
             🍳 Kitchen Display — {session.tenantName}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ color: '#6b7280', fontSize: 13 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span className="kds-staff-label" style={{ color: '#6b7280', fontSize: 13 }}>
             Staff: <strong style={{ color: '#9ca3af' }}>{session.staffId}</strong>
           </span>
           <button
             onClick={() => {
-              // Call logout API then redirect
               fetch('/api/auth/staff/login', { method: 'DELETE' }).finally(() => {
                 localStorage.removeItem('tyg_session');
                 localStorage.removeItem('tyg_tenant');

@@ -187,6 +187,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           .main-sidebar{position:fixed!important;top:0;left:0;height:100%!important;width:240px;transform:translateX(-100%);transition:transform 0.25s ease;z-index:50;box-shadow:4px 0 24px rgba(0,0,0,0.1)}
           .main-sidebar.open{transform:translateX(0)!important}
         }
+        @media(max-width:640px){
+          .topbar-user-name{display:none!important}
+          .topbar-active-badge{display:none!important}
+          .main-content-pad{padding:14px!important}
+          .topbar-inner{padding:0 12px!important}
+          .trial-banner-text{font-size:11px!important}
+        }
       `}</style>
 
       {/* Mobile overlay */}
@@ -298,21 +305,21 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         )}
 
         {/* Topbar */}
-        <header style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'sticky', top: 0, zIndex: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <header className="topbar-inner" style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'sticky', top: 0, zIndex: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <button className="topbar-btn show-mobile" onClick={() => setSidebarOpen(true)}>
               <Menu size={15} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, color: '#94a3b8' }}>{tenantName}</span>
-              <span style={{ color: '#cbd5e1' }}>/</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{currentLabel}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
+              <span className="topbar-user-name" style={{ fontSize: 12, color: '#94a3b8', whiteSpace: 'nowrap' }}>{tenantName}</span>
+              <span className="topbar-user-name" style={{ color: '#cbd5e1' }}>/</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentLabel}</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             {activeOrders > 0 && (
-              <Link href="/admin/orders" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '5px 12px', borderRadius: 99, textDecoration: 'none' }}>
+              <Link href="/admin/orders" className="topbar-active-badge" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '5px 12px', borderRadius: 99, textDecoration: 'none' }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a', display: 'inline-block', animation: 'blink 2s infinite' }} />
                 {activeOrders} active
               </Link>
@@ -341,17 +348,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 10px 5px 6px', cursor: 'pointer' }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg,#16a34a,#15803d)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: 'white' }}>
+              <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg,#16a34a,#15803d)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: 'white', flexShrink: 0 }}>
                 {displayName.charAt(0).toUpperCase()}
               </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>{displayName}</span>
+              <span className="topbar-user-name" style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>{displayName}</span>
               <ChevronDown size={10} style={{ color: '#94a3b8' }} />
             </div>
           </div>
         </header>
 
         {/* Page */}
-        <main className="page-enter" style={{ flex: 1, padding: 24 }}>
+        <main className="page-enter main-content-pad" style={{ flex: 1, padding: 24 }}>
           {children}
         </main>
       </div>

@@ -121,10 +121,28 @@ export default function DashboardPage() {
 
   return (
     <div style={{ color: '#0f172a', maxWidth: 1280 }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+        .dash-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+        .dash-main-grid{display:grid;grid-template-columns:1fr 288px;gap:12px;align-items:start}
+        .dash-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:12px}
+        .dash-header-actions{display:flex;gap:8px;flex-shrink:0}
+        .dash-table-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+        @media(max-width:900px){
+          .dash-main-grid{grid-template-columns:1fr!important}
+          .dash-kpi-grid{grid-template-columns:repeat(2,1fr)!important}
+        }
+        @media(max-width:540px){
+          .dash-kpi-grid{grid-template-columns:1fr 1fr!important}
+          .dash-header{flex-direction:column;gap:10px}
+          .dash-header-actions{width:100%}
+          .dash-header-actions a,.dash-header-actions button{flex:1;justify-content:center}
+        }
+      `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div className="dash-header">
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
             Good {greeting}, {greetName} 👋
@@ -133,7 +151,7 @@ export default function DashboardPage() {
             {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="dash-header-actions">
           <button onClick={() => { setRefreshing(true); void loadOrders(tenantSlug); }}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#ffffff', border: '1px solid #e2e8f0', color: '#64748b', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
             <RefreshCw size={12} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
@@ -156,7 +174,7 @@ export default function DashboardPage() {
       )}
 
       {/* KPI cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 16 }}>
+      <div className="dash-kpi-grid">
         {[
           { label: "Today's Revenue", value: loading ? '—' : `₱${stats.todaySales.toLocaleString('en-PH')}`, icon: Banknote,   color: '#16a34a', bg: '#f0fdf4', sub: `${stats.completedOrders} orders completed` },
           { label: 'Active Orders',   value: loading ? '—' : String(stats.pendingOrders), icon: Clock, color: '#d97706', bg: '#fffbeb', sub: stats.pendingOrders > 0 ? 'Needs attention' : 'All clear' },
@@ -177,7 +195,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 288px', gap: 12, alignItems: 'start' }}>
+      <div className="dash-main-grid">
 
         {/* Live Orders */}
         <div style={card}>

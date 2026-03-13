@@ -77,6 +77,20 @@ export default function StaffPage() {
 
   return (
     <div style={{ color: 'var(--text)' }}>
+      <style>{`
+        .staff-role-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+        .staff-row{display:flex;align-items:center;gap:14px;padding:14px 20px}
+        .staff-row-actions{display:flex;gap:6px;flex-shrink:0}
+        @media(max-width:900px){.staff-role-grid{grid-template-columns:repeat(3,1fr)!important}}
+        @media(max-width:540px){
+          .staff-role-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px}
+          .staff-row{flex-wrap:wrap;gap:10px;padding:12px 14px}
+          .staff-row-actions{width:100%;justify-content:flex-end;border-top:1px solid var(--border);padding-top:8px;margin-top:2px}
+          .staff-header{flex-direction:column;align-items:flex-start!important;gap:10px}
+          .staff-header-btns{width:100%;display:flex;gap:8px}
+          .staff-header-btns button{flex:1;justify-content:center}
+        }
+      `}</style>
 
       {/* Toast */}
       {toast && (
@@ -88,11 +102,11 @@ export default function StaffPage() {
       )}
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div className="staff-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
           {staff.filter(s => s.is_active).length} active · {staff.length} total
         </p>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="staff-header-btns" style={{ display: 'flex', gap: 8 }}>
           <button onClick={loadStaff}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 9,
               background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)',
@@ -109,7 +123,7 @@ export default function StaffPage() {
       </div>
 
       {/* Role cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 20 }}>
+      <div className="staff-role-grid">
         {(Object.entries(ROLE_CONFIG) as [StaffRole, typeof ROLE_CONFIG[StaffRole]][]).map(([role, cfg]) => (
           <div key={role} style={{ padding: '12px 10px', borderRadius: 14, textAlign: 'center',
             background: 'var(--surface)', border: '1px solid var(--border)' }}>

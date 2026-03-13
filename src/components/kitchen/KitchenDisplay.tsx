@@ -122,13 +122,13 @@ export default function KitchenDisplay({ branchId, tenantName }: Props) {
   // ── Styles ─────────────────────────────────────────────
   const s = {
     root:   { minHeight: '100vh', background: '#111827', padding: 16, fontFamily: 'system-ui, sans-serif' },
-    hdr:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-    title:  { color: '#fff', fontSize: 24, fontWeight: 700, margin: 0 },
-    sub:    { color: '#9ca3af', fontSize: 14, margin: '2px 0 0' },
+    hdr:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' as const, gap: 8 },
+    title:  { color: '#fff', fontSize: 22, fontWeight: 700, margin: 0 },
+    sub:    { color: '#9ca3af', fontSize: 13, margin: '2px 0 0' },
     live:   { display: 'flex', alignItems: 'center', gap: 8, color: '#4ade80', fontSize: 13 },
     dot:    { width: 8, height: 8, borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s infinite' },
     empty:  { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', height: 240, color: '#6b7280', fontSize: 18 },
-    grid:   { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 },
+    grid:   { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: 16 },
   };
 
   if (loading) {

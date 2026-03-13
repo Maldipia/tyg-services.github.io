@@ -81,14 +81,24 @@ export default function AnalyticsPage() {
 
   return (
     <div style={{ color:'var(--text)', maxWidth:900 }}>
+      <style>{`
+        .analytics-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+        .analytics-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+        @media(max-width:700px){
+          .analytics-kpi{grid-template-columns:repeat(2,1fr)!important}
+          .analytics-header{flex-direction:column;align-items:flex-start!important}
+          .analytics-range-btns{width:100%;display:flex}
+          .analytics-range-btns button{flex:1}
+        }
+      `}</style>
       {/* Header */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+      <div className="analytics-header">
         <div>
           <p style={{ color:'var(--text-muted)', fontSize:13 }}>
             {today} orders completed today
           </p>
         </div>
-        <div style={{ display:'flex', gap:4, padding:4, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10 }}>
+        <div className="analytics-range-btns" style={{ display:'flex', gap:4, padding:4, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10 }}>
           {(['1d','7d','30d','90d'] as Range[]).map(r => (
             <button key={r} onClick={() => setRange(r)}
               style={{ padding:'6px 14px', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', border:'none',
@@ -112,7 +122,7 @@ export default function AnalyticsPage() {
       ) : (
         <>
           {/* KPI row */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:16 }}>
+          <div className="analytics-kpi">
             {[
               { label:'Gross Sales', value: fmt(totals?.grossSales??0), icon:TrendingUp, color:'#22c55e', bg:'rgba(34,197,94,0.07)' },
               { label:'Net Sales', value: fmt(totals?.netSales??0), icon:TrendingUp, color:'#6366f1', bg:'rgba(99,102,241,0.07)' },

@@ -71,17 +71,17 @@ function StaffLoginForm() {
   };
 
   const S = {
-    page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#0c0f16', fontFamily: "'Inter',system-ui,sans-serif" } as React.CSSProperties,
+    page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: '#0c0f16', fontFamily: "'Inter',system-ui,sans-serif" } as React.CSSProperties,
     card: { width: '100%', maxWidth: 360 } as React.CSSProperties,
-    logoWrap: { textAlign: 'center' as const, marginBottom: 40 },
+    logoWrap: { textAlign: 'center' as const, marginBottom: 32 },
     logo: { width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px', background: 'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow: '0 8px 40px rgba(34,197,94,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 } as React.CSSProperties,
     title: { color: '#e8eaf0', fontWeight: 800, fontSize: 22, marginBottom: 4 },
     sub: { color: '#6b7280', fontSize: 14 },
-    nameBox: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 22px', marginBottom: 16 } as React.CSSProperties,
+    nameBox: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '18px 20px', marginBottom: 16 } as React.CSSProperties,
     nameLabel: { color: '#6b7280', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 12 },
     nameInput: { width: '100%', background: 'transparent', border: 'none', outline: 'none', color: '#e8eaf0', fontSize: 20, fontWeight: 600, fontFamily: 'inherit' } as React.CSSProperties,
-    keyRow: { display: 'flex', gap: 18 },
-    keyGrid: { display: 'flex', flexDirection: 'column' as const, gap: 14, alignItems: 'center' },
+    keyRow: { display: 'flex', gap: 0 },
+    keyGrid: { display: 'flex', flexDirection: 'column' as const, gap: 0, alignItems: 'center' },
     keyEmpty: { width: 76, height: 76 },
     errorText: { textAlign: 'center' as const, color: '#f87171', fontSize: 14, marginBottom: 20 },
   };
@@ -99,6 +99,18 @@ function StaffLoginForm() {
         .tyg-key:hover{background:rgba(255,255,255,0.12)}
         .tyg-key:active{transform:scale(0.88);background:rgba(34,197,94,0.18);color:#22c55e}
         .tyg-nameinput::placeholder{color:rgba(255,255,255,0.2)}
+        .tyg-key-row{display:flex;gap:18px;justify-content:center}
+        .tyg-key-grid{display:flex;flex-direction:column;gap:14px;align-items:center}
+        @media(max-height:700px),(max-width:380px){
+          .tyg-key{width:64px!important;height:64px!important;font-size:22px!important}
+          .tyg-key-row{gap:12px!important}
+          .tyg-key-grid{gap:10px!important}
+        }
+        @media(max-height:600px){
+          .tyg-key{width:54px!important;height:54px!important;font-size:19px!important}
+          .tyg-key-row{gap:8px!important}
+          .tyg-key-grid{gap:7px!important}
+        }
       `}</style>
 
       <div style={S.page}>
@@ -171,12 +183,12 @@ function StaffLoginForm() {
               {error && <div style={S.errorText}>{error}</div>}
 
               {/* Keypad */}
-              <div style={S.keyGrid}>
+              <div className="tyg-key-grid">
                 {KEYPAD.map((row, ri) => (
-                  <div key={ri} style={S.keyRow}>
+                  <div key={ri} className="tyg-key-row">
                     {row.map((key, ki) =>
                       key === '' ? (
-                        <div key={ki} style={S.keyEmpty} />
+                        <div key={ki} style={{ width: 76, height: 76 }} />
                       ) : key === '⌫' ? (
                         <button key={ki} className="tyg-key" onClick={() => handleKeyPress('⌫')}>
                           <Delete size={22} />

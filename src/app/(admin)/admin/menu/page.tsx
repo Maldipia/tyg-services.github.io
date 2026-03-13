@@ -136,6 +136,24 @@ export default function MenuPage() {
 
   return (
     <div style={{ color: 'var(--text)' }}>
+      <style>{`
+        .menu-layout{display:flex;gap:16px}
+        .menu-cat-sidebar{flex-shrink:0;width:192px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
+        .menu-cat-scroll{display:none;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+        .menu-cat-scroll::-webkit-scrollbar{height:3px}
+        .menu-cat-scroll-btn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);white-space:nowrap;background:var(--surface);color:var(--text-muted);font-family:inherit}
+        .menu-cat-scroll-btn.active{background:#22c55e;color:white;border-color:#22c55e}
+        @media(max-width:768px){
+          .menu-layout{flex-direction:column!important}
+          .menu-cat-sidebar{display:none!important}
+          .menu-cat-scroll{display:flex!important}
+          .menu-tab-header{flex-wrap:wrap;gap:10px}
+        }
+        @media(max-width:480px){
+          .menu-item-row{flex-wrap:wrap;gap:8px;padding:12px!important}
+          .menu-item-actions{width:100%;justify-content:flex-end;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
+        }
+      `}</style>
       {/* Toast */}
       {toast && (
         <div
@@ -169,9 +187,21 @@ export default function MenuPage() {
 
       {/* ── Items Tab ─────────────────────────────────────── */}
       {tab === 'items' && (
-        <div style={{ display:"flex", gap:16 }}>
-          {/* Category sidebar */}
-          <div style={{ flexShrink:0, width:192, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16 }}>
+        <>
+          {/* Mobile: horizontal category scroll */}
+          <div className="menu-cat-scroll">
+            <button className={`menu-cat-scroll-btn${!selectedCategory ? ' active' : ''}`} onClick={() => setSelectedCategory(null)}>
+              All ({items.length})
+            </button>
+            {categories.map(cat => (
+              <button key={cat.id} className={`menu-cat-scroll-btn${selectedCategory === cat.id ? ' active' : ''}`} onClick={() => setSelectedCategory(cat.id)}>
+                {cat.name} ({items.filter(i => i.category_id === cat.id).length})
+              </button>
+            ))}
+          </div>
+          <div className="menu-layout">
+          {/* Category sidebar — desktop only */}
+          <div className="menu-cat-sidebar">
             <div style={{ padding:12, borderBottom: '1px solid var(--border)' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 Categories
@@ -231,7 +261,8 @@ export default function MenuPage() {
               </div>
             )}
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       {/* ── Categories Tab ────────────────────────────────── */}

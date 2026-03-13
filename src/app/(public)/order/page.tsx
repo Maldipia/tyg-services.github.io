@@ -14,6 +14,17 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 type Step = 'menu' | 'info' | 'payment' | 'confirmation';
 
+interface PaymentSettings {
+  acceptCash:  boolean;
+  acceptGcash: boolean;
+  acceptMaya:  boolean;
+  gcashNumber: string | null;
+  gcashName:   string | null;
+  mayaNumber:  string | null;
+  mayaName:    string | null;
+  paymentNote: string | null;
+}
+
 interface MenuData {
   tenant: {
     name: string;
@@ -21,6 +32,7 @@ interface MenuData {
     primaryColor: string;
     accentColor: string;
     receiptFooter: string | null;
+    payment: PaymentSettings;
   };
   categories: Array<MenuCategory & { items: MenuItem[] }>;
 }
@@ -51,6 +63,10 @@ function OrderPageInner() {
   const [pax, setPax] = useState(1);
   const [notes, setNotes] = useState('');
   const [discountType, setDiscountType] = useState<'PWD' | 'SENIOR' | null>(null);
+  const [proofFile, setProofFile]       = useState<File | null>(null);
+  const [proofMethod, setProofMethod]   = useState<'GCASH' | 'MAYA' | null>(null);
+  const [uploading, setUploading]       = useState(false);
+  const [uploadDone, setUploadDone]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<PlacedOrder | null>(null);
 
@@ -64,7 +80,18 @@ function OrderPageInner() {
       .then((r) => r.json())
       .then((res) => {
         if (res.error) throw new Error(res.error);
-        setMenuData(res.data as MenuData);
+        const raw = res.data as MenuData;
+        // Ensure payment field always has defaults (safe against stale API cache)
+        setMenuData({
+          ...raw,
+          tenant: {
+            ...raw.tenant,
+            payment: raw.tenant.payment ?? {
+              acceptCash: true, acceptGcash: false, acceptMaya: false,
+              gcashNumber: null, gcashName: null, mayaNumber: null, mayaName: null, paymentNote: null,
+            },
+          },
+        });
         setActiveCategory(res.data.categories?.[0]?.id ?? null);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Failed to load menu'))
@@ -116,6 +143,26 @@ function OrderPageInner() {
       setError(err instanceof Error ? err.message : 'Failed to place order');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const uploadProof = async () => {
+    if (!placedOrder || !proofFile || !proofMethod) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('tenantSlug', tenantSlug);
+      fd.append('orderId', placedOrder.orderId);
+      fd.append('method', proofMethod);
+      fd.append('proof', proofFile);
+      const res = await fetch('/api/payment/proof', { method: 'POST', body: fd });
+      const data = await res.json() as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      setUploadDone(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Upload failed — please try again');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -200,26 +247,144 @@ function OrderPageInner() {
       )}
 
       {/* ── Payment Step ───────────────────────── */}
-      {step === 'payment' && placedOrder && (
-        <div style={{ maxWidth:672, margin:'0 auto', padding:'32px 16px', textAlign:'center' }}>
-          <div style={{ background:'white', borderRadius:20, boxShadow:'0 4px 20px rgba(0,0,0,0.08)', padding:32 }}>
-            <div style={{ fontSize:48, marginBottom:16 }}>💳</div>
-            <h2 style={{ fontSize:24, fontWeight:700, color:'#1f2937', marginBottom:8 }}>
-              Order #{placedOrder.orderNumber}
-            </h2>
-            <p style={{ fontSize:30, fontWeight:700, color:'#16a34a', marginBottom:24 }}>
-              ₱{placedOrder.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-            </p>
-            <p style={{ color:'#6b7280', marginBottom:32 }}>
-              Please pay using your preferred method below and show the confirmation to our staff.
-            </p>
-            <button onClick={() => setStep('confirmation')}
-              style={{ width:'100%', padding:'12px 0', borderRadius:12, fontWeight:600, color:'white', border:'none', cursor:'pointer', fontSize:15, backgroundColor: tenant.primaryColor }}>
-              I&apos;ve Paid — Show Confirmation
-            </button>
+      {step === 'payment' && placedOrder && (() => {
+        const pay = tenant.payment;
+        const col = tenant.primaryColor;
+        const hasDigital = pay.acceptGcash || pay.acceptMaya;
+        return (
+          <div style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
+            {/* Order summary bar */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: '16px 20px', marginBottom: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: 15, color: '#111827', margin: 0 }}>Order #{placedOrder.orderNumber}</p>
+                <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0' }}>Please complete payment below</p>
+              </div>
+              <p style={{ fontWeight: 800, fontSize: 22, color: '#16a34a', margin: 0 }}>
+                ₱{placedOrder.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+
+            {/* Cash option */}
+            {pay.acceptCash && (
+              <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', marginBottom: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <span style={{ fontSize: 24 }}>💵</span>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Pay at Counter (Cash)</span>
+                </div>
+                <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 12px' }}>Hand cash to staff when you receive your order. Please have the exact amount ready.</p>
+                {!uploadDone && (
+                  <button onClick={() => setStep('confirmation')} style={{ width: '100%', padding: '11px 0', borderRadius: 12, fontWeight: 600, fontSize: 14, color: '#fff', border: 'none', cursor: 'pointer', background: '#16a34a' }}>
+                    I'll Pay Cash — Show Confirmation
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* GCash */}
+            {pay.acceptGcash && pay.gcashNumber && (
+              <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', marginBottom: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 24 }}>📱</span>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>GCash</span>
+                </div>
+                <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+                  {/* QR from qrserver */}
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`+63${pay.gcashNumber.replace(/^0/, '')}`)}&bgcolor=ffffff&color=0056a3&qzone=2`}
+                    alt="GCash QR" width={100} height={100}
+                    style={{ borderRadius: 10, border: '1px solid #e5e7eb', flexShrink: 0 }}
+                  />
+                  <div>
+                    <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 4px' }}>Send to:</p>
+                    <p style={{ fontWeight: 800, fontSize: 18, color: '#0056a3', margin: '0 0 2px', letterSpacing: '0.04em' }}>{pay.gcashNumber}</p>
+                    {pay.gcashName && <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{pay.gcashName}</p>}
+                    <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Reference: {placedOrder.orderNumber}</p>
+                  </div>
+                </div>
+                {/* Proof upload */}
+                {!uploadDone ? (
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Upload Screenshot</label>
+                    <input type="file" accept="image/*" capture="environment"
+                      onChange={e => { setProofFile(e.target.files?.[0] ?? null); setProofMethod('GCASH'); }}
+                      style={{ fontSize: 13, color: '#374151', width: '100%', marginBottom: 8 }} />
+                    {proofFile && proofMethod === 'GCASH' && (
+                      <button onClick={() => void uploadProof()} disabled={uploading}
+                        style={{ width: '100%', padding: '10px 0', borderRadius: 10, fontWeight: 600, fontSize: 14, color: '#fff', border: 'none', cursor: uploading ? 'not-allowed' : 'pointer', background: '#0056a3', opacity: uploading ? 0.7 : 1 }}>
+                        {uploading ? 'Sending…' : '📤 Submit GCash Proof'}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ background: 'rgba(34,197,94,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#15803d', fontWeight: 600 }}>
+                    ✅ Proof submitted — staff will verify shortly
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Maya */}
+            {pay.acceptMaya && pay.mayaNumber && (
+              <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', marginBottom: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 24 }}>💚</span>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Maya</span>
+                </div>
+                <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`+63${pay.mayaNumber.replace(/^0/, '')}`)}&bgcolor=ffffff&color=00a651&qzone=2`}
+                    alt="Maya QR" width={100} height={100}
+                    style={{ borderRadius: 10, border: '1px solid #e5e7eb', flexShrink: 0 }}
+                  />
+                  <div>
+                    <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 4px' }}>Send to:</p>
+                    <p style={{ fontWeight: 800, fontSize: 18, color: '#00a651', margin: '0 0 2px', letterSpacing: '0.04em' }}>{pay.mayaNumber}</p>
+                    {pay.mayaName && <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{pay.mayaName}</p>}
+                    <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Reference: {placedOrder.orderNumber}</p>
+                  </div>
+                </div>
+                {!uploadDone ? (
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Upload Screenshot</label>
+                    <input type="file" accept="image/*" capture="environment"
+                      onChange={e => { setProofFile(e.target.files?.[0] ?? null); setProofMethod('MAYA'); }}
+                      style={{ fontSize: 13, color: '#374151', width: '100%', marginBottom: 8 }} />
+                    {proofFile && proofMethod === 'MAYA' && (
+                      <button onClick={() => void uploadProof()} disabled={uploading}
+                        style={{ width: '100%', padding: '10px 0', borderRadius: 10, fontWeight: 600, fontSize: 14, color: '#fff', border: 'none', cursor: uploading ? 'not-allowed' : 'pointer', background: '#00a651', opacity: uploading ? 0.7 : 1 }}>
+                        {uploading ? 'Sending…' : '📤 Submit Maya Proof'}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ background: 'rgba(34,197,94,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#15803d', fontWeight: 600 }}>
+                    ✅ Proof submitted — staff will verify shortly
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Payment note */}
+            {pay.paymentNote && (
+              <p style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center', marginBottom: 16 }}>{pay.paymentNote}</p>
+            )}
+
+            {/* After digital upload, show continue button */}
+            {uploadDone && (
+              <button onClick={() => setStep('confirmation')} style={{ width: '100%', padding: '13px 0', borderRadius: 14, fontWeight: 700, fontSize: 15, color: '#fff', border: 'none', cursor: 'pointer', background: col, boxShadow: `0 4px 20px ${col}55` }}>
+                View My Order Status →
+              </button>
+            )}
+
+            {/* Skip if no digital methods configured */}
+            {!hasDigital && (
+              <button onClick={() => setStep('confirmation')} style={{ width: '100%', padding: '13px 0', borderRadius: 14, fontWeight: 700, fontSize: 15, color: '#fff', border: 'none', cursor: 'pointer', background: col }}>
+                Done — Show Confirmation
+              </button>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Confirmation Step ──────────────────── */}
       {step === 'confirmation' && placedOrder && (

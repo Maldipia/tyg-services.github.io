@@ -124,13 +124,29 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     console.log(`[menu] tenant=${tid} cats=${categories.length} items=${items.length} db=${(process.env.SUPABASE_URL ?? '').slice(0,40)}`);
 
+    const settings = tenantData?.settings as {
+      receiptFooter?: string; acceptCash?: boolean; acceptGcash?: boolean; acceptMaya?: boolean;
+      gcashNumber?: string; gcashName?: string; mayaNumber?: string; mayaName?: string;
+      paymentNote?: string;
+    } | null;
+
     return apiSuccess({
       tenant: {
         name:          tenantData?.name,
         logoUrl:       tenantData?.logo_url,
         primaryColor:  tenantData?.primary_color,
         accentColor:   tenantData?.accent_color,
-        receiptFooter: (tenantData?.settings as { receiptFooter?: string })?.receiptFooter,
+        receiptFooter: settings?.receiptFooter,
+        payment: {
+          acceptCash:   settings?.acceptCash  ?? true,
+          acceptGcash:  settings?.acceptGcash ?? false,
+          acceptMaya:   settings?.acceptMaya  ?? false,
+          gcashNumber:  settings?.gcashNumber ?? null,
+          gcashName:    settings?.gcashName   ?? null,
+          mayaNumber:   settings?.mayaNumber  ?? null,
+          mayaName:     settings?.mayaName    ?? null,
+          paymentNote:  settings?.paymentNote ?? null,
+        },
       },
       categories: categoriesWithItems,
       updatedAt: new Date().toISOString(),

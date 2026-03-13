@@ -167,7 +167,14 @@ export default function AdminOrdersBoard({ branchId }: Props) {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [tenantSlug, fetchOrders]);
 
-  const bumpStatus = async (orderId: string, next: OrderStatus | 'CANCELLED', reason?: string) => {
+  const bumpStatus = async (orderId: string, next: OrderStatus | 'CANCELLED', reason?: string, paymentStatus?: string) => {
+    // Guard: warn if completing an unpaid order (cashier oversight prevention)
+    if (next === 'COMPLETED' && paymentStatus && paymentStatus !== 'VERIFIED') {
+      const proceed = confirm(
+        '⚠️ This order is not yet marked as paid.\n\nProceed to complete without recording payment?\n(You can still mark it paid afterward via the 💵 Cash Paid button)'
+      );
+      if (!proceed) return;
+    }
     setBumping(orderId);
     try {
       const body: Record<string, string> = { status: next };
@@ -340,7 +347,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
             {/* Actions */}
             <div style={s.actions}>
               {nextAct && (
-                <button disabled={isBumping} onClick={() => void bumpStatus(order.id, nextAct.next)}
+                <button disabled={isBumping} onClick={() => void bumpStatus(order.id, nextAct.next, undefined, order.payment_status)}
                   style={{ padding: '8px 18px', borderRadius: 8, background: nextAct.color, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: isBumping ? 'not-allowed' : 'pointer', opacity: isBumping ? 0.7 : 1 }}>
                   {isBumping ? '…' : nextAct.label}
                 </button>

@@ -1,11 +1,8 @@
 'use client';
-import React from 'react';
-
-import { useState, useEffect, useCallback } from 'react';
-import { createBrowserClient } from '@/lib/supabase/client';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Order, OrderStatus, PaymentStatus } from '@/types';
 
-const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+const STATUS_LABEL: Record<OrderStatus, string> = {
   PENDING:   '⏳ Pending',
   CONFIRMED: '👍 Confirmed',
   PREPARING: '👨‍🍳 Preparing',
@@ -14,216 +11,221 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   CANCELLED: '❌ Cancelled',
 };
 
-const PAYMENT_BADGE: Record<PaymentStatus, string> = {
-  UNPAID:                '⚪ Unpaid',
-  PENDING_VERIFICATION:  '🟡 Verify',
-  VERIFIED:              '🟢 Paid',
-  FAILED:                '🔴 Failed',
-  REFUNDED:              '🔵 Refunded',
+const STATUS_STYLE: Record<OrderStatus, { bg: string; color: string; border: string }> = {
+  PENDING:   { bg: 'rgba(245,158,11,0.12)', color: '#d97706', border: 'rgba(245,158,11,0.3)' },
+  CONFIRMED: { bg: 'rgba(99,102,241,0.12)', color: '#6366f1', border: 'rgba(99,102,241,0.3)' },
+  PREPARING: { bg: 'rgba(249,115,22,0.12)', color: '#ea580c', border: 'rgba(249,115,22,0.3)' },
+  READY:     { bg: 'rgba(34,197,94,0.12)',  color: '#16a34a', border: 'rgba(34,197,94,0.3)'  },
+  COMPLETED: { bg: 'rgba(16,185,129,0.12)', color: '#059669', border: 'rgba(16,185,129,0.3)' },
+  CANCELLED: { bg: 'rgba(239,68,68,0.12)',  color: '#dc2626', border: 'rgba(239,68,68,0.3)'  },
 };
 
-interface Props {
-  tenantId: string;
-  branchId: string | null;
+const NEXT_STATUS: Partial<Record<OrderStatus, { label: string; next: OrderStatus; color: string }>> = {
+  PENDING:   { label: 'Confirm Order',  next: 'CONFIRMED', color: '#6366f1' },
+  CONFIRMED: { label: 'Start Cooking',  next: 'PREPARING', color: '#f97316' },
+  PREPARING: { label: 'Mark Ready 🔔', next: 'READY',     color: '#22c55e' },
+  READY:     { label: 'Complete ✓',    next: 'COMPLETED', color: '#10b981' },
+};
+
+const PAY_BADGE: Record<PaymentStatus, string> = {
+  UNPAID:               '⚪ Unpaid',
+  PENDING_VERIFICATION: '🟡 Pending Verify',
+  VERIFIED:             '🟢 Paid',
+  FAILED:               '🔴 Failed',
+  REFUNDED:             '🔵 Refunded',
+};
+
+interface OrderItem {
+  id: string; item_name: string; size_label?: string | null;
+  qty: number; line_total: number; addon_total?: number;
 }
 
-export default function AdminOrdersBoard({ tenantId, branchId }: Props) {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filter, setFilter] = useState<OrderStatus | 'ALL'>('ALL');
-  const [loading, setLoading] = useState(true);
-  const supabase = createBrowserClient();
+interface Props { tenantId: string; branchId: string | null; }
 
-  const fetchOrders = useCallback(async () => {
-    let query = supabase
-      .from('orders')
-      .select(`
-        id, order_number, status, payment_status, created_at,
-        customer_name, pax, total_amount, notes, table_id, branch_id,
-        items:order_items(id, item_name, size_label, qty, line_total, addon_total)
-      `)
-      .eq('tenant_id', tenantId)
-      .eq('is_test', false)
-      .order('created_at', { ascending: false })
-      .limit(100);
+const TABS: Array<OrderStatus | 'ALL'> = ['ALL','PENDING','CONFIRMED','PREPARING','READY','COMPLETED','CANCELLED'];
 
-    if (filter !== 'ALL') {
-      query = query.eq('status', filter);
-    }
+export default function AdminOrdersBoard({ branchId }: Props) {
+  const [orders,     setOrders]     = useState<Order[]>([]);
+  const [filter,     setFilter]     = useState<OrderStatus | 'ALL'>('ALL');
+  const [loading,    setLoading]    = useState(true);
+  const [bumping,    setBumping]    = useState<string | null>(null);
+  const [tenantSlug, setTenantSlug] = useState('');
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    if (branchId) {
-      query = query.eq('branch_id', branchId);
-    }
-
-    const { data, error } = await query;
-    if (!error && data) setOrders(data as Order[]);
-    setLoading(false);
-  }, [tenantId, branchId, filter, supabase]);
-
-  useEffect(() => { void fetchOrders(); }, [fetchOrders]);
-
-  // Realtime updates
   useEffect(() => {
-    const channel = supabase
-      .channel(`admin-orders-${tenantId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders', filter: `tenant_id=eq.${tenantId}` },
-        () => { void fetchOrders(); }
-      )
-      .subscribe();
+    let slug = '';
+    try { slug = (JSON.parse(localStorage.getItem('tyg_tenant') ?? '{}') as { slug?: string }).slug ?? ''; } catch {/**/}
+    if (!slug) try { slug = (JSON.parse(localStorage.getItem('tyg_session') ?? '{}') as { tenantSlug?: string }).tenantSlug ?? ''; } catch {/**/}
+    setTenantSlug(slug);
+  }, []);
 
-    return () => { void supabase.removeChannel(channel); };
-  }, [tenantId, supabase, fetchOrders]);
+  const fetchOrders = useCallback(async (slug: string) => {
+    if (!slug) return;
+    try {
+      const p = new URLSearchParams({ tenantSlug: slug, limit: '100' });
+      if (filter !== 'ALL') p.set('status', filter);
+      const res = await fetch(`/api/orders?${p}`, { credentials: 'include' });
+      if (!res.ok) { setLoading(false); return; }
+      const json = await res.json() as { data?: Order[] };
+      setOrders(json.data ?? []);
+    } catch {/**/} finally { setLoading(false); }
+  }, [filter]);
 
-  const updateStatus = async (orderId: string, status: OrderStatus) => {
-    const res = await fetch(`/api/orders/${orderId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    if (!res.ok) {
-      const err = await res.json() as { error: string };
-      alert(err.error);
-    }
+  useEffect(() => { if (tenantSlug) void fetchOrders(tenantSlug); }, [tenantSlug, filter, fetchOrders]);
+
+  // Poll every 15 s for live updates
+  useEffect(() => {
+    if (!tenantSlug) return;
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(() => void fetchOrders(tenantSlug), 15_000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [tenantSlug, fetchOrders]);
+
+  const bumpStatus = async (orderId: string, next: OrderStatus | 'CANCELLED', reason?: string) => {
+    setBumping(orderId);
+    try {
+      const body: Record<string, string> = { status: next };
+      if (reason) body['cancelReason'] = reason;
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify(body),
+      });
+      if (res.ok) await fetchOrders(tenantSlug);
+      else { const e = await res.json() as { error: string }; alert(e.error ?? 'Failed'); }
+    } catch {/**/} finally { setBumping(null); }
   };
 
-  const verifyPayment = async (orderId: string) => {
-    const res = await fetch(`/api/payment/verify`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId }),
-    });
-    if (!res.ok) {
-      const err = await res.json() as { error: string };
-      alert(err.error);
-    }
-  };
+  const displayed = branchId
+    ? orders.filter(o => !o.branch_id || o.branch_id === branchId)
+    : orders;
 
-  const FILTERS: Array<OrderStatus | 'ALL'> = ['ALL', 'PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'];
+  const counts = TABS.reduce((acc, t) => {
+    acc[t] = t === 'ALL' ? orders.length : orders.filter(o => o.status === t).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const s = {
+    wrap:    { padding: 24 },
+    hdr:     { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+    title:   { fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 },
+    refresh: { fontSize: 13, color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 },
+    tabs:    { display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' as const },
+    card:    { background: 'var(--surface)', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--border)', marginBottom: 12 },
+    cardHdr: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+    orderNo: { fontWeight: 700, fontSize: 16, color: 'var(--text)', marginRight: 10 },
+    meta:    { margin: '3px 0 0', color: 'var(--text-dim)', fontSize: 13 },
+    time:    { margin: '2px 0 0', color: 'var(--text-muted)', fontSize: 12 },
+    amount:  { fontWeight: 700, color: '#22c55e', fontSize: 16, margin: 0 },
+    payBadge:{ fontSize: 12, color: 'var(--text-muted)' },
+    itemRow: { display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-dim)', lineHeight: '1.7' },
+    notes:   { margin: '0 0 10px', padding: '6px 10px', borderRadius: 8, background: 'rgba(245,158,11,0.1)', color: '#92400e', fontSize: 12 },
+    actions: { display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginTop: 10 },
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              filter === f
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {f === 'ALL' ? 'All Orders' : ORDER_STATUS_LABELS[f]}
-            {f !== 'ALL' && (
-              <span className="ml-1 opacity-70">
-                ({orders.filter((o) => o.status === f).length})
-              </span>
-            )}
-          </button>
-        ))}
+    <div style={s.wrap}>
+      <div style={s.hdr}>
+        <h1 style={s.title}>Orders</h1>
+        <button onClick={() => void fetchOrders(tenantSlug)} style={s.refresh}>↻ Refresh</button>
       </div>
 
+      {/* Filter tabs */}
+      <div style={s.tabs}>
+        {TABS.map(tab => {
+          const active = filter === tab;
+          const n = counts[tab] ?? 0;
+          return (
+            <button key={tab} onClick={() => setFilter(tab)} style={{
+              padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', border: 'none', transition: 'all 0.15s',
+              background: active ? 'var(--brand)' : 'var(--surface-2)',
+              color: active ? '#fff' : 'var(--text-muted)',
+            }}>
+              {tab === 'ALL' ? 'All' : STATUS_LABEL[tab as OrderStatus].split(' ')[1]}
+              {n > 0 && <span style={{ marginLeft: 6, background: active ? 'rgba(255,255,255,0.25)' : 'var(--border)', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>{n}</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Orders */}
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading orders...</div>
-      ) : orders.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-4xl mb-3">📋</div>
-          <p className="text-gray-400">No orders yet</p>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontSize: 14 }}>Loading orders…</div>
+      ) : displayed.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>No orders found</p>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-gray-800">#{order.order_number}</span>
-                    <span className="text-sm text-gray-500">
-                      {ORDER_STATUS_LABELS[order.status]}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {order.customer_name} • {order.pax} pax
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {new Date(order.created_at).toLocaleTimeString('en-PH', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-700">
-                    ₱{(order.total_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                  </p>
-                  <span className="text-xs text-gray-500">
-                    {PAYMENT_BADGE[order.payment_status]}
+      ) : displayed.map(order => {
+        const st = STATUS_STYLE[order.status] ?? STATUS_STYLE.CANCELLED;
+        const nextAct = NEXT_STATUS[order.status];
+        const isBumping = bumping === order.id;
+        const items = (order.items ?? []) as OrderItem[];
+        const minsAgo = Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000);
+        const isOverdue = minsAgo > 20 && ['PENDING', 'CONFIRMED'].includes(order.status);
+
+        return (
+          <div key={order.id} style={{ ...s.card, borderLeft: `4px solid ${st.border}` }}>
+            <div style={s.cardHdr}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
+                  <span style={s.orderNo}>#{order.order_number}</span>
+                  <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: st.bg, color: st.color }}>
+                    {STATUS_LABEL[order.status]}
                   </span>
+                  {isOverdue && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(239,68,68,0.12)', color: '#dc2626' }}>⚠ {minsAgo}m</span>}
                 </div>
+                <p style={s.meta}>{order.customer_name} · {order.pax} pax</p>
+                <p style={s.time}>{new Date(order.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}</p>
               </div>
-
-              {/* Items summary */}
-              {order.items && (
-                <div className="text-sm text-gray-600 mb-3 space-y-0.5">
-                  {order.items.map((item) => (
-                    <div key={item.id}>
-                      ×{item.qty} {item.item_name}
-                      {item.size_label && <span className="text-gray-400"> ({item.size_label})</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {order.notes && (
-                <p className="text-xs text-amber-600 bg-amber-50 rounded px-2 py-1 mb-3">
-                  📝 {order.notes}
-                </p>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-2 flex-wrap">
-                {order.status === 'PENDING' && (
-                  <button
-                    onClick={() => void updateStatus(order.id, 'CONFIRMED')}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg font-medium hover:bg-blue-700"
-                  >
-                    Confirm
-                  </button>
-                )}
-                {order.status === 'READY' && (
-                  <button
-                    onClick={() => void updateStatus(order.id, 'COMPLETED')}
-                    className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg font-medium hover:bg-green-700"
-                  >
-                    Complete ✓
-                  </button>
-                )}
-                {order.payment_status === 'PENDING_VERIFICATION' && (
-                  <button
-                    onClick={() => void verifyPayment(order.id)}
-                    className="px-3 py-1.5 bg-amber-500 text-white text-sm rounded-lg font-medium hover:bg-amber-600"
-                  >
-                    Verify Payment
-                  </button>
-                )}
-                {!['COMPLETED', 'CANCELLED'].includes(order.status) && (
-                  <button
-                    onClick={() => {
-                      const reason = prompt('Cancel reason?');
-                      if (reason) void updateStatus(order.id, 'CANCELLED');
-                    }}
-                    className="px-3 py-1.5 bg-red-50 text-red-600 text-sm rounded-lg font-medium hover:bg-red-100 border border-red-200"
-                  >
-                    Cancel
-                  </button>
-                )}
+              <div style={{ textAlign: 'right' }}>
+                <p style={s.amount}>₱{Number(order.total_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                <span style={s.payBadge}>{PAY_BADGE[order.payment_status]}</span>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            {/* Items */}
+            {items.length > 0 && (
+              <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
+                {items.map(item => (
+                  <div key={item.id} style={s.itemRow}>
+                    <span>×{item.qty} {item.item_name}{item.size_label ? ` (${item.size_label})` : ''}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Notes */}
+            {order.notes && <p style={s.notes}>📝 {order.notes}</p>}
+
+            {/* Actions */}
+            <div style={s.actions}>
+              {nextAct && (
+                <button disabled={isBumping} onClick={() => void bumpStatus(order.id, nextAct.next)}
+                  style={{ padding: '8px 18px', borderRadius: 8, background: nextAct.color, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: isBumping ? 'not-allowed' : 'pointer', opacity: isBumping ? 0.7 : 1 }}>
+                  {isBumping ? '…' : nextAct.label}
+                </button>
+              )}
+              {!['COMPLETED','CANCELLED'].includes(order.status) && (
+                <button disabled={isBumping} onClick={() => {
+                  const reason = prompt('Cancel reason:');
+                  if (reason?.trim()) void bumpStatus(order.id, 'CANCELLED', reason.trim());
+                }}
+                  style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.35)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              )}
+              {order.payment_status === 'PENDING_VERIFICATION' && (
+                <button onClick={() => alert('Go to Payments page to view proof and verify.')}
+                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.12)', color: '#d97706', border: '1px solid rgba(245,158,11,0.3)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                  🧾 Verify Payment
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

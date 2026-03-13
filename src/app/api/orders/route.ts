@@ -370,7 +370,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
 
     let query = db.from('orders')
-      .select('id, order_number, status, payment_status, total_amount, customer_name, created_at, pax')
+      .select(`
+        id, order_number, status, payment_status, total_amount,
+        customer_name, customer_phone, created_at, pax, notes, table_id, branch_id,
+        items:order_items(id, item_name, size_label, qty, line_total, addon_total)
+      `)
       .eq('tenant_id', ctx.tenantId)
       .eq('is_test', false)
       .gte('created_at', todayStart.toISOString())

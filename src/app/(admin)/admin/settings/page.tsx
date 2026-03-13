@@ -81,6 +81,11 @@ function SettingsPageInner() {
   const [pwdDiscount, setPwdDiscount] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
 
+  // BIR (PRO tier)
+  const [birTin, setBirTin] = useState('');
+  const [birAtpSeries, setBirAtpSeries] = useState('');
+  const [planTier, setPlanTier] = useState('TRIAL');
+
   // Branding
   const [primaryColor, setPrimaryColor] = useState('#16a34a');
   const [accentColor, setAccentColor] = useState('#f59e0b');
@@ -94,7 +99,7 @@ function SettingsPageInner() {
   useEffect(() => {
     fetch('/api/settings', { credentials: 'include' })
       .then(r => r.ok ? r.json() : null)
-      .then((d: { data?: { name?: string; slug?: string; phone?: string; address?: string; primary_color?: string; accent_color?: string; settings?: Record<string, unknown> } } | null) => {
+      .then((d: { data?: { name?: string; slug?: string; phone?: string; address?: string; primary_color?: string; accent_color?: string; plan_tier?: string; bir_tin?: string; bir_atp_series?: string; settings?: Record<string, unknown> } } | null) => {
         if (!d?.data) return;
         const t = d.data;
         if (t.name) setBusinessName(t.name);
@@ -103,6 +108,9 @@ function SettingsPageInner() {
         if (t.address) setAddress(t.address);
         if (t.primary_color) setPrimaryColor(t.primary_color);
         if (t.accent_color) setAccentColor(t.accent_color);
+        if (t.plan_tier) setPlanTier(t.plan_tier);
+        if (t.bir_tin) setBirTin(t.bir_tin);
+        if (t.bir_atp_series) setBirAtpSeries(t.bir_atp_series);
         const s = t.settings ?? {};
         if (typeof s['orderingEnabled'] === 'boolean') setOrderingEnabled(s['orderingEnabled']);
         if (typeof s['requireCustomerName'] === 'boolean') setRequireName(s['requireCustomerName']);
@@ -126,6 +134,8 @@ function SettingsPageInner() {
         body: JSON.stringify({
           name: businessName, phone, address,
           primaryColor, accentColor,
+          birTin: birTin.trim() || null,
+          birAtpSeries: birAtpSeries.trim() || null,
           settings: {
             orderingEnabled, requireCustomerName: requireName,
             requireCustomerPhone: requirePhone, vatEnabled,
@@ -412,6 +422,54 @@ function SettingsPageInner() {
               onChange={setSmsEnabled}
               badge="BUSINESS+"
             />
+          </div>
+
+          {/* BIR Compliance */}
+          <div style={{ ...sectionStyle, background: planTier === 'PRO' || planTier === 'ENTERPRISE' ? 'rgba(245,158,11,0.03)' : 'var(--surface)', borderColor: planTier === 'PRO' || planTier === 'ENTERPRISE' ? 'rgba(245,158,11,0.25)' : 'var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>BIR Official Receipts</h3>
+              {planTier !== 'PRO' && planTier !== 'ENTERPRISE' ? (
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(245,158,11,0.1)', color: '#d97706', border: '1px solid rgba(245,158,11,0.3)' }}>PRO</span>
+              ) : (
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(34,197,94,0.1)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.3)' }}>✓ Active</span>
+              )}
+            </div>
+            {planTier !== 'PRO' && planTier !== 'ENTERPRISE' ? (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+                BIR-compliant Official Receipt generation is available on the PRO plan. Upgrade to issue numbered ORs with VAT breakdown for your completed orders.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+                  Configure your BIR TIN and ATP Series to enable official receipt generation for completed orders.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>BIR TIN</label>
+                    <input
+                      style={inputStyle}
+                      value={birTin}
+                      onChange={e => setBirTin(e.target.value)}
+                      placeholder="e.g. 123-456-789-000"
+                      maxLength={20}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>ATP Series</label>
+                    <input
+                      style={inputStyle}
+                      value={birAtpSeries}
+                      onChange={e => setBirAtpSeries(e.target.value)}
+                      placeholder="e.g. OR-2024"
+                      maxLength={30}
+                    />
+                  </div>
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+                  OR numbers will be formatted as <code style={{ background: 'var(--surface-2)', padding: '1px 6px', borderRadius: 4 }}>{birAtpSeries || 'OR-2024'}-00000001</code> and increment automatically.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -42,7 +42,37 @@ interface OrderItem {
 
 interface Props { tenantId: string; branchId: string | null; }
 
+interface ORData {
+  orNumber: string; series: string; dateIssued: string;
+  tenantName: string; tenantAddress: string; birTin: string; customerName: string;
+  items: { description: string; qty: number; unitPrice: number; amount: number }[];
+  subtotal: number; vatableSales: number; vatAmount: number; total: number; cashierName: string;
+}
+
 const TABS: Array<OrderStatus | 'ALL'> = ['ALL','PENDING','CONFIRMED','PREPARING','READY','COMPLETED','CANCELLED'];
+
+// ── Web Audio chime — no external files needed ─────────────────
+function playNewOrderChime() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    // Two-tone chime: C5 then E5
+    const notes = [523.25, 659.25];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const start = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.4, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.45);
+      osc.start(start);
+      osc.stop(start + 0.5);
+    });
+  } catch { /* audio not available */ }
+}
 
 export default function AdminOrdersBoard({ branchId }: Props) {
   const [orders,     setOrders]     = useState<Order[]>([]);
@@ -50,6 +80,12 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [loading,    setLoading]    = useState(true);
   const [bumping,    setBumping]    = useState<string | null>(null);
   const [tenantSlug, setTenantSlug] = useState('');
+  const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [orModal, setOrModal]       = useState<ORData | null>(null);
+  const [orLoading, setOrLoading]   = useState<string | null>(null);
+  const knownIdsRef  = useRef<Set<string>>(new Set());
+  const isFirstLoad  = useRef(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -67,9 +103,29 @@ export default function AdminOrdersBoard({ branchId }: Props) {
       const res = await fetch(`/api/orders?${p}`, { credentials: 'include' });
       if (!res.ok) { setLoading(false); return; }
       const json = await res.json() as { data?: Order[] };
-      setOrders(json.data ?? []);
+      const incoming = json.data ?? [];
+
+      // Detect brand-new PENDING orders (not on first load)
+      if (!isFirstLoad.current) {
+        const freshIds = incoming
+          .filter(o => o.status === 'PENDING' && !knownIdsRef.current.has(o.id))
+          .map(o => o.id);
+        if (freshIds.length > 0) {
+          if (soundEnabled) playNewOrderChime();
+          setNewOrderIds(prev => { const s = new Set(prev); freshIds.forEach(id => s.add(id)); return s; });
+          // Clear the highlight after 6 seconds
+          setTimeout(() => setNewOrderIds(prev => {
+            const s = new Set(prev); freshIds.forEach(id => s.delete(id)); return s;
+          }), 6000);
+        }
+      }
+      // Always update the known IDs reference
+      knownIdsRef.current = new Set(incoming.map(o => o.id));
+      isFirstLoad.current = false;
+
+      setOrders(incoming);
     } catch {/**/} finally { setLoading(false); }
-  }, [filter]);
+  }, [filter, soundEnabled]);
 
   useEffect(() => { if (tenantSlug) void fetchOrders(tenantSlug); }, [tenantSlug, filter, fetchOrders]);
 
@@ -93,6 +149,22 @@ export default function AdminOrdersBoard({ branchId }: Props) {
       if (res.ok) await fetchOrders(tenantSlug);
       else { const e = await res.json() as { error: string }; alert(e.error ?? 'Failed'); }
     } catch {/**/} finally { setBumping(null); }
+  };
+
+  const issueOR = async (orderId: string) => {
+    setOrLoading(orderId);
+    try {
+      const res = await fetch('/api/bir/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ orderId }),
+      });
+      const json = await res.json() as { data?: ORData; error?: string };
+      if (res.ok && json.data) {
+        setOrModal(json.data);
+      } else {
+        alert(json.error ?? 'Failed to generate OR');
+      }
+    } catch { alert('Network error'); } finally { setOrLoading(null); }
   };
 
   const displayed = branchId
@@ -124,9 +196,26 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
   return (
     <div style={s.wrap}>
+      <style>{`
+        @keyframes newOrderPulse {
+          0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.5), 0 2px 8px rgba(0,0,0,0.08); }
+          50%  { box-shadow: 0 0 0 8px rgba(245,158,11,0), 0 2px 8px rgba(0,0,0,0.08); }
+          100% { box-shadow: 0 0 0 0 rgba(245,158,11,0), 0 2px 8px rgba(0,0,0,0.08); }
+        }
+        .new-order-card { animation: newOrderPulse 1s ease-out 3; border-color: rgba(245,158,11,0.5) !important; }
+      `}</style>
       <div style={s.hdr}>
         <h1 style={s.title}>Orders</h1>
-        <button onClick={() => void fetchOrders(tenantSlug)} style={s.refresh}>↻ Refresh</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={() => setSoundEnabled(v => !v)}
+            title={soundEnabled ? 'Mute new order alerts' : 'Enable new order alerts'}
+            style={{ background: soundEnabled ? 'rgba(34,197,94,0.1)' : 'rgba(100,116,139,0.1)', border: `1px solid ${soundEnabled ? 'rgba(34,197,94,0.3)' : 'rgba(100,116,139,0.2)'}`, borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
+          >
+            {soundEnabled ? '🔔' : '🔕'}
+          </button>
+          <button onClick={() => void fetchOrders(tenantSlug)} style={s.refresh}>↻ Refresh</button>
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -165,7 +254,9 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         const isOverdue = minsAgo > 20 && ['PENDING', 'CONFIRMED'].includes(order.status);
 
         return (
-          <div key={order.id} style={{ ...s.card, borderLeft: `4px solid ${st.border}` }}>
+          <div key={order.id}
+            className={newOrderIds.has(order.id) ? 'new-order-card' : ''}
+            style={{ ...s.card, borderLeft: `4px solid ${st.border}` }}>
             <div style={s.cardHdr}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
@@ -222,10 +313,97 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   🧾 Verify Payment
                 </button>
               )}
+              {order.status === 'COMPLETED' && order.payment_status === 'VERIFIED' && (
+                <button
+                  disabled={orLoading === order.id}
+                  onClick={() => void issueOR(order.id)}
+                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.08)', color: '#b45309', border: '1px solid rgba(245,158,11,0.25)', fontWeight: 600, fontSize: 13, cursor: orLoading === order.id ? 'not-allowed' : 'pointer', opacity: orLoading === order.id ? 0.6 : 1 }}
+                >
+                  {orLoading === order.id ? '…' : '🧾 BIR OR'}
+                </button>
+              )}
             </div>
           </div>
         );
       })}
+
+    {/* ── BIR OR Print Modal ─────────────────────────────── */}
+    {orModal && (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+        <div style={{ width: '100%', maxWidth: 520, background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.4)' }}>
+          {/* Modal header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+            <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>🧾 BIR Official Receipt</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => window.print()} style={{ padding: '6px 14px', borderRadius: 8, background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Print</button>
+              <button onClick={() => setOrModal(null)} style={{ padding: '6px 14px', borderRadius: 8, background: '#f3f4f6', color: '#374151', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Close</button>
+            </div>
+          </div>
+
+          {/* Receipt — printable area */}
+          <div id="bir-receipt" style={{ padding: '24px 28px', fontFamily: 'monospace', fontSize: 13, color: '#111827', background: '#fff' }}>
+            <style>{`@media print { body * { visibility: hidden } #bir-receipt, #bir-receipt * { visibility: visible } #bir-receipt { position: fixed; top: 0; left: 0; width: 100%; } }`}</style>
+
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{ fontWeight: 900, fontSize: 16, textTransform: 'uppercase' }}>{orModal.tenantName}</div>
+              {orModal.tenantAddress && <div style={{ fontSize: 12, color: '#6b7280' }}>{orModal.tenantAddress}</div>}
+              <div style={{ fontSize: 12, color: '#6b7280' }}>TIN: {orModal.birTin}</div>
+              <div style={{ marginTop: 8, fontWeight: 700, fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Official Receipt</div>
+            </div>
+
+            <div style={{ borderTop: '1px dashed #d1d5db', borderBottom: '1px dashed #d1d5db', padding: '8px 0', marginBottom: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, fontSize: 12 }}>
+              <div><span style={{ color: '#6b7280' }}>OR No: </span><strong>{orModal.orNumber}</strong></div>
+              <div><span style={{ color: '#6b7280' }}>Date: </span>{orModal.dateIssued}</div>
+              <div><span style={{ color: '#6b7280' }}>Customer: </span>{orModal.customerName}</div>
+              <div><span style={{ color: '#6b7280' }}>Cashier: </span>{orModal.cashierName}</div>
+            </div>
+
+            {/* Line items */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 12, fontSize: 12 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <th style={{ textAlign: 'left', padding: '4px 0', color: '#6b7280', fontWeight: 600 }}>Description</th>
+                  <th style={{ textAlign: 'center', padding: '4px 0', color: '#6b7280', fontWeight: 600 }}>Qty</th>
+                  <th style={{ textAlign: 'right', padding: '4px 0', color: '#6b7280', fontWeight: 600 }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orModal.items.map((item, i) => (
+                  <tr key={i}>
+                    <td style={{ padding: '3px 0' }}>{item.description}</td>
+                    <td style={{ padding: '3px 0', textAlign: 'center' }}>{item.qty}</td>
+                    <td style={{ padding: '3px 0', textAlign: 'right' }}>₱{item.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Totals */}
+            <div style={{ borderTop: '1px dashed #d1d5db', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 3, fontSize: 13 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#6b7280' }}>VATable Sales</span>
+                <span>₱{orModal.vatableSales.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#6b7280' }}>VAT (12%)</span>
+                <span>₱{orModal.vatAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 15, borderTop: '1px solid #e5e7eb', paddingTop: 6, marginTop: 4 }}>
+                <span>TOTAL</span>
+                <span>₱{orModal.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{ marginTop: 16, textAlign: 'center', fontSize: 11, color: '#9ca3af', borderTop: '1px dashed #d1d5db', paddingTop: 12 }}>
+              <div>This is a system-generated BIR-compliant receipt.</div>
+              <div style={{ marginTop: 2 }}>ATP Series: {orModal.series}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

@@ -26,7 +26,7 @@ const CartItemSchema = z.object({
 
 const CreateOrderSchema = z.object({
   tenantSlug: z.string().min(3).max(50),
-  tableToken: z.string().min(8).max(32).optional(),
+  tableToken: z.string().min(8).max(36).optional(),
   customerName: z.string().min(1).max(100).trim(),
   customerPhone: z.string().max(20).optional(),
   customerEmail: z.string().email().optional(),
@@ -243,66 +243,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let discountAmount = 0;
   const discountType = input.discountType ?? null;
 
+  // ── PH pricing: menu prices are VAT-inclusive. Extract VAT for BIR reporting only.
+  // TRAIN Law PWD/Senior: 20% off pre-VAT base price, then VAT-exempt.
+  // The DB trigger `order_items_recalc` is the authoritative calculator — it runs AFTER
+  // items insert and overwrites totals. We pass placeholder values here; always re-fetch.
   if ((discountType === 'PWD' || discountType === 'SENIOR') && settings?.pwdSeniorDiscountEnabled !== false) {
     discountPct = 20;
-    discountAmount = Math.round(subtotal * 0.20 * 100) / 100;
-    // For PWD/Senior: remove VAT on discounted portion, apply 20% off pre-VAT price
-    const discountedSubtotal = subtotal - discountAmount;
-    const vatAmount = Math.round(discountedSubtotal * vatRate * 100) / 100;
-    const totalAmount = Math.round((discountedSubtotal + vatAmount) * 100) / 100;
-    const prefix = ((tenantData?.slug as string | undefined) ?? 'ORD').toUpperCase().slice(0, 6);
-
-    // ── 8. Insert order + items atomically ──────────────────────
-    const { data: orderNumber, error: seqError } = await db
-      .rpc('next_order_number', { p_tenant_id: tenant.tenantId, p_prefix: prefix });
-    if (seqError || !orderNumber) return apiError('Failed to generate order number', 500);
-
-    const { data: order, error: orderError } = await db
-      .from('orders')
-      .insert({
-        tenant_id: tenant.tenantId, branch_id: branchId, table_id: tableId,
-        order_number: orderNumber, customer_name: input.customerName,
-        customer_phone: input.customerPhone ?? null, customer_email: input.customerEmail ?? null,
-        pax: input.pax, subtotal_override: subtotal, vat_amount: vatAmount,
-        total_amount: totalAmount, notes: input.notes ?? null, is_test: input.isTest,
-        status: 'PENDING', payment_status: 'UNPAID',
-        discount_type: discountType, discount_pct: discountPct, discount_amount: discountAmount,
-      })
-      .select('id, order_number, total_amount, status, payment_status, created_at')
-      .single();
-    if (orderError || !order) { console.error('Order insert error:', orderError); return apiError('Failed to create order', 500); }
-
-    // Items
-    const itemInserts = pricedItems.map((item) => ({
-      tenant_id: item.tenant_id, order_id: order.id, item_id: item.item_id,
-      size_id: item.size_id, item_name: item.item_name, size_label: item.size_label,
-      unit_price: item.unit_price, qty: item.qty, addons: item.addons,
-      addon_total: item.addon_total, notes: item.notes || null,
-    }));
-    const { error: itemsError } = await db.from('order_items').insert(itemInserts);
-    if (itemsError) { await db.from('orders').delete().eq('id', order.id); return apiError('Failed to save order items', 500); }
-
-    // Resolve table name for response
-    const tableName = tableId
-      ? ((await db.from('restaurant_tables').select('name').eq('id', tableId).single()).data?.name as string | undefined) ?? null
-      : null;
-
-    void logEvent({ eventType: 'ORDER_CREATED', entityType: 'ORDER', entityId: order.id as string, tenantId: tenant.tenantId, source: 'POS', status: 'SUCCESS', details: { orderNumber, totalAmount, discountType, discountAmount } });
-    return apiSuccess({ orderId: order.id, orderNumber, totalAmount, status: order.status, paymentStatus: order.payment_status, trackUrl: `/orders/track?id=${order.id}`, tableName });
+    // Pre-VAT base (TRAIN Law basis for the 20% discount)
+    const preVatBase = Math.round(subtotal / (1 + vatRate) * 100) / 100;
+    discountAmount = Math.round(preVatBase * 0.20 * 100) / 100;
   }
 
-  const vatAmount = Math.round(subtotal * vatRate * 100) / 100;
-  const totalAmount = Math.round((subtotal + vatAmount) * 100) / 100;
   const prefix = ((tenantData?.slug as string | undefined) ?? 'ORD').toUpperCase().slice(0, 6);
 
   // ── 8. Insert order + items atomically ──────────────────────
-  // Postgres function handles the sequential order number
   const { data: orderNumber, error: seqError } = await db
     .rpc('next_order_number', { p_tenant_id: tenant.tenantId, p_prefix: prefix });
-
-  if (seqError || !orderNumber) {
-    return apiError('Failed to generate order number', 500);
-  }
+  if (seqError || !orderNumber) return apiError('Failed to generate order number', 500);
 
   const { data: order, error: orderError } = await db
     .from('orders')
@@ -316,8 +273,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       customer_email: input.customerEmail ?? null,
       pax: input.pax,
       subtotal_override: subtotal,
-      vat_amount: vatAmount,
-      total_amount: totalAmount,
+      vat_amount: 0,       // trigger will correct after items insert
+      total_amount: subtotal,
       notes: input.notes ?? null,
       is_test: input.isTest,
       status: 'PENDING',
@@ -326,7 +283,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       discount_pct: discountPct,
       discount_amount: discountAmount,
     })
-    .select('id, order_number, total_amount, status, payment_status, created_at')
+    .select('id, order_number, status, payment_status, created_at')
     .single();
 
   if (orderError || !order) {
@@ -335,6 +292,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // Insert order items (line_total is GENERATED — do NOT insert it)
+  // The order_items_recalc trigger fires AFTER this insert and corrects order totals.
   const itemInserts = pricedItems.map((item) => ({
     tenant_id: item.tenant_id,
     order_id: order.id,
@@ -352,10 +310,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const { error: itemsError } = await db.from('order_items').insert(itemInserts);
 
   if (itemsError) {
-    // Rollback order if items fail
     await db.from('orders').delete().eq('id', order.id);
     return apiError('Failed to save order items', 500);
   }
+
+  // Re-fetch corrected totals from DB (trigger has run by now)
+  const { data: correctedOrder } = await db
+    .from('orders')
+    .select('total_amount, vat_amount, subtotal_override, discount_amount')
+    .eq('id', order.id)
+    .single();
+
+  const finalTotal = Number(correctedOrder?.total_amount ?? subtotal);
+  const finalVat   = Number(correctedOrder?.vat_amount ?? 0);
+  const finalDiscount = Number(correctedOrder?.discount_amount ?? discountAmount);
 
   // Log order creation event
   await db.from('order_events').insert({
@@ -366,9 +334,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     metadata: { ip, itemCount: pricedItems.length },
   });
 
-
-  // Fire-and-forget webhook to Google Sheets (never blocks response)
-  // Central event log
   void logEvent({
     eventType: 'ORDER_CREATED',
     entityType: 'ORDER',
@@ -379,9 +344,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       orderNumber: order.order_number,
       customerName: input.customerName,
       pax: input.pax,
-      totalAmount,
+      totalAmount: finalTotal,
       itemCount: pricedItems.length,
       isTest: input.isTest ?? false,
+      discountType,
+      discountAmount: finalDiscount,
     },
   });
 
@@ -391,8 +358,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     customerName: input.customerName,
     pax: input.pax,
     subtotal,
-    vatAmount,
-    totalAmount,
+    vatAmount: finalVat,
+    totalAmount: finalTotal,
     status: 'PENDING',
     paymentStatus: 'UNPAID',
     notes: input.notes ?? '',
@@ -405,14 +372,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })),
   }).catch(() => {}); // fire-and-forget
 
+  // Resolve table name for response
+  const tableName = tableId
+    ? ((await db.from('restaurant_tables').select('name').eq('id', tableId).single()).data?.name as string | undefined) ?? null
+    : null;
+
   return apiSuccess(
     {
       orderId: order.id,
       trackUrl: `/orders/track?id=${order.id}`,
       orderNumber: order.order_number,
-      totalAmount: order.total_amount,
+      totalAmount: finalTotal,
       status: order.status,
       paymentStatus: order.payment_status,
+      tableName,
     },
     201
   );

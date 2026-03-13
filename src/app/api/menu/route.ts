@@ -122,7 +122,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         })),
     }));
 
-    console.log(`[menu] tenant=${tid} cats=${categories.length} items=${items.length} db=${(process.env.SUPABASE_URL ?? '').slice(0,40)}`);
+    console.log(`[menu] tenant=${tid} cats=${categories.length} items=${items.length}`);
 
     const settings = tenantData?.settings as {
       receiptFooter?: string; acceptCash?: boolean; acceptGcash?: boolean; acceptMaya?: boolean;

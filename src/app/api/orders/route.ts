@@ -436,8 +436,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const nowPH    = new Date(Date.now() + phOffset);
     const todayPH  = nowPH.toISOString().slice(0, 10);
 
-    const fromDate = dateFrom ?? todayPH;
-    const toDate   = dateTo   ?? todayPH;
+    // Validate YYYY-MM-DD format to prevent invalid Date errors
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+    const safeFrom = dateFrom && DATE_RE.test(dateFrom) ? dateFrom : null;
+    const safeTo   = dateTo   && DATE_RE.test(dateTo)   ? dateTo   : null;
+
+    const fromDate = safeFrom ?? todayPH;
+    const toDate   = safeTo   ?? todayPH;
 
     // Convert PH date range to UTC timestamps
     const fromUTC = new Date(`${fromDate}T00:00:00+08:00`).toISOString();

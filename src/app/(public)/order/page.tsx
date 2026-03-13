@@ -50,6 +50,7 @@ function OrderPageInner() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [pax, setPax] = useState(1);
   const [notes, setNotes] = useState('');
+  const [discountType, setDiscountType] = useState<'PWD' | 'SENIOR' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<PlacedOrder | null>(null);
 
@@ -103,6 +104,7 @@ function OrderPageInner() {
           customerEmail: customerEmail.trim() || undefined,
           pax,
           notes: notes.trim() || undefined,
+          discountType: discountType ?? undefined,
           items: cart.map((item) => ({ itemId: item.itemId, sizeId: item.sizeId ?? undefined, qty: item.qty, addonIds: [], notes: item.notes })),
         }),
       });
@@ -189,6 +191,7 @@ function OrderPageInner() {
         <CustomerInfoForm
           customerName={customerName} customerPhone={customerPhone} customerEmail={customerEmail}
           onChangeEmail={setCustomerEmail} pax={pax} notes={notes}
+          discountType={discountType} onChangeDiscount={setDiscountType}
           onChangeName={setCustomerName} onChangePhone={setCustomerPhone}
           onChangePax={setPax} onChangeNotes={setNotes}
           onBack={() => setStep('menu')} onSubmit={() => placeOrder()}

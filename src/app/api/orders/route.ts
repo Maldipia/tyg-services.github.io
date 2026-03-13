@@ -34,6 +34,7 @@ const CreateOrderSchema = z.object({
   items: z.array(CartItemSchema).min(1).max(30),
   notes: z.string().max(500).optional(),
   isTest: z.boolean().optional().default(false),
+  discountType: z.enum(['PWD', 'SENIOR', 'PROMO', 'CUSTOM']).optional(),
 });
 
 export function OPTIONS() {
@@ -231,9 +232,65 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const settings = tenantData?.settings as {
     vatEnabled: boolean;
     vatRate: number;
+    pwdDiscountEnabled: boolean;
   } | null;
 
   const vatRate = settings?.vatEnabled ? (settings.vatRate ?? 0.12) : 0;
+
+  // ── PWD / Senior discount (PH: 20% off + VAT exempt on discounted amount) ──
+  // Per TRAIN Law: PWD/Senior discount = 20% off VATable base, then exempt from VAT
+  let discountPct = 0;
+  let discountAmount = 0;
+  const discountType = input.discountType ?? null;
+
+  if ((discountType === 'PWD' || discountType === 'SENIOR') && settings?.pwdDiscountEnabled !== false) {
+    discountPct = 20;
+    discountAmount = Math.round(subtotal * 0.20 * 100) / 100;
+    // For PWD/Senior: remove VAT on discounted portion, apply 20% off pre-VAT price
+    const discountedSubtotal = subtotal - discountAmount;
+    const vatAmount = Math.round(discountedSubtotal * vatRate * 100) / 100;
+    const totalAmount = Math.round((discountedSubtotal + vatAmount) * 100) / 100;
+    const prefix = ((tenantData?.slug as string | undefined) ?? 'ORD').toUpperCase().slice(0, 6);
+
+    // ── 8. Insert order + items atomically ──────────────────────
+    const { data: orderNumber, error: seqError } = await db
+      .rpc('next_order_number', { p_tenant_id: tenant.tenantId, p_prefix: prefix });
+    if (seqError || !orderNumber) return apiError('Failed to generate order number', 500);
+
+    const { data: order, error: orderError } = await db
+      .from('orders')
+      .insert({
+        tenant_id: tenant.tenantId, branch_id: branchId, table_id: tableId,
+        order_number: orderNumber, customer_name: input.customerName,
+        customer_phone: input.customerPhone ?? null, customer_email: input.customerEmail ?? null,
+        pax: input.pax, subtotal_override: subtotal, vat_amount: vatAmount,
+        total_amount: totalAmount, notes: input.notes ?? null, is_test: input.isTest,
+        status: 'PENDING', payment_status: 'UNPAID',
+        discount_type: discountType, discount_pct: discountPct, discount_amount: discountAmount,
+      })
+      .select('id, order_number, total_amount, status, payment_status, created_at')
+      .single();
+    if (orderError || !order) { console.error('Order insert error:', orderError); return apiError('Failed to create order', 500); }
+
+    // Items
+    const itemInserts = pricedItems.map((item) => ({
+      tenant_id: item.tenant_id, order_id: order.id, item_id: item.item_id,
+      size_id: item.size_id, item_name: item.item_name, size_label: item.size_label,
+      unit_price: item.unit_price, qty: item.qty, addons: item.addons,
+      addon_total: item.addon_total, notes: item.notes || null,
+    }));
+    const { error: itemsError } = await db.from('order_items').insert(itemInserts);
+    if (itemsError) { await db.from('orders').delete().eq('id', order.id); return apiError('Failed to save order items', 500); }
+
+    // Resolve table name for response
+    const tableName = tableId
+      ? ((await db.from('restaurant_tables').select('name').eq('id', tableId).single()).data?.name as string | undefined) ?? null
+      : null;
+
+    void logEvent({ eventType: 'ORDER_CREATED', entityType: 'ORDER', entityId: order.id as string, tenantId: tenant.tenantId, source: 'POS', status: 'SUCCESS', details: { orderNumber, totalAmount, discountType, discountAmount } });
+    return apiSuccess({ orderId: order.id, orderNumber, totalAmount, status: order.status, paymentStatus: order.payment_status, trackUrl: `/orders/track?id=${order.id}`, tableName });
+  }
+
   const vatAmount = Math.round(subtotal * vatRate * 100) / 100;
   const totalAmount = Math.round((subtotal + vatAmount) * 100) / 100;
   const prefix = ((tenantData?.slug as string | undefined) ?? 'ORD').toUpperCase().slice(0, 6);
@@ -265,6 +322,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       is_test: input.isTest,
       status: 'PENDING',
       payment_status: 'UNPAID',
+      discount_type: discountType,
+      discount_pct: discountPct,
+      discount_amount: discountAmount,
     })
     .select('id, order_number, total_amount, status, payment_status, created_at')
     .single();

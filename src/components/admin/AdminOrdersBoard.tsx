@@ -74,16 +74,32 @@ function playNewOrderChime() {
   } catch { /* audio not available */ }
 }
 
+interface TenantInfo {
+  name: string; address: string;
+  receiptFooter: string; primaryColor: string;
+}
+
+interface ReceiptOrder {
+  id: string; order_number: string; customer_name: string; table_name: string | null;
+  pax: number; status: string; payment_status: string;
+  total_amount: number; vat_amount: number;
+  notes: string | null; created_at: string;
+  items: OrderItem[];
+}
+
 export default function AdminOrdersBoard({ branchId }: Props) {
-  const [orders,     setOrders]     = useState<Order[]>([]);
-  const [filter,     setFilter]     = useState<OrderStatus | 'ALL'>('ALL');
-  const [loading,    setLoading]    = useState(true);
-  const [bumping,    setBumping]    = useState<string | null>(null);
-  const [tenantSlug, setTenantSlug] = useState('');
+  const [orders,      setOrders]      = useState<Order[]>([]);
+  const [filter,      setFilter]      = useState<OrderStatus | 'ALL'>('ALL');
+  const [loading,     setLoading]     = useState(true);
+  const [bumping,     setBumping]     = useState<string | null>(null);
+  const [tenantSlug,  setTenantSlug]  = useState('');
+  const [tenantInfo,  setTenantInfo]  = useState<TenantInfo>({ name: '', address: '', receiptFooter: 'Thank you for dining with us! 🌿', primaryColor: '#16a34a' });
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [orModal, setOrModal]       = useState<ORData | null>(null);
-  const [orLoading, setOrLoading]   = useState<string | null>(null);
+  const [soundEnabled,setSoundEnabled]= useState(true);
+  const [orModal,     setOrModal]     = useState<ORData | null>(null);
+  const [orLoading,   setOrLoading]   = useState<string | null>(null);
+  const [cashLoading, setCashLoading] = useState<string | null>(null);
+  const [receiptOrder,setReceiptOrder]= useState<ReceiptOrder | null>(null);
   const knownIdsRef  = useRef<Set<string>>(new Set());
   const isFirstLoad  = useRef(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -93,6 +109,20 @@ export default function AdminOrdersBoard({ branchId }: Props) {
     try { slug = (JSON.parse(localStorage.getItem('tyg_tenant') ?? '{}') as { slug?: string }).slug ?? ''; } catch {/**/}
     if (!slug) try { slug = (JSON.parse(localStorage.getItem('tyg_session') ?? '{}') as { tenantSlug?: string }).tenantSlug ?? ''; } catch {/**/}
     setTenantSlug(slug);
+    // Fetch tenant branding for receipts
+    if (slug) {
+      fetch('/api/settings', { credentials: 'include' })
+        .then(r => r.json())
+        .then((d: { data?: { name?: string; address?: string; primary_color?: string; settings?: { receiptFooter?: string } } }) => {
+          if (d?.data) setTenantInfo({
+            name:          d.data.name          ?? '',
+            address:       d.data.address       ?? '',
+            primaryColor:  d.data.primary_color ?? '#16a34a',
+            receiptFooter: d.data.settings?.receiptFooter ?? 'Thank you for dining with us! 🌿',
+          });
+        })
+        .catch(() => {/**/});
+    }
   }, []);
 
   const fetchOrders = useCallback(async (slug: string) => {
@@ -165,6 +195,23 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         alert(json.error ?? 'Failed to generate OR');
       }
     } catch { alert('Network error'); } finally { setOrLoading(null); }
+  };
+
+  const markCashPaid = async (orderId: string, total: number) => {
+    if (!confirm(`Mark this order as paid in cash (₱${total.toLocaleString('en-PH', { minimumFractionDigits: 2 })})?`)) return;
+    setCashLoading(orderId);
+    try {
+      const res = await fetch('/api/payment/cash', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ orderId }),
+      });
+      const json = await res.json() as { data?: { alreadyPaid?: boolean }; error?: string };
+      if (res.ok) {
+        await fetchOrders(tenantSlug);
+      } else {
+        alert(json.error ?? 'Failed to record payment');
+      }
+    } catch { alert('Network error'); } finally { setCashLoading(null); }
   };
 
   const displayed = branchId
@@ -313,6 +360,14 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   🧾 Verify Payment
                 </button>
               )}
+              {!['CANCELLED'].includes(order.status) && order.payment_status !== 'VERIFIED' && order.payment_status !== 'PENDING_VERIFICATION' && (
+                <button
+                  disabled={cashLoading === order.id}
+                  onClick={() => void markCashPaid(order.id, Number(order.total_amount))}
+                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.3)', fontWeight: 600, fontSize: 13, cursor: cashLoading === order.id ? 'not-allowed' : 'pointer', opacity: cashLoading === order.id ? 0.6 : 1 }}>
+                  {cashLoading === order.id ? '…' : '💵 Cash Paid'}
+                </button>
+              )}
               {order.status === 'COMPLETED' && order.payment_status === 'VERIFIED' && (
                 <button
                   disabled={orLoading === order.id}
@@ -320,6 +375,22 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.08)', color: '#b45309', border: '1px solid rgba(245,158,11,0.25)', fontWeight: 600, fontSize: 13, cursor: orLoading === order.id ? 'not-allowed' : 'pointer', opacity: orLoading === order.id ? 0.6 : 1 }}
                 >
                   {orLoading === order.id ? '…' : '🧾 BIR OR'}
+                </button>
+              )}
+              {['COMPLETED', 'READY'].includes(order.status) && (
+                <button
+                  onClick={() => setReceiptOrder({
+                    id: order.id, order_number: order.order_number,
+                    customer_name: order.customer_name, table_name: (order as unknown as Record<string, unknown>)['table_name'] as string | null,
+                    pax: order.pax, status: order.status, payment_status: order.payment_status,
+                    total_amount: Number(order.total_amount), vat_amount: Number((order as unknown as Record<string, unknown>)['vat_amount'] ?? Number(order.total_amount) * 12 / 112),
+                    notes: (order as unknown as Record<string, unknown>)['notes'] as string | null,
+                    created_at: order.created_at,
+                    items: (order.items ?? []) as OrderItem[],
+                  })}
+                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(100,116,139,0.08)', color: '#475569', border: '1px solid rgba(100,116,139,0.2)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                >
+                  🖨️ Receipt
                 </button>
               )}
             </div>
@@ -404,6 +475,99 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         </div>
       </div>
     )}
+
+    {/* ── Basic Receipt Modal (all tiers) ──────────────── */}
+    {receiptOrder && (() => {
+      const vat   = receiptOrder.vat_amount;
+      const net   = receiptOrder.total_amount - vat;
+      const date  = new Date(receiptOrder.created_at).toLocaleString('en-PH', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Manila' });
+      return (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:16, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(6px)' }}>
+          <div style={{ width:'100%', maxWidth:460, background:'#fff', borderRadius:16, overflow:'hidden', boxShadow:'0 24px 80px rgba(0,0,0,0.4)' }}>
+            {/* Header */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 18px', borderBottom:'1px solid #e5e7eb' }}>
+              <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>🖨️ Order Receipt</span>
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={() => window.print()} style={{ padding:'6px 14px', borderRadius:8, background:'#16a34a', color:'#fff', border:'none', fontWeight:600, fontSize:13, cursor:'pointer' }}>Print</button>
+                <button onClick={() => setReceiptOrder(null)} style={{ padding:'6px 14px', borderRadius:8, background:'#f3f4f6', color:'#374151', border:'none', fontWeight:600, fontSize:13, cursor:'pointer' }}>Close</button>
+              </div>
+            </div>
+
+            {/* Printable receipt */}
+            <div id="order-receipt" style={{ padding:'20px 24px', fontFamily:'monospace', fontSize:13, color:'#111827', background:'#fff', maxHeight:'70vh', overflowY:'auto' }}>
+              <style>{`@media print { body * { visibility:hidden } #order-receipt, #order-receipt * { visibility:visible } #order-receipt { position:fixed; top:0; left:0; width:100%; padding:24px; } }`}</style>
+
+              {/* Tenant header */}
+              <div style={{ textAlign:'center', marginBottom:14 }}>
+                <div style={{ fontWeight:900, fontSize:17, textTransform:'uppercase', letterSpacing:'0.06em' }}>{tenantInfo.name || 'YANI Garden Café'}</div>
+                {tenantInfo.address && <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>{tenantInfo.address}</div>}
+                <div style={{ marginTop:6, fontSize:12, color:'#9ca3af' }}>——— ORDER RECEIPT ———</div>
+              </div>
+
+              {/* Order meta */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'3px 8px', fontSize:12, paddingBottom:10, marginBottom:10, borderBottom:'1px dashed #d1d5db' }}>
+                <div><span style={{ color:'#6b7280' }}>Order: </span><strong>#{receiptOrder.order_number}</strong></div>
+                <div><span style={{ color:'#6b7280' }}>Date: </span>{date}</div>
+                <div><span style={{ color:'#6b7280' }}>Customer: </span>{receiptOrder.customer_name}</div>
+                <div><span style={{ color:'#6b7280' }}>Pax: </span>{receiptOrder.pax}</div>
+                {receiptOrder.table_name && <div style={{ gridColumn:'1/-1' }}><span style={{ color:'#6b7280' }}>Table: </span>{receiptOrder.table_name}</div>}
+              </div>
+
+              {/* Line items */}
+              <table style={{ width:'100%', borderCollapse:'collapse', marginBottom:10, fontSize:12 }}>
+                <thead>
+                  <tr style={{ borderBottom:'1px solid #e5e7eb' }}>
+                    <th style={{ textAlign:'left', paddingBottom:4, color:'#6b7280', fontWeight:600 }}>Item</th>
+                    <th style={{ textAlign:'center', paddingBottom:4, color:'#6b7280', fontWeight:600, width:36 }}>Qty</th>
+                    <th style={{ textAlign:'right', paddingBottom:4, color:'#6b7280', fontWeight:600 }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {receiptOrder.items.map((item, i) => (
+                    <tr key={i}>
+                      <td style={{ padding:'3px 0' }}>{item.item_name}{item.size_label ? ` (${item.size_label})` : ''}</td>
+                      <td style={{ padding:'3px 0', textAlign:'center' }}>{item.qty}</td>
+                      <td style={{ padding:'3px 0', textAlign:'right' }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits:2 })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Totals */}
+              <div style={{ borderTop:'1px dashed #d1d5db', paddingTop:8, display:'flex', flexDirection:'column', gap:3, fontSize:13 }}>
+                <div style={{ display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ color:'#6b7280' }}>Subtotal (ex. VAT)</span>
+                  <span>₱{net.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ color:'#6b7280' }}>VAT (12%)</span>
+                  <span>₱{vat.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', fontWeight:800, fontSize:15, borderTop:'1px solid #e5e7eb', paddingTop:6, marginTop:3 }}>
+                  <span>TOTAL</span>
+                  <span>₱{receiptOrder.total_amount.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontSize:12 }}>
+                  <span style={{ color:'#6b7280' }}>Payment</span>
+                  <span style={{ color: receiptOrder.payment_status === 'VERIFIED' ? '#16a34a' : '#d97706', fontWeight:600 }}>
+                    {receiptOrder.payment_status === 'VERIFIED' ? '✓ Paid' : receiptOrder.payment_status === 'UNPAID' ? 'Unpaid / Cash' : receiptOrder.payment_status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {receiptOrder.notes && <div style={{ marginTop:8, padding:'6px 10px', background:'#f9fafb', borderRadius:6, fontSize:12, color:'#4b5563' }}>📝 {receiptOrder.notes}</div>}
+
+              {/* Footer */}
+              <div style={{ marginTop:14, textAlign:'center', fontSize:11, color:'#9ca3af', borderTop:'1px dashed #d1d5db', paddingTop:10 }}>
+                <div>{tenantInfo.receiptFooter}</div>
+                <div style={{ marginTop:2, color:'#d1d5db' }}>— Powered by TYG POS —</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    })()}
     </div>
   );
 }

@@ -7,7 +7,7 @@ import {
   ArrowRight, RefreshCw, Banknote, AlertTriangle,
   ChevronDown, ChevronRight, BarChart2
 } from 'lucide-react';
-import type { Order, OrderStatus } from '@/types';
+import type { Order } from '@/types';
 
 interface DashStats {
   todaySales: number; todayOrders: number; pendingOrders: number;
@@ -16,19 +16,18 @@ interface DashStats {
 interface TableStatus { id: string; name: string; status: 'EMPTY' | 'OCCUPIED' | 'READY'; }
 
 const SC: Record<string, string> = {
-  PENDING:'#F59E0B', CONFIRMED:'#6366f1', PREPARING:'#f97316',
-  READY:'#22c55e', COMPLETED:'#10b981', CANCELLED:'#ef4444',
+  PENDING:'#d97706', CONFIRMED:'#6366f1', PREPARING:'#ea580c',
+  READY:'#16a34a', COMPLETED:'#15803d', CANCELLED:'#dc2626',
 };
 const SB: Record<string, string> = {
-  PENDING:'rgba(245,158,11,0.12)', CONFIRMED:'rgba(99,102,241,0.12)',
-  PREPARING:'rgba(249,115,22,0.12)', READY:'rgba(34,197,94,0.12)',
-  COMPLETED:'rgba(16,185,129,0.12)', CANCELLED:'rgba(239,68,68,0.12)',
+  PENDING:'#fffbeb', CONFIRMED:'#eef2ff', PREPARING:'#fff7ed',
+  READY:'#f0fdf4', COMPLETED:'#dcfce7', CANCELLED:'#fef2f2',
 };
-const STATUS_NEXT: Partial<Record<string, { label: string; next: string; color: string }>> = {
-  PENDING:   { label:'Confirm',       next:'CONFIRMED', color:'#6366f1' },
-  CONFIRMED: { label:'Start Cooking', next:'PREPARING', color:'#f97316' },
-  PREPARING: { label:'Mark Ready',    next:'READY',     color:'#22c55e' },
-  READY:     { label:'Complete',      next:'COMPLETED', color:'#10b981' },
+const STATUS_NEXT: Partial<Record<string, { label: string; next: string; color: string; bg: string }>> = {
+  PENDING:   { label:'Confirm',       next:'CONFIRMED', color:'#6366f1', bg:'#eef2ff' },
+  CONFIRMED: { label:'Start Cooking', next:'PREPARING', color:'#ea580c', bg:'#fff7ed' },
+  PREPARING: { label:'Mark Ready',    next:'READY',     color:'#16a34a', bg:'#f0fdf4' },
+  READY:     { label:'Complete',      next:'COMPLETED', color:'#15803d', bg:'#dcfce7' },
 };
 
 function fmtTime(iso: string) {
@@ -37,13 +36,6 @@ function fmtTime(iso: string) {
   if (ms < 3600000) return `${Math.floor(ms / 60000)}m ago`;
   return new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
 }
-
-// ── Token shortcuts
-const S = {
-  card: { background:'#161b27', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12 } as React.CSSProperties,
-  text: '#e8eaf0', muted: '#9ca3af', dim: '#6b7280',
-  brand: '#22c55e', brandDim: 'rgba(34,197,94,0.10)', brandBorder: 'rgba(34,197,94,0.20)',
-};
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashStats>({ todaySales:0, todayOrders:0, pendingOrders:0, completedOrders:0, cancelledOrders:0, avgOrderValue:0 });
@@ -80,12 +72,7 @@ export default function DashboardPage() {
       const todayAll = (d2.data ?? []).filter((o: Order) => new Date(o.created_at) >= todayStart && !o.is_test);
       const completed = todayAll.filter((o: Order) => o.status === 'COMPLETED');
       const sales = completed.reduce((s: number, o: Order) => s + Number(o.total_amount), 0);
-      setStats({
-        todaySales: sales, todayOrders: todayAll.length, pendingOrders: active.length,
-        completedOrders: completed.length,
-        cancelledOrders: todayAll.filter((o: Order) => o.status === 'CANCELLED').length,
-        avgOrderValue: completed.length > 0 ? sales / completed.length : 0,
-      });
+      setStats({ todaySales: sales, todayOrders: todayAll.length, pendingOrders: active.length, completedOrders: completed.length, cancelledOrders: todayAll.filter((o: Order) => o.status === 'CANCELLED').length, avgOrderValue: completed.length > 0 ? sales / completed.length : 0 });
       setLiveOrders(active.slice(0, 8));
       const newAlerts: { id: string; msg: string }[] = [];
       active.forEach((o: Order) => {
@@ -97,7 +84,7 @@ export default function DashboardPage() {
       if (tablesRes.ok) {
         const tj = await tablesRes.json() as { data?: Array<{ id: string; name: string }> };
         const allT = tj.data ?? [];
-        const occupiedIds = new Set(active.filter((o: Order) => o.table_id && o.status !== 'COMPLETED' && o.status !== 'CANCELLED').map((o: Order) => o.table_id));
+        const occupiedIds = new Set(active.filter((o: Order) => o.table_id && !['COMPLETED','CANCELLED'].includes(o.status)).map((o: Order) => o.table_id));
         const readyIds = new Set(active.filter((o: Order) => o.table_id && o.status === 'READY').map((o: Order) => o.table_id));
         setTables(allT.slice(0, 14).map(t => ({ id: t.id, name: t.name, status: readyIds.has(t.id) ? 'READY' : occupiedIds.has(t.id) ? 'OCCUPIED' : 'EMPTY' })));
       }
@@ -121,87 +108,84 @@ export default function DashboardPage() {
     } catch {/**/} finally { setBumping(null); }
   };
 
-  const handleRefresh = () => { setRefreshing(true); void loadOrders(tenantSlug); };
-
-  const tBg: Record<string, string> = { EMPTY:'transparent', OCCUPIED:'rgba(245,158,11,0.08)', READY:'rgba(34,197,94,0.08)' };
-  const tTxt: Record<string, string> = { EMPTY:'#6b7280', OCCUPIED:'#F59E0B', READY:'#22c55e' };
-  const tBdr: Record<string, string> = { EMPTY:'rgba(255,255,255,0.05)', OCCUPIED:'rgba(245,158,11,0.2)', READY:'rgba(34,197,94,0.2)' };
+  const tBg: Record<string, string>  = { EMPTY:'#ffffff', OCCUPIED:'#fffbeb', READY:'#f0fdf4' };
+  const tTxt: Record<string, string> = { EMPTY:'#94a3b8', OCCUPIED:'#d97706', READY:'#16a34a' };
+  const tBdr: Record<string, string> = { EMPTY:'#e2e8f0', OCCUPIED:'#fde68a', READY:'#bbf7d0' };
 
   const pct = stats.todayOrders > 0 ? Math.round((stats.completedOrders / stats.todayOrders) * 100) : 0;
-  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; })();
+  const h = new Date().getHours();
+  const greeting = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
   const greetName = staffName || tenantName.split(' ')[0] || 'there';
 
-  return (
-    <div style={{ color: S.text, maxWidth: 1280 }}>
-      <style>{`
-        @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-        @keyframes ping{0%{transform:scale(1);opacity:0.4}100%{transform:scale(1.6);opacity:0}}
-      `}</style>
+  const card: React.CSSProperties = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12 };
 
-      {/* ── Page header ── */}
+  return (
+    <div style={{ color: '#0f172a', maxWidth: 1280 }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
+
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: S.text, margin: 0, lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
             Good {greeting}, {greetName} 👋
           </h1>
-          <p style={{ fontSize: 13, color: S.muted, marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>
             {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={handleRefresh}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#1e2535', border: '1px solid rgba(255,255,255,0.08)', color: S.muted, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
+          <button onClick={() => { setRefreshing(true); void loadOrders(tenantSlug); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#ffffff', border: '1px solid #e2e8f0', color: '#64748b', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
             <RefreshCw size={12} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
             Refresh
           </button>
           <Link href="/admin/orders"
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: 'white', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#16a34a', color: 'white', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
             All Orders <ArrowRight size={12} />
           </Link>
         </div>
       </div>
 
-      {/* ── Alert bar ── */}
+      {/* Alert */}
       {alerts.length > 0 && (
-        <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: 9, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <AlertTriangle size={14} color="#ef4444" />
-          <span style={{ fontSize: 12, color: '#ef4444', fontWeight: 700 }}>{alerts.length} alert{alerts.length > 1 ? 's' : ''}</span>
-          <span style={{ fontSize: 12, color: S.muted }}>{alerts[0]!.msg}</span>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 9, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <AlertTriangle size={14} color="#dc2626" />
+          <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 700 }}>{alerts.length} alert{alerts.length > 1 ? 's' : ''} —</span>
+          <span style={{ fontSize: 12, color: '#7f1d1d' }}>{alerts[0]!.msg}</span>
         </div>
       )}
 
-      {/* ── KPI Row ── */}
+      {/* KPI cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 16 }}>
         {[
-          { label: "Today's Revenue", value: loading ? '—' : `₱${stats.todaySales.toLocaleString('en-PH')}`, icon: Banknote, color: '#22c55e', bg: 'rgba(34,197,94,0.1)', sub: `${stats.completedOrders} orders completed`, mono: true },
-          { label: 'Active Orders',   value: loading ? '—' : String(stats.pendingOrders), icon: Clock, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', sub: stats.pendingOrders > 0 ? 'Needs attention' : 'All clear', mono: false },
-          { label: 'Total Today',     value: loading ? '—' : String(stats.todayOrders), icon: ShoppingBag, color: '#6366f1', bg: 'rgba(99,102,241,0.1)', sub: 'Since midnight', mono: false },
-          { label: 'Avg Order Value', value: loading ? '—' : `₱${Math.round(stats.avgOrderValue).toLocaleString('en-PH')}`, icon: TrendingUp, color: '#f97316', bg: 'rgba(249,115,22,0.1)', sub: 'Per completed order', mono: true },
+          { label: "Today's Revenue", value: loading ? '—' : `₱${stats.todaySales.toLocaleString('en-PH')}`, icon: Banknote,   color: '#16a34a', bg: '#f0fdf4', sub: `${stats.completedOrders} orders completed` },
+          { label: 'Active Orders',   value: loading ? '—' : String(stats.pendingOrders), icon: Clock, color: '#d97706', bg: '#fffbeb', sub: stats.pendingOrders > 0 ? 'Needs attention' : 'All clear' },
+          { label: 'Total Today',     value: loading ? '—' : String(stats.todayOrders), icon: ShoppingBag, color: '#6366f1', bg: '#eef2ff', sub: 'Since midnight' },
+          { label: 'Avg Order Value', value: loading ? '—' : `₱${Math.round(stats.avgOrderValue).toLocaleString('en-PH')}`, icon: TrendingUp, color: '#ea580c', bg: '#fff7ed', sub: 'Per completed order' },
         ].map(c => (
-          <div key={c.label} style={{ ...S.card, padding: '16px 18px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-              <c.icon size={17} style={{ color: c.color }} />
+          <div key={c.label} style={{ ...card, padding: '16px 18px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <c.icon size={18} style={{ color: c.color }} />
             </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: S.dim, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>{c.label}</div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: S.text, lineHeight: 1.1, fontFamily: c.mono ? "'JetBrains Mono',monospace" : 'inherit', letterSpacing: '-0.02em' }}>{c.value}</div>
-              <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>{c.sub}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 3 }}>{c.label}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.1, letterSpacing: '-0.02em', fontFamily: "'JetBrains Mono',monospace" }}>{c.value}</div>
+              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{c.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ── Main grid: Orders + Right Column ── */}
+      {/* Main grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 288px', gap: 12, alignItems: 'start' }}>
 
         {/* Live Orders */}
-        <div style={S.card}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontWeight: 700, fontSize: 14, color: S.text }}>Live Orders</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#22c55e' }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'blink 2s infinite' }} />
+              <span style={{ fontWeight: 700, fontSize: 14 }}>Live Orders</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#16a34a', background: '#f0fdf4', padding: '2px 8px', borderRadius: 99, border: '1px solid #bbf7d0' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#16a34a', display: 'inline-block', animation: 'blink 2s infinite' }} />
                 Realtime
               </div>
               {stats.pendingOrders > 0 && (
@@ -210,21 +194,21 @@ export default function DashboardPage() {
                 </span>
               )}
             </div>
-            <Link href="/admin/orders" style={{ fontSize: 11, color: S.muted, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Link href="/admin/orders" style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
               View all <ArrowRight size={10} />
             </Link>
           </div>
 
           <div style={{ padding: 8 }}>
             {loading ? (
-              <div style={{ padding: '32px 16px', textAlign: 'center', color: S.muted, fontSize: 13 }}>Loading orders…</div>
+              <div style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Loading orders…</div>
             ) : liveOrders.length === 0 ? (
               <div style={{ padding: '40px 16px', textAlign: 'center' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                  <CheckCircle size={20} style={{ color: '#22c55e' }} />
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                  <CheckCircle size={22} style={{ color: '#16a34a' }} />
                 </div>
-                <p style={{ color: S.text, fontSize: 14, fontWeight: 600, marginBottom: 4 }}>All caught up</p>
-                <p style={{ color: S.muted, fontSize: 12 }}>No active orders right now</p>
+                <p style={{ color: '#0f172a', fontSize: 14, fontWeight: 600, marginBottom: 4 }}>All caught up</p>
+                <p style={{ color: '#94a3b8', fontSize: 12 }}>No active orders right now</p>
               </div>
             ) : (
               liveOrders.map((order: Order) => {
@@ -235,38 +219,37 @@ export default function DashboardPage() {
                 const urgent = mins > 15 && order.status === 'PENDING';
                 return (
                   <div key={order.id}
-                    style={{ borderRadius: 9, marginBottom: 2, overflow: 'hidden', border: `1px solid ${expanded ? 'rgba(255,255,255,0.09)' : urgent ? 'rgba(239,68,68,0.15)' : 'transparent'}`, background: expanded ? '#1e2535' : urgent ? 'rgba(239,68,68,0.04)' : 'transparent', transition: 'all 0.12s' }}>
+                    style={{ borderRadius: 9, marginBottom: 2, overflow: 'hidden', border: `1px solid ${expanded ? '#cbd5e1' : urgent ? '#fecaca' : '#f1f5f9'}`, background: expanded ? '#f8fafc' : urgent ? '#fef2f2' : '#ffffff', transition: 'all 0.1s' }}>
                     <div onClick={() => setExpandedOrder(expanded ? null : order.id)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', cursor: 'pointer' }}>
-                      {/* Status bar */}
-                      <div style={{ width: 3, height: 36, borderRadius: 99, background: SC[order.status as string] ?? '#888', flexShrink: 0 }} />
+                      <div style={{ width: 3, height: 36, borderRadius: 99, background: SC[order.status as string] ?? '#94a3b8', flexShrink: 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-                          <span style={{ fontWeight: 700, fontSize: 13, color: S.text, fontFamily: "'JetBrains Mono',monospace" }}>#{order.order_number}</span>
-                          <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em', color: SC[order.status as string], background: SB[order.status as string] }}>
+                          <span style={{ fontWeight: 700, fontSize: 13, fontFamily: "'JetBrains Mono',monospace" }}>#{order.order_number}</span>
+                          <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.05em', color: SC[order.status as string], background: SB[order.status as string] }}>
                             {order.status}
                           </span>
-                          {urgent && <span style={{ fontSize: 9, color: '#ef4444', fontWeight: 700 }}>⚠ {Math.floor(mins)}m</span>}
-                          <span style={{ fontSize: 11, color: S.dim, marginLeft: 'auto' }}>{fmtTime(order.created_at)}</span>
+                          {urgent && <span style={{ fontSize: 9, color: '#dc2626', fontWeight: 700 }}>⚠ {Math.floor(mins)}m</span>}
+                          <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto' }}>{fmtTime(order.created_at)}</span>
                         </div>
-                        <div style={{ fontSize: 11, color: S.muted }}>{order.customer_name}{order.pax ? ` · ${order.pax} pax` : ''}</div>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>{order.customer_name}{order.pax ? ` · ${order.pax} pax` : ''}</div>
                       </div>
-                      <div style={{ fontWeight: 800, fontSize: 13, color: S.text, flexShrink: 0, marginRight: 4, fontFamily: "'JetBrains Mono',monospace" }}>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: '#0f172a', flexShrink: 0, marginRight: 4, fontFamily: "'JetBrains Mono',monospace" }}>
                         ₱{Number(order.total_amount).toFixed(0)}
                       </div>
-                      {expanded ? <ChevronDown size={12} style={{ color: S.dim, flexShrink: 0 }} /> : <ChevronRight size={12} style={{ color: S.dim, flexShrink: 0 }} />}
+                      {expanded ? <ChevronDown size={12} style={{ color: '#94a3b8', flexShrink: 0 }} /> : <ChevronRight size={12} style={{ color: '#94a3b8', flexShrink: 0 }} />}
                     </div>
                     {expanded && (
                       <div style={{ padding: '0 12px 10px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         {next && (
                           <button onClick={() => void bumpStatus(order.id, next.next)} disabled={isBumping}
-                            style={{ flex: 1, fontSize: 12, fontWeight: 700, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', background: `${next.color}18`, color: next.color, border: `1px solid ${next.color}35`, opacity: isBumping ? 0.5 : 1, fontFamily: 'inherit' }}>
+                            style={{ flex: 1, fontSize: 12, fontWeight: 700, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', background: next.bg, color: next.color, border: `1px solid ${next.color}40`, opacity: isBumping ? 0.5 : 1, fontFamily: 'inherit' }}>
                             {isBumping ? '…' : `→ ${next.label}`}
                           </button>
                         )}
                         {!['COMPLETED', 'CANCELLED'].includes(order.status) && (
                           <button onClick={() => void bumpStatus(order.id, 'CANCELLED')} disabled={isBumping}
-                            style={{ fontSize: 12, fontWeight: 600, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', fontFamily: 'inherit', opacity: isBumping ? 0.5 : 1 }}>
+                            style={{ fontSize: 12, fontWeight: 600, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', fontFamily: 'inherit', opacity: isBumping ? 0.5 : 1 }}>
                             Cancel
                           </button>
                         )}
@@ -277,7 +260,7 @@ export default function DashboardPage() {
               })
             )}
             {liveOrders.length > 0 && !loading && (
-              <p style={{ fontSize: 10, color: S.dim, textAlign: 'center', padding: '6px 0 2px' }}>Tap any order to update status inline</p>
+              <p style={{ fontSize: 10, color: '#94a3b8', textAlign: 'center', padding: '6px 0 2px' }}>Tap any order to update status inline</p>
             )}
           </div>
         </div>
@@ -286,22 +269,22 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
           {/* Floor Plan */}
-          <div style={S.card}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontWeight: 700, fontSize: 13, color: S.text }}>Floor Plan</span>
-                <span style={{ fontSize: 10, color: S.dim }}>Main Garden</span>
+                <span style={{ fontWeight: 700, fontSize: 13 }}>Floor Plan</span>
+                <span style={{ fontSize: 10, color: '#94a3b8' }}>Main Garden</span>
               </div>
-              <Link href="/admin/tables" style={{ fontSize: 10, color: S.muted, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>Manage <ArrowRight size={9} /></Link>
+              <Link href="/admin/tables" style={{ fontSize: 10, color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>Manage <ArrowRight size={9} /></Link>
             </div>
-            <div style={{ padding: '10px', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+            <div style={{ padding: 10, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 5 }}>
               {tables.length === 0 && !loading && (
-                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '16px 0', fontSize: 11, color: S.dim }}>No tables configured</div>
+                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '16px 0', fontSize: 11, color: '#94a3b8' }}>No tables configured</div>
               )}
               {tables.map((t: TableStatus) => (
-                <div key={t.id} style={{ background: tBg[t.status], border: `1px solid ${tBdr[t.status]}`, borderRadius: 8, padding: '8px 4px', textAlign: 'center', transition: 'all 0.15s' }}>
+                <div key={t.id} style={{ background: tBg[t.status], border: `1px solid ${tBdr[t.status]}`, borderRadius: 8, padding: '8px 4px', textAlign: 'center' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: tTxt[t.status] }}>{t.name}</div>
-                  <div style={{ fontSize: 9, color: tTxt[t.status], marginTop: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.8 }}>
+                  <div style={{ fontSize: 9, color: tTxt[t.status], marginTop: 1, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8 }}>
                     {t.status === 'OCCUPIED' ? 'Busy' : t.status === 'READY' ? 'Ready' : 'Free'}
                   </div>
                 </div>
@@ -309,44 +292,45 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Today Summary */}
-          <div style={S.card}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontWeight: 700, fontSize: 13, color: S.text }}>Today&apos;s Summary</span>
+          {/* Today's Summary */}
+          <div style={card}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>
+              <span style={{ fontWeight: 700, fontSize: 13 }}>Today&apos;s Summary</span>
             </div>
             <div style={{ padding: '14px 16px' }}>
               {[
-                { label: 'Completed', value: stats.completedOrders, color: '#22c55e', icon: CheckCircle },
-                { label: 'Active',    value: stats.pendingOrders,   color: '#F59E0B', icon: Clock },
-                { label: 'Cancelled', value: stats.cancelledOrders, color: '#ef4444', icon: XCircle },
+                { label: 'Completed', value: stats.completedOrders, color: '#16a34a', bg: '#f0fdf4', icon: CheckCircle },
+                { label: 'Active',    value: stats.pendingOrders,   color: '#d97706', bg: '#fffbeb', icon: Clock },
+                { label: 'Cancelled', value: stats.cancelledOrders, color: '#dc2626', bg: '#fef2f2', icon: XCircle },
               ].map(item => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <item.icon size={13} style={{ color: item.color }} />
-                    <span style={{ color: S.muted, fontSize: 12 }}>{item.label}</span>
+                    <div style={{ width: 24, height: 24, borderRadius: 6, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <item.icon size={12} style={{ color: item.color }} />
+                    </div>
+                    <span style={{ color: '#64748b', fontSize: 12 }}>{item.label}</span>
                   </div>
                   <span style={{ fontWeight: 800, fontSize: 15, color: item.color, fontFamily: "'JetBrains Mono',monospace" }}>{item.value}</span>
                 </div>
               ))}
-              {/* Completion bar */}
-              <div style={{ marginTop: 4 }}>
+              <div style={{ marginTop: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, color: S.dim }}>Completion rate</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: pct >= 80 ? '#22c55e' : pct >= 50 ? '#F59E0B' : S.muted }}>{pct}%</span>
+                  <span style={{ fontSize: 11, color: '#94a3b8' }}>Completion rate</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: pct >= 80 ? '#16a34a' : '#d97706' }}>{pct}%</span>
                 </div>
-                <div style={{ height: 4, background: '#1e2535', borderRadius: 99, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 99, width: `${pct}%`, background: pct >= 80 ? 'linear-gradient(90deg,#22c55e,#16a34a)' : 'linear-gradient(90deg,#F59E0B,#f97316)', transition: 'width 0.6s ease' }} />
+                <div style={{ height: 6, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 99, width: `${pct}%`, background: pct >= 80 ? '#16a34a' : '#f59e0b', transition: 'width 0.6s ease' }} />
                 </div>
               </div>
             </div>
-            <div style={{ padding: '10px 12px 14px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ padding: '10px 12px 14px', borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Link href={`/kitchen${tenantSlug ? `?tenant=${tenantSlug}` : ''}`}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 13px', borderRadius: 9, textDecoration: 'none', fontSize: 12, fontWeight: 700, background: 'rgba(249,115,22,0.1)', color: '#f97316', border: '1px solid rgba(249,115,22,0.2)' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 13px', borderRadius: 9, textDecoration: 'none', fontSize: 12, fontWeight: 700, background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>🍳 Open Kitchen Display</span>
                 <ArrowRight size={12} />
               </Link>
               <Link href="/admin/analytics"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 13px', borderRadius: 9, textDecoration: 'none', fontSize: 12, fontWeight: 600, background: '#1e2535', color: S.muted, border: '1px solid rgba(255,255,255,0.06)' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 13px', borderRadius: 9, textDecoration: 'none', fontSize: 12, fontWeight: 600, background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><BarChart2 size={13} /> View Analytics</span>
                 <ArrowRight size={12} />
               </Link>

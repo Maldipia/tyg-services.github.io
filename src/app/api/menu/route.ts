@@ -73,10 +73,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     .eq('id', tenant.tenantId)
     .single();
 
+  // Deduplicate by ID (defensive — should not be needed but guards against SDK quirks)
+  const uniqueCats = (categories ?? []).filter(
+    (c, i, arr) => arr.findIndex((x) => x.id === c.id) === i
+  );
+  const uniqueItems = (items ?? []).filter(
+    (item, i, arr) => arr.findIndex((x) => x.id === item.id) === i
+  );
+
+  // Debug: log DB project being used (first 30 chars of URL)
+  const dbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').slice(0, 40);
+  console.log(`[menu] tenant=${tenant.tenantId} cats=${uniqueCats.length} items=${uniqueItems.length} db=${dbUrl}`);
+
   // Build response: group items under categories
-  const categoriesWithItems = (categories ?? []).map((cat) => ({
+  const categoriesWithItems = uniqueCats.map((cat) => ({
     ...cat,
-    items: (items ?? []).filter((item) => item.category_id === cat.id),
+    items: uniqueItems.filter((item) => item.category_id === cat.id),
   }));
 
   return apiSuccess({

@@ -47,6 +47,7 @@ function OrderPageInner() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [pax, setPax] = useState(1);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -121,6 +122,7 @@ function OrderPageInner() {
         tableToken: tableToken ?? undefined,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim() || undefined,
+        customerEmail: customerEmail.trim() || undefined,
         pax,
         notes: notes.trim() || undefined,
         items: cart.map((item) => ({
@@ -241,6 +243,8 @@ function OrderPageInner() {
         <CustomerInfoForm
           customerName={customerName}
           customerPhone={customerPhone}
+          customerEmail={customerEmail}
+          onChangeEmail={setCustomerEmail}
           pax={pax}
           notes={notes}
           onChangeName={setCustomerName}

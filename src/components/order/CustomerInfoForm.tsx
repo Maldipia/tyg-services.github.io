@@ -4,10 +4,12 @@ import React from 'react';
 interface Props {
   customerName: string;
   customerPhone: string;
+  customerEmail: string;
   pax: number;
   notes: string;
   onChangeName: (v: string) => void;
   onChangePhone: (v: string) => void;
+  onChangeEmail: (v: string) => void;
   onChangePax: (v: number) => void;
   onChangeNotes: (v: string) => void;
   onBack: () => void;
@@ -17,8 +19,8 @@ interface Props {
 }
 
 export default function CustomerInfoForm({
-  customerName, customerPhone, pax, notes,
-  onChangeName, onChangePhone, onChangePax, onChangeNotes,
+  customerName, customerPhone, customerEmail, pax, notes,
+  onChangeName, onChangePhone, onChangeEmail, onChangePax, onChangeNotes,
   onBack, onSubmit, submitting, cartTotal,
 }: Props) {
   const canSubmit = customerName.trim().length > 0 && !submitting;
@@ -58,6 +60,21 @@ export default function CustomerInfoForm({
             onChange={(e) => onChangePhone(e.target.value)}
             placeholder="09xxxxxxxxx"
             maxLength={20}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+          />
+        </div>
+
+        {/* Email (optional — for digital receipt) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Email <span className="text-gray-400 text-xs">(optional — for digital receipt)</span>
+          </label>
+          <input
+            type="email"
+            value={customerEmail}
+            onChange={(e) => onChangeEmail(e.target.value)}
+            placeholder="you@email.com"
+            maxLength={120}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
           />
         </div>

@@ -87,14 +87,22 @@ export default function DashboardPage() {
         });
       });
       setAlerts(newAlerts);
-      setTables([
-        { id:'t1', name:'Table 1', status:'EMPTY' },
-        { id:'t2', name:'Table 2', status: active.some((o:Order)=>o.status==='PREPARING')?'OCCUPIED':'EMPTY' },
-        { id:'t3', name:'Table 3', status:'EMPTY' },
-        { id:'t4', name:'Table 4', status: active.length>0?'OCCUPIED':'EMPTY' },
-        { id:'t5', name:'Garden',  status: active.some((o:Order)=>o.status==='READY')?'READY':'EMPTY' },
-        { id:'t6', name:'Balcony', status: active.length>1?'OCCUPIED':'EMPTY' },
-      ]);
+      // Real table statuses from active orders
+      const tablesRes = await fetch(`/api/tables?tenant=${slug}`, { credentials:'include' });
+      if (tablesRes.ok) {
+        const tablesJson = await tablesRes.json() as {data?: Array<{id:string; name:string}>};
+        const allTables = tablesJson.data ?? [];
+        const occupiedTableIds = new Set(
+          active.filter((o:Order) => o.table_id && o.status !== 'COMPLETED' && o.status !== 'CANCELLED').map((o:Order) => o.table_id)
+        );
+        const readyTableIds = new Set(
+          active.filter((o:Order) => o.table_id && o.status === 'READY').map((o:Order) => o.table_id)
+        );
+        setTables(allTables.slice(0,12).map((t) => ({
+          id: t.id, name: t.name,
+          status: readyTableIds.has(t.id) ? 'READY' : occupiedTableIds.has(t.id) ? 'OCCUPIED' : 'EMPTY',
+        })));
+      }
     } catch{/**/} finally { setLoading(false); setRefreshing(false); }
   }, []);
 

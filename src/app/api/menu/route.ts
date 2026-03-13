@@ -125,7 +125,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     console.log(`[menu] tenant=${tid} cats=${categories.length} items=${items.length} db=${(process.env.SUPABASE_URL ?? '').slice(0,40)}`);
 
     return apiSuccess({
-      _rawCats: categories.map(c => ({id: c.id, name: c.name})),
       tenant: {
         name:          tenantData?.name,
         logoUrl:       tenantData?.logo_url,

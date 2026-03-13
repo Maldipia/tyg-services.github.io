@@ -135,11 +135,10 @@ export default function BillingPage() {
       {/* Trial / Grace Banner */}
       {planStatus === 'TRIAL' && (
         <div
-          className="flex items-center gap-4 p-4 rounded-2xl mb-6"
-          style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)' }}
+          style={{ display:"flex", alignItems:"center", gap:16, padding:16, borderRadius:20, marginBottom:24, background:'rgba(245, 158, 11, 0.1)', border:'1px solid rgba(245, 158, 11, 0.25)' }}
         >
           <AlertTriangle size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
-          <div className="flex-1">
+          <div style={{ flex:1 }}>
             <div style={{ fontWeight: 600, color: '#f59e0b', fontSize: 14 }}>
               3 days left on your free trial
             </div>
@@ -148,8 +147,7 @@ export default function BillingPage() {
             </div>
           </div>
           <button
-            className="px-4 py-2 rounded-xl text-sm font-semibold flex-shrink-0"
-            style={{ background: '#f59e0b', color: 'white' }}
+            style={{ padding:"8px 16px", borderRadius:12, fontSize:13, fontWeight:600, flexShrink:0, border:"none", cursor:"pointer", background: '#f59e0b', color: 'white' }}
           >
             Upgrade Now
           </button>
@@ -158,18 +156,16 @@ export default function BillingPage() {
 
       {/* Current Plan Card */}
       <div
-        className="rounded-2xl p-6 mb-6"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        style={{ borderRadius:20, padding:24, marginBottom:24, background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
-        <div className="flex items-start justify-between">
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
           <div>
             <div style={{ color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
               Current Plan
             </div>
-            <div className="flex items-center gap-3 mb-1">
+            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:4 }}>
               <span style={{ fontWeight: 800, fontSize: 24 }}>Business</span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold"
-                style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+              <span style={{ padding:"4px 12px", borderRadius:999, fontSize:11, fontWeight:700, background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}>
                 ACTIVE
               </span>
             </div>
@@ -178,43 +174,36 @@ export default function BillingPage() {
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div style={{ display:"flex", gap:12, flexShrink:0 }}>
             <button
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-              style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 16px", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
             >
               <CreditCard size={14} />
               Update Payment
             </button>
             <button
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-              style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)' }}
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 16px", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.15)' }}
             >
               Cancel Plan
             </button>
           </div>
         </div>
 
-        {/* Usage bars */}
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
+        {/* Usage bars */}         <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:16, marginTop:24, paddingTop:24, borderTop: '1px solid var(--border)' }}>
           {[
             { label: 'Orders this month', value: 187, max: '∞', pct: 0 },
             { label: 'Staff accounts', value: 3, max: '∞', pct: 0 },
             { label: 'Tables', value: 12, max: 20, pct: 60 },
           ].map(item => (
             <div key={item.label}>
-              <div className="flex items-center justify-between mb-2">
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{item.label}</span>
                 <span style={{ fontWeight: 700, fontSize: 14 }}>
                   {item.value}{typeof item.max === 'number' ? `/${item.max}` : ''}
                 </span>
               </div>
-              {item.pct > 0 && (
-                <div className="rounded-full overflow-hidden" style={{ height: 4, background: 'var(--surface-3)' }}>
-                  <div className="h-full rounded-full" style={{
-                    width: `${item.pct}%`,
-                    background: item.pct > 80 ? '#ef4444' : '#22c55e',
-                  }} />
+              {item.pct > 0 && (                 <div style={{ borderRadius:999, overflow:"hidden", height: 4, background: 'var(--surface-3)' }}>
+                  <div style={{ height:"100%", borderRadius:999, width: `${item.pct}%`, background: item.pct > 80 ? '#ef4444' : '#22c55e' }} />
                 </div>
               )}
             </div>
@@ -223,26 +212,20 @@ export default function BillingPage() {
       </div>
 
       {/* Plan selector */}
-      <div className="flex items-center justify-between mb-5">
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
         <h3 style={{ fontWeight: 700, fontSize: 16 }}>Available Plans</h3>
         <div
-          className="flex gap-1 p-1 rounded-xl"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          style={{ display:"flex", gap:4, padding:4, borderRadius:12, background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
           {(['monthly', 'annual'] as Cycle[]).map(c => (
             <button
               key={c}
               onClick={() => setCycle(c)}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all capitalize"
-              style={cycle === c
-                ? { background: '#22c55e', color: 'white' }
-                : { color: 'var(--text-muted)' }
-              }
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:8, fontSize:13, fontWeight:600, textTransform:"capitalize", cursor:"pointer", border:"none", ...(cycle === c ? { background: '#22c55e', color: 'white' } : { color: 'var(--text-muted)' }) }}
             >
               {c}
               {c === 'annual' && (
-                <span className="px-1.5 py-0.5 rounded-md text-xs"
-                  style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b', fontSize: 10 }}>
+                <span style={{ padding:"2px 6px", borderRadius:6, fontSize:10, background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b' }}>
                   2 months free
                 </span>
               )}
@@ -252,7 +235,7 @@ export default function BillingPage() {
       </div>
 
       {/* Plan Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(220px, 1fr))", gap:16, marginBottom:32 }}>
         {PLANS.map(plan => {
           const isCurrent = plan.tier === currentPlan;
           const price = plan.price[cycle];
@@ -260,36 +243,27 @@ export default function BillingPage() {
           return (
             <div
               key={plan.tier}
-              className="rounded-2xl flex flex-col overflow-hidden transition-all"
-              style={{
-                background: 'var(--surface)',
-                border: isCurrent
+              style={{ borderRadius:20, display:"flex", flexDirection:"column", overflow:"hidden", background: 'var(--surface)', border: isCurrent
                   ? `2px solid ${plan.color}`
                   : plan.highlight
                   ? `1px solid ${plan.color}40`
-                  : '1px solid var(--border)',
-                transform: plan.highlight ? 'scale(1.02)' : undefined,
-              }}
+                  : '1px solid var(--border)', transform: plan.highlight ? 'scale(1.02)' : undefined }}
             >
-              {/* Plan header */}
-              <div className="p-5" style={{ background: plan.highlight ? `${plan.color}08` : undefined }}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                      style={{ background: plan.gradient }}>
+              {/* Plan header */}               <div style={{ padding:20, background: plan.highlight ? `${plan.color}08` : undefined }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <div style={{ width:32, height:32, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", background: plan.gradient }}>
                       <plan.icon size={15} color="white" />
                     </div>
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{plan.name}</span>
                   </div>
                   {isCurrent && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                      style={{ background: `${plan.color}20`, color: plan.color }}>
+                    <span style={{ padding:"2px 8px", borderRadius:999, fontSize:11, fontWeight:700, background: `${plan.color}20`, color: plan.color }}>
                       Current
                     </span>
                   )}
                   {plan.highlight && !isCurrent && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                      style={{ background: `${plan.color}20`, color: plan.color }}>
+                    <span style={{ padding:"2px 8px", borderRadius:999, fontSize:11, fontWeight:700, background: `${plan.color}20`, color: plan.color }}>
                       Popular
                     </span>
                   )}
@@ -298,7 +272,7 @@ export default function BillingPage() {
                 {plan.tier === 'ENTERPRISE' ? (
                   <div style={{ fontWeight: 800, fontSize: 22 }}>Custom</div>
                 ) : (
-                  <div className="flex items-end gap-1">
+                  <div style={{ display:"flex", alignItems:"flex-end", gap:4 }}>
                     <span style={{ fontWeight: 800, fontSize: 26, lineHeight: 1 }}>
                       ₱{price.toLocaleString()}
                     </span>
@@ -318,11 +292,11 @@ export default function BillingPage() {
               </div>
 
               {/* Features */}
-              <div className="px-5 pb-5 flex-1">
+              <div style={{ padding:"0 20px 20px", flex:1 }}>
                 <div style={{ height: 1, background: 'var(--border)', marginBottom: 16 }} />
-                <ul className="space-y-2.5">
+                <ul style={{ listStyle:"none", margin:0, padding:0, display:"flex", flexDirection:"column", gap:10 }}>
                   {plan.features.map(f => (
-                    <li key={f} className="flex items-start gap-2.5">
+                    <li key={f} style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
                       <Check size={13} style={{ color: plan.color, flexShrink: 0, marginTop: 1 }} />
                       <span style={{ color: 'var(--text-dim)', fontSize: 12, lineHeight: 1.5 }}>{f}</span>
                     </li>
@@ -331,16 +305,14 @@ export default function BillingPage() {
               </div>
 
               {/* CTA */}
-              <div className="px-5 pb-5">
+              <div style={{ padding:"0 20px 20px" }}>
                 {isCurrent ? (
-                  <div className="text-center py-2.5 rounded-xl text-sm font-semibold"
-                    style={{ background: `${plan.color}15`, color: plan.color }}>
+                  <div style={{ textAlign:"center", padding:"10px 0", borderRadius:12, fontSize:13, fontWeight:600, background: `${plan.color}15`, color: plan.color }}>
                     Your current plan
                   </div>
                 ) : plan.tier === 'ENTERPRISE' ? (
                   <button
-                    className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-                    style={{ background: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border)' }}
+                    style={{ width:"100%", padding:"10px 0", borderRadius:12, fontSize:13, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center", gap:8, cursor:"pointer", background: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border)' }}
                   >
                     Contact Sales
                     <ExternalLink size={12} />
@@ -349,11 +321,7 @@ export default function BillingPage() {
                   <button
                     onClick={() => handleUpgrade(plan.tier)}
                     disabled={upgrading === plan.tier}
-                    className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all"
-                    style={{
-                      background: plan.highlight ? plan.gradient : `${plan.color}15`,
-                      color: plan.highlight ? 'white' : plan.color,
-                    }}
+                    style={{ width:"100%", padding:"10px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", border:"none", background: plan.highlight ? plan.gradient : `${plan.color}15`, color: plan.highlight ? 'white' : plan.color }}
                   >
                     {upgrading === plan.tier ? 'Redirecting...' : `Upgrade to ${plan.name}`}
                   </button>
@@ -366,8 +334,7 @@ export default function BillingPage() {
 
       {/* Payment info */}
       <div
-        className="flex items-center gap-3 p-4 rounded-2xl mb-8 text-sm"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+        style={{ display:"flex", alignItems:"center", gap:12, padding:16, borderRadius:20, marginBottom:32, fontSize:13, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
       >
         <CreditCard size={16} style={{ flexShrink: 0 }} />
         All plans billed via <strong style={{ color: 'var(--text)' }}>PayMongo</strong>.
@@ -376,28 +343,24 @@ export default function BillingPage() {
       </div>
 
       {/* Invoice history */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16 }}>
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16 }}>         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 24px", borderBottom: '1px solid var(--border)' }}>
           <h3 style={{ fontWeight: 700, fontSize: 15 }}>Invoice History</h3>
         </div>
         <div>
           {INVOICES.map((inv, i) => (
             <div
               key={inv.id}
-              className="flex items-center gap-4 px-6 py-4 transition-all hover:opacity-80"
-              style={{ borderBottom: i < INVOICES.length - 1 ? '1px solid var(--border)' : undefined }}
+              style={{ display:"flex", alignItems:"center", gap:16, padding:"16px 24px", borderBottom: i < INVOICES.length - 1 ? '1px solid var(--border)' : undefined }}
             >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: 'rgba(34,197,94,0.1)' }}>
+              <div style={{ width:36, height:36, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", background: 'rgba(34, 197, 94, 0.1)' }}>
                 <Calendar size={14} style={{ color: '#22c55e' }} />
               </div>
-              <div className="flex-1">
+              <div style={{ flex:1 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{inv.id}</div>
                 <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 1 }}>{inv.date} · {inv.plan} Plan</div>
               </div>
               <div style={{ fontWeight: 700, fontSize: 15 }}>₱{inv.amount.toLocaleString()}</div>
-              <span className="px-2 py-1 rounded-lg text-xs font-semibold"
-                style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e' }}>
+              <span style={{ padding:"4px 8px", borderRadius:8, fontSize:11, fontWeight:600, background: 'rgba(34, 197, 94, 0.12)', color: '#22c55e' }}>
                 {inv.status}
               </span>
               <button style={{ color: 'var(--text-muted)' }}>

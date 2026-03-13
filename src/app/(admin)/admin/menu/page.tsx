@@ -139,13 +139,7 @@ export default function MenuPage() {
       {/* Toast */}
       {toast && (
         <div
-          className="fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl"
-          style={{
-            background: toast.type === 'ok' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-            border: `1px solid ${toast.type === 'ok' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-            color: toast.type === 'ok' ? '#22c55e' : '#ef4444',
-            backdropFilter: 'blur(8px)',
-          }}
+          style={{ position:"fixed", top:16, right:16, zIndex:9999, display:"flex", alignItems:"center", gap:12, padding:"12px 16px", borderRadius:14, boxShadow:"0 8px 32px rgba(0, 0, 0, 0.4)", background: toast.type === 'ok' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)', border: `1px solid ${toast.type === 'ok' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`, color: toast.type === 'ok' ? '#22c55e' : '#ef4444', backdropFilter: 'blur(8px)' }}
         >
           {toast.type === 'ok' ? <Check size={14} /> : <AlertCircle size={14} />}
           <span style={{ fontSize: 13, fontWeight: 500 }}>{toast.msg}</span>
@@ -153,17 +147,12 @@ export default function MenuPage() {
       )}
 
       {/* Tab bar */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--surface)' }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, gap:12, flexWrap:"wrap" }}>         <div style={{ display:"flex", gap:4, padding:4, borderRadius:12, background: 'var(--surface)' }}>
           {(['items', 'categories'] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className="px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize"
-              style={tab === t
-                ? { background: '#22c55e', color: 'white' }
-                : { color: 'var(--text-muted)' }
-              }
+              style={{ padding:"8px 20px", borderRadius:8, fontSize:13, fontWeight:600, textTransform:"capitalize", cursor:"pointer", border:"none", ...(tab === t ? { background: '#22c55e', color: 'white' } : { color: 'var(--text-muted)' }) }}
             >
               {t}
             </button>
@@ -171,8 +160,7 @@ export default function MenuPage() {
         </div>
         <button
           onClick={() => tab === 'items' ? setShowItemForm(true) : setShowCatForm(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: 'white' }}
+          style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 16px", borderRadius:12, fontSize:13, fontWeight:600, border:"none", cursor:"pointer", background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: 'white' }}
         >
           <Plus size={15} />
           Add {tab === 'items' ? 'Item' : 'Category'}
@@ -181,22 +169,18 @@ export default function MenuPage() {
 
       {/* ── Items Tab ─────────────────────────────────────── */}
       {tab === 'items' && (
-        <div className="flex gap-4">
+        <div style={{ display:"flex", gap:16 }}>
           {/* Category sidebar */}
-          <div className="flex-shrink-0 w-48" style={cardStyle}>
-            <div className="p-3" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div style={{ flexShrink:0, width:192, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16 }}>
+            <div style={{ padding:12, borderBottom: '1px solid var(--border)' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 Categories
               </span>
             </div>
-            <nav className="p-2 space-y-0.5">
+            <nav style={{ padding:8, display:"flex", flexDirection:"column", gap:2 }}>
               <button
                 onClick={() => setSelectedCategory(null)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all"
-                style={!selectedCategory
-                  ? { background: 'rgba(34,197,94,0.1)', color: '#22c55e', fontWeight: 600 }
-                  : { color: 'var(--text-muted)' }
-                }
+                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 12px", borderRadius:8, fontSize:13, cursor:"pointer", border:"none", ...(!selectedCategory ? { background: 'rgba(34,197,94,0.1)', color: '#22c55e', fontWeight: 600 } : { background: 'transparent', color: 'var(--text-muted)' }) }}
               >
                 All Items
                 <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{items.length}</span>
@@ -205,13 +189,9 @@ export default function MenuPage() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all"
-                  style={selectedCategory === cat.id
-                    ? { background: 'rgba(34,197,94,0.1)', color: '#22c55e', fontWeight: 600 }
-                    : { color: 'var(--text-muted)' }
-                  }
+                  style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 12px", borderRadius:8, fontSize:13, cursor:"pointer", border:"none", ...(selectedCategory === cat.id ? { background: 'rgba(34,197,94,0.1)', color: '#22c55e', fontWeight: 600 } : { color: 'var(--text-muted)' }) }}
                 >
-                  <span className="truncate">{cat.name}</span>
+                  <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{cat.name}</span>
                   <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>
                     {items.filter(i => i.category_id === cat.id).length}
                   </span>
@@ -221,27 +201,24 @@ export default function MenuPage() {
           </div>
 
           {/* Items grid */}
-          <div className="flex-1 min-w-0">
-            {loading ? (
-              <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>Loading menu...</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            {loading ? (               <div style={{ textAlign:"center", padding:"64px 0", color: 'var(--text-muted)' }}>Loading menu...</div>
             ) : filteredItems.length === 0 ? (
-              <div className="text-center py-16" style={cardStyle}>
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
+              <div style={{ textAlign:"center", padding:64, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16 }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>                   <div style={{ width:64, height:64, borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", background: 'var(--surface-2)' }}>
                     <ImageIcon size={24} style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>No items in this category</p>
                   <button
                     onClick={() => setShowItemForm(true)}
-                    className="px-4 py-2 rounded-xl text-sm font-semibold"
-                    style={{ background: 'var(--surface-2)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)' }}
+                    style={{ padding:"8px 16px", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", border:"1px solid rgba(34,197,94,0.2)", background:'var(--surface-2)', color:'#22c55e' }}
                   >
                     + Add First Item
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="grid gap-3">
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                 {filteredItems.map(item => (
                   <MenuItemRow
                     key={item.id}
@@ -259,19 +236,17 @@ export default function MenuPage() {
 
       {/* ── Categories Tab ────────────────────────────────── */}
       {tab === 'categories' && (
-        <div className="grid gap-3">
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {categories.map((cat, idx) => (
             <div
               key={cat.id}
-              className="flex items-center gap-4 p-4 rounded-2xl transition-all"
-              style={cardStyle}
+              style={{ display:"flex", alignItems:"center", gap:16, padding:16, borderRadius:20, background:'var(--surface)', border:'1px solid var(--border)' }}
             >
               <GripVertical size={16} style={{ color: 'var(--text-muted)', cursor: 'grab' }} />
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
-                style={{ background: 'var(--surface-2)', color: '#22c55e' }}>
+              <div style={{ width:40, height:40, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, fontWeight:700, flexShrink:0, background: 'var(--surface-2)', color: '#22c55e' }}>
                 {idx + 1}
               </div>
-              <div className="flex-1 min-w-0">
+              <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontWeight: 600, fontSize: 15 }}>{cat.name}</div>
                 {cat.description && (
                   <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>{cat.description}</div>
@@ -280,17 +255,15 @@ export default function MenuPage() {
               <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
                 {items.filter(i => i.category_id === cat.id).length} items
               </div>
-              <div className="flex items-center gap-1">
+              <div style={{ display:"flex", alignItems:"center", gap:4 }}>
                 <button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
+                  style={{ width:32, height:32, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", border:"none", background: 'var(--surface-2)', color: 'var(--text-muted)' }}
                   onClick={() => { setEditCat(cat); setShowCatForm(true); }}
                 >
                   <Pencil size={13} />
                 </button>
                 <button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-                  style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}
+                  style={{ width:32, height:32, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", border:"none", background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444' }}
                 >
                   <Trash2 size={13} />
                 </button>
@@ -320,13 +293,10 @@ export default function MenuPage() {
       )}
       {/* ── Delete Confirmation Modal ────────────────────── */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
-          <div className="w-full max-w-sm rounded-2xl overflow-hidden"
-            style={{ background: 'var(--surface)', border: '1px solid rgba(239,68,68,0.3)' }}>
-            <div className="p-6 text-center">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: 'rgba(239,68,68,0.1)' }}>
+        <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:16, background: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(4px)' }}>
+          <div style={{ width:"100%", maxWidth:400, borderRadius:20, overflow:"hidden", background: 'var(--surface)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            <div style={{ padding:24, textAlign:"center" }}>
+              <div style={{ width:56, height:56, borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", background: 'rgba(239, 68, 68, 0.1)' }}>
                 <Trash2 size={22} style={{ color: '#ef4444' }} />
               </div>
               <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 8 }}>
@@ -335,19 +305,17 @@ export default function MenuPage() {
               <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
                 If this item has order history, it will be hidden instead of permanently deleted.
               </p>
-              <div className="flex gap-3">
+              <div style={{ display:"flex", gap:12 }}>
                 <button
                   onClick={() => setConfirmDelete(null)}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                  style={{ flex:1, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => void deleteItem(confirmDelete)}
                   disabled={deleting}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold"
-                  style={{ background: deleting ? 'var(--surface-3)' : 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
+                  style={{ flex:1, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: deleting ? 'var(--surface-3)' : 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
                 >
                   {deleting ? 'Deleting...' : 'Delete'}
                 </button>
@@ -371,38 +339,30 @@ function MenuItemRow({
 
   return (
     <div
-      className="flex items-center gap-4 p-4 rounded-2xl transition-all group"
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        opacity: item.status === 'HIDDEN' ? 0.6 : 1,
-      }}
+      style={{ display:"flex", alignItems:"center", gap:16, padding:16, borderRadius:20, background: 'var(--surface)', border: '1px solid var(--border)', opacity: item.status === 'HIDDEN' ? 0.6 : 1 }}
     >
-      {/* Image */}
-      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style={{ background: 'var(--surface-2)' }}>
+      {/* Image */}       <div style={{ width:56, height:56, borderRadius:10, overflow:"hidden", flexShrink:0, background: 'var(--surface-2)' }}>
         {item.image_url ? (
-          <Image src={item.image_url} alt={item.name} width={56} height={56} className="w-full h-full object-cover" />
+          <Image src={item.image_url} alt={item.name} width={56} height={56} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <ImageIcon size={18} style={{ color: 'var(--text-muted)' }} />
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
           <span style={{ fontWeight: 600, fontSize: 14 }}>{item.name}</span>
           {item.is_featured && <Tag size={11} style={{ color: '#f59e0b' }} />}
         </div>
-        {item.description && (
-          <p className="truncate" style={{ color: 'var(--text-muted)', fontSize: 12 }}>{item.description}</p>
+        {item.description && (           <p style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color: 'var(--text-muted)', fontSize: 12 }}>{item.description}</p>
         )}
         {item.tags.length > 0 && (
-          <div className="flex gap-1 mt-1">
+          <div style={{ display:"flex", gap:4, marginTop:4 }}>
             {item.tags.slice(0, 3).map(tag => (
-              <span key={tag} className="px-2 py-0.5 rounded-full text-xs"
-                style={{ background: 'var(--surface-2)', color: 'var(--text-dim)' }}>
+              <span key={tag} style={{ padding:"2px 8px", borderRadius:999, fontSize:11, background: 'var(--surface-2)', color: 'var(--text-dim)' }}>
                 {tag}
               </span>
             ))}
@@ -418,25 +378,22 @@ function MenuItemRow({
       {/* Status toggle */}
       <button
         onClick={onToggleStatus}
-        className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0"
-        style={{ background: sc.bg, color: sc.color }}
+        style={{ padding:"6px 12px", borderRadius:8, fontSize:11, fontWeight:600, flexShrink:0, cursor:"pointer", border:"none", background: sc.bg, color: sc.color }}
       >
         {sc.label}
       </button>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+      <div style={{ display:"flex", alignItems:"center", gap:4 }}>
         <button
           onClick={onEdit}
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
+          style={{ width:32, height:32, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", border:"none", background: 'var(--surface-2)', color: 'var(--text-muted)' }}
         >
           <Pencil size={13} />
         </button>
         <button
           onClick={onDelete}
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}
+          style={{ width:32, height:32, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", border:"none", background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444' }}
         >
           <Trash2 size={13} />
         </button>
@@ -504,43 +461,38 @@ function ItemFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
-      <div className="w-full max-w-lg rounded-2xl overflow-hidden"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:16, background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}>
+      <div style={{ width:"100%", maxWidth:560, borderRadius:20, overflow:"hidden", background: 'var(--surface)', border: '1px solid var(--border)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5"
-          style={{ borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px", borderBottom: '1px solid var(--border)' }}>
           <h3 style={{ fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>
             {item ? 'Edit Item' : 'Add Menu Item'}
           </h3>
           <button onClick={onClose} style={{ color: 'var(--text-muted)', fontSize: 22, lineHeight: 1 }}>×</button>
         </div>
 
-        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+        <div style={{ padding:24, display:"flex", flexDirection:"column", gap:20, maxHeight:"70vh", overflowY:"auto" }}>
           {/* Image Upload */}
           <div>
             <label style={labelStyle}>Photo</label>
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center"
-                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+            <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+              <div style={{ width:80, height:80, borderRadius:10, overflow:"hidden", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                 {imageUrl
-                  ? <Image src={imageUrl} alt="preview" width={80} height={80} className="w-full h-full object-cover" />
+                  ? <Image src={imageUrl} alt="preview" width={80} height={80} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   : <ImageIcon size={22} style={{ color: 'var(--text-muted)' }} />
                 }
               </div>
-              <div className="flex-1">
+              <div style={{ flex:1 }}>
                 <input
                   type="file"
                   accept="image/*"
                   id="menu-img-upload"
-                  className="hidden"
+                  style={{ display:"none" }}
                   onChange={e => void handleImageUpload(e)}
                 />
                 <label
                   htmlFor="menu-img-upload"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer inline-flex"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                  style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"8px 16px", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
                 >
                   <ImageIcon size={14} />
                   {uploading ? 'Uploading...' : imageUrl ? 'Change Photo' : 'Upload Photo'}
@@ -548,8 +500,7 @@ function ItemFormModal({
                 {imageUrl && (
                   <button
                     onClick={() => setImageUrl(null)}
-                    className="mt-2 block text-xs"
-                    style={{ color: '#ef4444' }}
+                    style={{ marginTop:8, display:"block", fontSize:11, background:"none", border:"none", cursor:"pointer", color: '#ef4444' }}
                   >
                     Remove photo
                   </button>
@@ -567,7 +518,7 @@ function ItemFormModal({
           </div>
 
           {/* Category + Price row */}
-          <div className="grid grid-cols-2 gap-4">
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
             <div>
               <label style={labelStyle}>Category *</label>
               <select
@@ -607,18 +558,14 @@ function ItemFormModal({
           {/* Status */}
           <div>
             <label style={labelStyle}>Status</label>
-            <div className="flex gap-2">
+            <div style={{ display:"flex", gap:8 }}>
               {(['AVAILABLE', 'SOLD_OUT', 'HIDDEN'] as ItemStatus[]).map(s => {
                 const sc = STATUS_CONFIG[s];
                 return (
                   <button
                     key={s}
                     onClick={() => setStatus(s)}
-                    className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all"
-                    style={status === s
-                      ? { background: sc.bg, color: sc.color, border: `1px solid ${sc.color}40` }
-                      : { background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
-                    }
+                    style={{ flex:1, padding:"8px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", ...(status === s ? { background: sc.bg, color: sc.color, border: `1px solid ${sc.color}40` } : { background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }) }}
                   >
                     {sc.label}
                   </button>
@@ -627,42 +574,33 @@ function ItemFormModal({
             </div>
           </div>
 
-          {/* Featured toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--surface-2)' }}>
+          {/* Featured toggle */}           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:16, borderRadius:12, background: 'var(--surface-2)' }}>
             <div>
               <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>Featured Item</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Show ⭐ badge on menu</div>
             </div>
             <button
               onClick={() => setIsFeatured(!isFeatured)}
-              className="w-12 h-6 rounded-full relative transition-all"
-              style={{ background: isFeatured ? '#22c55e' : 'var(--surface-3)' }}
+              style={{ width:48, height:24, borderRadius:999, position:"relative", cursor:"pointer", border:"none", flexShrink:0, background: isFeatured ? '#22c55e' : 'var(--surface-3)' }}
             >
               <div
-                className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all"
-                style={{ left: isFeatured ? 26 : 4 }}
+                style={{ position:"absolute", top:4, width:16, height:16, borderRadius:"50%", background:"white", boxShadow:"0 1px 3px rgba(0, 0, 0, 0.3)", transition:"left 0.2s", left: isFeatured ? 26 : 4 }}
               />
             </button>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex gap-3 px-6 py-5" style={{ borderTop: '1px solid var(--border)' }}>
+        {/* Footer */}         <div style={{ display:"flex", gap:12, padding:"20px 24px", borderTop: '1px solid var(--border)' }}>
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+            style={{ flex:1, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={!name.trim() || !basePrice || saving || uploading}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
-            style={{
-              background: name.trim() && basePrice && !uploading ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'var(--surface-3)',
-              color: name.trim() && basePrice && !uploading ? 'white' : 'var(--text-muted)',
-            }}
+            style={{ flex:1, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", border:"none", background: name.trim() && basePrice && !uploading ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'var(--surface-3)', color: name.trim() && basePrice && !uploading ? 'white' : 'var(--text-muted)' }}
           >
             {uploading ? 'Uploading...' : saving ? 'Saving...' : item ? 'Save Changes' : 'Add Item'}
           </button>
@@ -702,16 +640,14 @@ function CategoryFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
-      <div className="w-full max-w-md rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
+    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:16, background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}>
+      <div style={{ width:"100%", maxWidth:480, borderRadius:20, background: 'var(--surface)', border: '1px solid var(--border)' }}>         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px", borderBottom: '1px solid var(--border)' }}>
           <h3 style={{ fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>
             {cat ? 'Edit Category' : 'New Category'}
           </h3>
           <button onClick={onClose} style={{ color: 'var(--text-muted)', fontSize: 22 }}>×</button>
         </div>
-        <div className="p-6 space-y-4">
+        <div style={{ padding:24, display:"flex", flexDirection:"column", gap:16 }}>
           <div>
             <label style={labelStyle}>Category Name *</label>
             <input style={inputStyle} value={name} onChange={e => setName(e.target.value)}
@@ -722,20 +658,14 @@ function CategoryFormModal({
             <input style={inputStyle} value={description} onChange={e => setDescription(e.target.value)}
               placeholder="Optional short description" />
           </div>
-        </div>
-        <div className="flex gap-3 px-6 py-5" style={{ borderTop: '1px solid var(--border)' }}>
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+        </div>         <div style={{ display:"flex", gap:12, padding:"20px 24px", borderTop: '1px solid var(--border)' }}>
+          <button onClick={onClose} style={{ flex:1, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={!name.trim() || saving}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold"
-            style={{
-              background: name.trim() ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'var(--surface-3)',
-              color: name.trim() ? 'white' : 'var(--text-muted)',
-            }}
+            style={{ flex:1, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", border:"none", background: name.trim() ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'var(--surface-3)', color: name.trim() ? 'white' : 'var(--text-muted)' }}
           >
             {saving ? 'Saving...' : cat ? 'Save Changes' : 'Create Category'}
           </button>

@@ -150,18 +150,13 @@ function SettingsPageInner() {
     <div style={{ color: 'var(--text)' }}>
       {/* Tab nav */}
       <div
-        className="flex gap-1 p-1 rounded-2xl mb-6 overflow-x-auto"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        style={{ display:"flex", gap:4, padding:4, borderRadius:20, marginBottom:24, overflowX:"auto", flexWrap:"nowrap", background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
         {TAB_CONFIG.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-shrink-0"
-            style={activeTab === t.id
-              ? { background: '#22c55e', color: 'white' }
-              : { color: 'var(--text-muted)' }
-            }
+            style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 16px", borderRadius:12, fontSize:13, fontWeight:500, flexShrink:0, cursor:"pointer", border:"none", ...(activeTab===t.id?{background:"#22c55e",color:"white"}:{background:"transparent",color:"var(--text-muted)"}), ...(activeTab === t.id ? { background: '#22c55e', color: 'white' } : { color: 'var(--text-muted)' }) }}
           >
             <t.icon size={15} />
             <span>{t.label}</span>
@@ -171,10 +166,10 @@ function SettingsPageInner() {
 
       {/* ── General ─────────────────────────────────────── */}
       {activeTab === 'general' && (
-        <div className="space-y-4 max-w-2xl">
+        <div style={{ maxWidth: 640 }}>
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Business Information</h3>
-            <div className="space-y-4">
+            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
               <div>
                 <label style={labelStyle}>Business Name</label>
                 <input style={inputStyle} value={businessName} onChange={e => setBusinessName(e.target.value)} />
@@ -186,9 +181,8 @@ function SettingsPageInner() {
                     tygpos.com/order?tenant=<strong>{slug}</strong>
                   </span>
                 </label>
-                <div className="flex">
-                  <div className="flex items-center px-3 rounded-l-xl text-sm"
-                    style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', borderRight: 'none', color: 'var(--text-muted)' }}>
+                <div style={{ display:"flex" }}>
+                  <div style={{ display:"flex", alignItems:"center", padding:"0 12px", borderRadius:"10px 0 0 10px", background:"var(--surface-3)", border:"1px solid var(--border)", borderRight:"none", color:"var(--text-muted)" }}>
                     <Globe size={13} />
                   </div>
                   <input
@@ -198,12 +192,11 @@ function SettingsPageInner() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
                   <label style={labelStyle}>Contact Number</label>
-                  <div className="flex">
-                    <div className="flex items-center px-3 rounded-l-xl text-sm"
-                      style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', borderRight: 'none', color: 'var(--text-muted)' }}>
+                  <div style={{ display:"flex" }}>
+                    <div style={{ display:"flex", alignItems:"center", padding:"0 12px", borderRadius:"10px 0 0 10px", background:"var(--surface-3)", border:"1px solid var(--border)", borderRight:"none", color:"var(--text-muted)" }}>
                       <Phone size={13} />
                     </div>
                     <input style={{ ...inputStyle, borderRadius: '0 10px 10px 0' }}
@@ -230,9 +223,9 @@ function SettingsPageInner() {
 
       {/* ── Payment QR ──────────────────────────────────── */}
       {activeTab === 'payments' && (
-        <div className="space-y-4 max-w-2xl">
-          <div style={{ ...sectionStyle, background: 'rgba(34,197,94,0.04)', borderColor: 'rgba(34,197,94,0.2)' }}>
-            <div className="flex gap-3">
+        <div style={{ maxWidth: 640 }}>
+          <div style={{ ...sectionStyle, background: 'rgba(34, 197, 94, 0.04)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
+            <div style={{ display:"flex", gap:12 }}>
               <AlertCircle size={16} style={{ color: '#22c55e', flexShrink: 0, marginTop: 1 }} />
               <p style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.6 }}>
                 Upload your personal QR codes for each payment channel. Customers will scan these to pay.
@@ -243,7 +236,7 @@ function SettingsPageInner() {
 
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Payment QR Codes</h3>
-            <div className="grid gap-4">
+            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
               {PAYMENT_METHODS.map(method => (
                 <PaymentQRRow
                   key={method.key}
@@ -259,16 +252,16 @@ function SettingsPageInner() {
 
       {/* ── Branding ────────────────────────────────────── */}
       {activeTab === 'branding' && (
-        <div className="space-y-4 max-w-2xl">
+        <div style={{ maxWidth: 640 }}>
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Brand Colors</h3>
-            <div className="grid grid-cols-2 gap-6">
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
               <div>
                 <label style={labelStyle}>Primary Color</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 10 }}>
                   Header, buttons, active elements
                 </p>
-                <div className="flex items-center gap-3">
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <input
                     type="color"
                     value={primaryColor}
@@ -288,7 +281,7 @@ function SettingsPageInner() {
                 <p style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 10 }}>
                   Tags, highlights, secondary buttons
                 </p>
-                <div className="flex items-center gap-3">
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <input
                     type="color"
                     value={accentColor}
@@ -306,19 +299,14 @@ function SettingsPageInner() {
             </div>
 
             {/* Preview */}
-            <div className="mt-6 p-4 rounded-xl" style={{ background: 'var(--surface-2)' }}>
+            <div style={{ marginTop:24, padding:16, borderRadius:12, background:"var(--surface-2)" }}>
               <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Preview</p>
-              <div
-                className="rounded-xl p-4 text-white text-sm font-semibold"
-                style={{ background: primaryColor }}
-              >
+              <div style={{ borderRadius:12, padding:16, color:"white", fontSize:13, fontWeight:600, background:primaryColor }}>
                 {businessName}
               </div>
-              <div className="flex gap-2 mt-3">
-                <button className="px-4 py-2 rounded-lg text-white text-sm font-semibold"
-                  style={{ background: primaryColor }}>Add to Order</button>
-                <button className="px-4 py-2 rounded-lg text-white text-sm font-semibold"
-                  style={{ background: accentColor }}>Bestseller</button>
+              <div style={{ display:"flex", gap:8, marginTop:12 }}>
+                <button style={{ padding:"8px 16px", borderRadius:8, color:"white", fontSize:13, fontWeight:600, background:primaryColor, border:"none", cursor:"pointer" }}>Add to Order</button>
+                <button style={{ padding:"8px 16px", borderRadius:8, color:"white", fontSize:13, fontWeight:600, background:accentColor, border:"none", cursor:"pointer" }}>Bestseller</button>
               </div>
             </div>
           </div>
@@ -326,8 +314,7 @@ function SettingsPageInner() {
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Logo</h3>
             <div
-              className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all"
-              style={{ borderColor: 'rgba(255,255,255,0.1)' }}
+              style={{ border:"2px dashed rgba(255, 255, 255, 0.1)", borderRadius:12, padding:32, textAlign:"center", cursor:"pointer" }}
             >
               <Upload size={24} style={{ color: 'var(--text-muted)', margin: '0 auto 8px' }} />
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
@@ -343,11 +330,11 @@ function SettingsPageInner() {
 
       {/* ── Operations ──────────────────────────────────── */}
       {activeTab === 'operations' && (
-        <div className="space-y-4 max-w-2xl">
+        <div style={{ maxWidth: 640 }}>
           {/* Ordering */}
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Ordering</h3>
-            <div className="space-y-4">
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               <ToggleRow
                 label="Online Ordering Enabled"
                 desc="When off, customers see your menu but cannot place orders"
@@ -373,7 +360,7 @@ function SettingsPageInner() {
           {/* Tax */}
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Tax & Discounts</h3>
-            <div className="space-y-4">
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               <ToggleRow
                 label="VAT Enabled"
                 desc="Automatically add VAT to all orders"
@@ -383,7 +370,7 @@ function SettingsPageInner() {
               {vatEnabled && (
                 <div>
                   <label style={labelStyle}>VAT Rate (%)</label>
-                  <div className="flex items-center gap-3">
+                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                     <input
                       type="number" min="0" max="100" step="0.01"
                       style={{ ...inputStyle, maxWidth: 120 }}
@@ -420,15 +407,10 @@ function SettingsPageInner() {
       )}
 
       {/* Save button */}
-      <div className="fixed bottom-6 right-6">
+      <div style={{ position:"fixed", bottom:24, right:24, zIndex:100 }}>
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold shadow-2xl transition-all"
-          style={{
-            background: saved ? 'rgba(34,197,94,0.15)' : 'linear-gradient(135deg, #22c55e, #16a34a)',
-            color: saved ? '#22c55e' : 'white',
-            border: saved ? '1px solid rgba(34,197,94,0.3)' : 'none',
-          }}
+          style={{ display:"flex", alignItems:"center", gap:8, padding:"12px 24px", borderRadius:20, fontWeight:600, cursor:"pointer", boxShadow:"0 8px 32px rgba(0,0,0,0.4)", border: saved ? '1px solid rgba(34,197,94,0.3)' : 'none', background: saved ? 'rgba(34,197,94,0.15)' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: saved ? '#22c55e' : 'white' }}
         >
           {saved ? <Check size={16} /> : <Save size={16} />}
           {saved ? 'Saved!' : 'Save Settings'}
@@ -448,14 +430,12 @@ function PaymentQRRow({
 }) {
   return (
     <div
-      className="flex items-center gap-4 p-4 rounded-xl"
-      style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+      style={{ display:"flex", alignItems:"center", gap:16, padding:16, borderRadius:12, background: 'var(--surface-2)', border: '1px solid var(--border)' }}
     >
       {/* Method info */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div style={{ display:"flex", alignItems:"center", gap:12, flex:1, minWidth:0 }}>
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-          style={{ background: `${method.color}20` }}
+          style={{ width:40, height:40, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0, background: `${method.color}20` }}
         >
           {method.emoji}
         </div>
@@ -469,22 +449,17 @@ function PaymentQRRow({
 
       {/* Preview */}
       {currentUrl && (
-        <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'white', padding: 2 }}>
-          <img src={currentUrl} alt="QR" className="w-full h-full object-contain" />
+        <div style={{ width:48, height:48, borderRadius:8, overflow:"hidden", flexShrink:0, background:"white", padding:2 }}>
+          <img src={currentUrl} alt="QR" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
         </div>
       )}
 
       {/* Upload */}
-      <label className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition-all flex-shrink-0"
-        style={{
-          background: currentUrl ? 'var(--surface-3)' : `${method.color}15`,
-          color: currentUrl ? 'var(--text-muted)' : method.color,
-          border: `1px solid ${currentUrl ? 'var(--border)' : method.color + '30'}`,
-        }}>
+      <label style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 16px", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", flexShrink:0, background: currentUrl ? 'var(--surface-3)' : `${method.color}15`, color: currentUrl ? 'var(--text-muted)' : method.color, border: `1px solid ${currentUrl ? 'var(--border)' : method.color + '30'}` }}>
         <Upload size={13} />
         {currentUrl ? 'Replace' : 'Upload QR'}
         <input
-          type="file" accept="image/*" className="hidden"
+          type="file" accept="image/*" style={{ display:"none" }}
           onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); }}
         />
       </label>
@@ -505,20 +480,15 @@ function ToggleRow({
 }) {
   return (
     <div
-      className="flex items-start justify-between gap-4 p-4 rounded-xl transition-all"
-      style={{
-        background: highlight ? 'rgba(239,68,68,0.05)' : 'var(--surface-2)',
-        border: `1px solid ${highlight ? 'rgba(239,68,68,0.2)' : 'var(--border)'}`,
-      }}
+      style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, padding:16, borderRadius:12, background: highlight ? 'rgba(239, 68, 68, 0.05)' : 'var(--surface-2)', border: `1px solid ${highlight ? 'rgba(239,68,68,0.2)' : 'var(--border)'}` }}
     >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <span style={{ fontWeight: 600, fontSize: 13, color: highlight ? '#ef4444' : 'var(--text)' }}>
             {label}
           </span>
           {badge && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-              style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+            <span style={{ padding:"2px 8px", borderRadius:999, fontSize:11, fontWeight:700, background:"rgba(99, 102, 241, 0.15)", color:"#818cf8" }}>
               {badge}
             </span>
           )}
@@ -527,12 +497,10 @@ function ToggleRow({
       </div>
       <button
         onClick={() => onChange(!value)}
-        className="w-12 h-6 rounded-full relative flex-shrink-0 transition-all"
-        style={{ background: value ? (highlight ? '#ef4444' : '#22c55e') : 'var(--surface-3)', marginTop: 2 }}
+        style={{ width:48, height:24, borderRadius:999, position:"relative", flexShrink:0, cursor:"pointer", border:"none", marginTop:2, background: value ? (highlight ? '#ef4444' : '#22c55e') : 'var(--surface-3)' }}
       >
         <div
-          className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
-          style={{ left: value ? 26 : 4 }}
+          style={{ position:"absolute", top:4, width:16, height:16, borderRadius:"50%", background:"white", boxShadow:"0 1px 4px rgba(0, 0, 0, 0.3)", transition:"left 0.2s", left: value ? 26 : 4 }}
         />
       </button>
     </div>

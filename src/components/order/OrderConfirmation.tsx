@@ -1,8 +1,5 @@
 'use client';
-import React from 'react';
-
-import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@/lib/supabase/client';
+import React, { useState, useEffect, useRef } from 'react';
 import type { OrderStatus } from '@/types';
 
 interface Props {
@@ -11,118 +8,98 @@ interface Props {
   receiptFooter: string;
 }
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; emoji: string; color: string }> = {
-  PENDING:    { label: 'Order Received',     emoji: '✅', color: 'text-blue-600' },
-  CONFIRMED:  { label: 'Confirmed by Staff', emoji: '👍', color: 'text-blue-700' },
-  PREPARING:  { label: 'Being Prepared',     emoji: '👨‍🍳', color: 'text-amber-600' },
-  READY:      { label: 'Ready to Serve!',    emoji: '🔔', color: 'text-green-600' },
-  COMPLETED:  { label: 'Completed',          emoji: '🎉', color: 'text-green-700' },
-  CANCELLED:  { label: 'Cancelled',          emoji: '❌', color: 'text-red-600' },
+const STATUS: Record<OrderStatus, { label: string; emoji: string; color: string }> = {
+  PENDING:   { label: 'Order Received',     emoji: '✅', color: '#2563eb' },
+  CONFIRMED: { label: 'Confirmed by Staff', emoji: '👍', color: '#1d4ed8' },
+  PREPARING: { label: 'Being Prepared',     emoji: '👨‍🍳', color: '#d97706' },
+  READY:     { label: 'Ready to Serve!',    emoji: '🔔', color: '#16a34a' },
+  COMPLETED: { label: 'Completed',          emoji: '🎉', color: '#065f46' },
+  CANCELLED: { label: 'Cancelled',          emoji: '❌', color: '#dc2626' },
 };
-
-const STATUS_ORDER: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'];
+const STEPS: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'];
 
 export default function OrderConfirmation({ order, tenantName, receiptFooter }: Props) {
   const [status, setStatus] = useState<OrderStatus>(order.status as OrderStatus);
-  const supabase = createBrowserClient();
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Supabase Realtime — never polling ───────────────────────
+  // Poll /api/orders/[id] every 15s for status updates
+  // (Supabase realtime is RLS-blocked for anon customers)
   useEffect(() => {
-    const channel = supabase
-      .channel(`order-status-${order.orderId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: `id=eq.${order.orderId}`,
-        },
-        (payload) => {
-          const newStatus = (payload.new as { status: OrderStatus }).status;
-          setStatus(newStatus);
-
-          // Haptic feedback on mobile when order is ready
-          if (newStatus === 'READY' && 'vibrate' in navigator) {
-            navigator.vibrate([200, 100, 200]);
-          }
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/orders/${order.orderId}`);
+        if (!res.ok) return;
+        const json = await res.json() as { data?: { status: OrderStatus } };
+        const s = json.data?.status;
+        if (s && s !== status) {
+          setStatus(s);
+          if (s === 'READY' && 'vibrate' in navigator) navigator.vibrate([200, 100, 200]);
         }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
+      } catch { /**/ }
     };
-  }, [order.orderId, supabase]);
 
-  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING;
-  const currentStepIdx = STATUS_ORDER.indexOf(status);
+    pollRef.current = setInterval(poll, 15_000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [order.orderId, status]);
+
+  const cfg = STATUS[status] ?? STATUS.PENDING;
+  const stepIdx = STEPS.indexOf(status);
+  const active = status !== 'COMPLETED' && status !== 'CANCELLED';
 
   return (
-    <div className="max-w-md mx-auto px-4 py-8">
-      {/* Status Card */}
-      <div className="bg-white rounded-3xl shadow-lg p-8 text-center mb-6">
-        <div className="text-6xl mb-4">{config.emoji}</div>
-        <h2 className={`text-2xl font-bold mb-1 ${config.color}`}>{config.label}</h2>
-        <p className="text-gray-500 mb-4">Order #{order.orderNumber}</p>
+    <div style={{ maxWidth: 420, margin: '0 auto', padding: '32px 16px' }}>
+      {/* Status card */}
+      <div style={{ background: '#fff', borderRadius: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', padding: '36px 24px', textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ fontSize: 60, marginBottom: 12 }}>{cfg.emoji}</div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: cfg.color, margin: '0 0 4px' }}>{cfg.label}</h2>
+        <p style={{ color: '#6b7280', margin: '0 0 20px' }}>Order #{order.orderNumber}</p>
 
-        {/* Progress bar */}
+        {/* Progress steps */}
         {status !== 'CANCELLED' && (
-          <div className="flex items-center gap-1 justify-center my-6">
-            {STATUS_ORDER.slice(0, -1).map((s, idx) => (
-              <div key={s} className="flex items-center gap-1">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    idx <= currentStepIdx
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-100 text-gray-400'
-                  }`}
-                >
-                  {idx + 1}
-                </div>
-                {idx < STATUS_ORDER.length - 2 && (
-                  <div
-                    className={`h-1 w-6 rounded transition-all ${
-                      idx < currentStepIdx ? 'bg-green-600' : 'bg-gray-100'
-                    }`}
-                  />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, margin: '20px 0' }}>
+            {STEPS.slice(0, -1).map((s, idx) => (
+              <React.Fragment key={s}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 700, transition: 'all 0.3s',
+                  background: idx <= stepIdx ? '#16a34a' : '#f3f4f6',
+                  color: idx <= stepIdx ? '#fff' : '#9ca3af',
+                }}>{idx + 1}</div>
+                {idx < STEPS.length - 2 && (
+                  <div style={{ height: 3, width: 24, borderRadius: 2, transition: 'all 0.3s', background: idx < stepIdx ? '#16a34a' : '#f3f4f6' }} />
                 )}
-              </div>
+              </React.Fragment>
             ))}
           </div>
         )}
 
-        <div className="bg-gray-50 rounded-2xl px-6 py-4 mt-4">
-          <p className="text-gray-500 text-sm">Total Amount</p>
-          <p className="text-2xl font-bold text-gray-800">
+        <div style={{ background: '#f9fafb', borderRadius: 16, padding: '16px 24px', marginTop: 12 }}>
+          <p style={{ color: '#6b7280', fontSize: 13, margin: '0 0 4px' }}>Total Amount</p>
+          <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', margin: 0 }}>
             ₱{order.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </p>
         </div>
       </div>
 
       {/* Live indicator */}
-      {status !== 'COMPLETED' && status !== 'CANCELLED' && (
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-6">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-          </span>
-          Live status updates
+      {active && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, color: '#6b7280', marginBottom: 20 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+          Auto-updating every 15 seconds
         </div>
       )}
 
       {/* Track link */}
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <a
-          href={`/orders/track?id=${order.orderId}`}
-          style={{ color: '#22c55e', fontSize: 13, textDecoration: 'underline', fontWeight: 600 }}
-        >
+        <a href={`/orders/track?id=${order.orderId}`}
+          style={{ color: '#16a34a', fontSize: 13, textDecoration: 'underline', fontWeight: 600 }}>
           📍 View order tracking page →
         </a>
       </div>
 
-      {/* Footer */}
-      <p className="text-center text-gray-400 text-sm px-4">{receiptFooter || `Thank you for ordering at ${tenantName}!`}</p>
+      <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13, padding: '0 16px' }}>
+        {receiptFooter || `Thank you for ordering at ${tenantName}!`}
+      </p>
     </div>
   );
 }

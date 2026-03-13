@@ -182,7 +182,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         .show-mobile{display:none}
         @media(max-width:1024px){
           .show-mobile{display:flex}
-          .main-sidebar{transform:translateX(-100%)!important}
+          .main-sidebar{position:fixed!important;top:0;left:0;height:100%!important;width:240px;transform:translateX(-100%);transition:transform 0.25s ease;z-index:50}
           .main-sidebar.open{transform:translateX(0)!important}
         }
       `}</style>
@@ -198,8 +198,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         style={{
           width: 240, background: '#0D1018', borderRight: '1px solid rgba(255,255,255,0.06)',
           display: 'flex', flexDirection: 'column', flexShrink: 0,
-          position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 50,
-          transition: 'transform 0.25s ease',
+          height: '100vh', position: 'sticky', top: 0, zIndex: 50, overflow: 'hidden',
         }}>
 
         {/* Logo + close btn */}
@@ -287,7 +286,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </aside>
 
       {/* ── Main content ────────────────────── */}
-      <div className="main-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, marginLeft: 240 }}>
+      <div className="main-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
 
         {/* Trial banner */}
         {showTrialBanner && (

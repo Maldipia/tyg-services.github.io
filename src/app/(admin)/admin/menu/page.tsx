@@ -59,6 +59,7 @@ export default function MenuPage() {
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<MenuItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [reordering, setReordering] = useState<string | null>(null);
   const [tenantSlug, setTenantSlug] = useState('yani'); // default fallback
 
   const supabase = createBrowserClient();
@@ -131,6 +132,39 @@ export default function MenuPage() {
       showToast(json.error, 'err');
     } else {
       showToast(`${item.name} marked as ${next.toLowerCase().replace('_', ' ')}`);
+    }
+  };
+
+  const moveItem = async (itemId: string, direction: 'up' | 'down') => {
+    const inCat = filteredItems;
+    const idx = inCat.findIndex(i => i.id === itemId);
+    if (idx < 0) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= inCat.length) return;
+
+    const a = inCat[idx]!;
+    const b = inCat[swapIdx]!;
+    const aNewOrder = b.sort_order;
+    const bNewOrder = a.sort_order;
+
+    // Optimistic update
+    setItems(prev => prev.map(i => {
+      if (i.id === a.id) return { ...i, sort_order: aNewOrder };
+      if (i.id === b.id) return { ...i, sort_order: bNewOrder };
+      return i;
+    }));
+
+    setReordering(itemId);
+    try {
+      await Promise.all([
+        fetch(`/api/menu/items/${a.id}`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sortOrder: aNewOrder }) }),
+        fetch(`/api/menu/items/${b.id}`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sortOrder: bNewOrder }) }),
+      ]);
+    } catch {
+      showToast('Failed to reorder', 'err');
+      void loadMenu();
+    } finally {
+      setReordering(null);
     }
   };
 
@@ -249,14 +283,32 @@ export default function MenuPage() {
               </div>
             ) : (
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                {filteredItems.map(item => (
-                  <MenuItemRow
-                    key={item.id}
-                    item={item}
-                    onEdit={() => { setEditItem(item); setShowItemForm(true); }}
-                    onToggleStatus={() => toggleItemStatus(item)}
-                    onDelete={() => setConfirmDelete(item)}
-                  />
+                {filteredItems.map((item, idx) => (
+                  <div key={item.id} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
+                    <div style={{ display:"flex", flexDirection:"column", justifyContent:"center", gap:2, marginRight:6, flexShrink:0 }}>
+                      <button
+                        disabled={idx === 0 || reordering !== null}
+                        onClick={() => void moveItem(item.id, "up")}
+                        title="Move up"
+                        style={{ width:22, height:22, borderRadius:4, border:"1px solid var(--border)", background:"var(--surface)", cursor:idx===0?"default":"pointer", opacity:idx===0?0.3:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0, fontSize:11, color:"var(--text-muted)", fontFamily:"inherit" }}
+                      >▲</button>
+                      <button
+                        disabled={idx === filteredItems.length - 1 || reordering !== null}
+                        onClick={() => void moveItem(item.id, "down")}
+                        title="Move down"
+                        style={{ width:22, height:22, borderRadius:4, border:"1px solid var(--border)", background:"var(--surface)", cursor:idx===filteredItems.length-1?"default":"pointer", opacity:idx===filteredItems.length-1?0.3:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0, fontSize:11, color:"var(--text-muted)", fontFamily:"inherit" }}
+                      >▼</button>
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <MenuItemRow
+                        key={item.id}
+                        item={item}
+                        onEdit={() => { setEditItem(item); setShowItemForm(true); }}
+                        onToggleStatus={() => toggleItemStatus(item)}
+                        onDelete={() => setConfirmDelete(item)}
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

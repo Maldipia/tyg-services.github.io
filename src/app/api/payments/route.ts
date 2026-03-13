@@ -39,6 +39,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const { data, error } = await query;
     if (error) return apiError('Failed to fetch payments', 500);
-    return apiSuccess(data ?? []);
+
+    // Generate signed URLs for private payment-proofs bucket (1h expiry)
+    const withSignedUrls = await Promise.all(
+      (data ?? []).map(async (p: Record<string, unknown>) => {
+        if (p.proof_url && typeof p.proof_url === 'string' && !p.proof_url.startsWith('http')) {
+          const { data: signed } = await db.storage
+            .from('payment-proofs')
+            .createSignedUrl(p.proof_url, 3600);
+          return { ...p, proof_url: signed?.signedUrl ?? null };
+        }
+        return p;
+      })
+    );
+    return apiSuccess(withSignedUrls);
   }, ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER']);
 }

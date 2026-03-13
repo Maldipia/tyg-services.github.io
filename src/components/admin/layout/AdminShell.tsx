@@ -63,6 +63,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const [staffName, setStaffName] = useState('');
   const [showBanner, setShowBanner] = useState(true);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [branches, setBranches] = useState<{id:string;name:string}[]>([]);
+  const [activeBranchId, setActiveBranchId] = useState<string | null>(null);
+  const [activeBranchName, setActiveBranchName] = useState<string>('');
+  const [branchDropOpen, setBranchDropOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -77,11 +81,31 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       }
     } catch {/**/}
     try {
-      const s = JSON.parse(localStorage.getItem('tyg_session') || '{}') as { role?: StaffRole; displayName?: string };
+      const s = JSON.parse(localStorage.getItem('tyg_session') || '{}') as { role?: StaffRole; displayName?: string; branchId?: string; branchName?: string };
       if (s.role) setStaffRole(s.role);
       if (s.displayName) setStaffName(s.displayName);
+      if (s.branchId) { setActiveBranchId(s.branchId); setActiveBranchName(s.branchName ?? ''); }
     } catch {/**/}
   }, []);
+
+  useEffect(() => {
+    if (!tenantSlug || !['PRO','ENTERPRISE'].includes(planTier)) return;
+    fetch(`/api/tables?tenant=${tenantSlug}`, { credentials: 'include' })
+      .then(r => r.json())
+      .then((d: { data?: Array<{branch_id?: string; branch?: {id:string;name:string} }> }) => {
+        // Extract unique branches from tables
+        const seen = new Set<string>();
+        const brs: {id:string;name:string}[] = [];
+        (d.data ?? []).forEach(t => {
+          if (t.branch?.id && !seen.has(t.branch.id)) {
+            seen.add(t.branch.id);
+            brs.push({ id: t.branch.id, name: t.branch.name });
+          }
+        });
+        if (brs.length > 1) setBranches(brs);
+      })
+      .catch(() => {/**/});
+  }, [tenantSlug, planTier]);
 
   useEffect(() => {
     if (!tenantSlug) return;
@@ -282,6 +306,31 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </div>
             <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: ps.bg, color: ps.color }}>{planTier}</span>
           </div>
+          {branches.length > 1 && (
+            <div style={{ position: 'relative', margin: '6px 0 4px' }}>
+              <button
+                onClick={() => setBranchDropOpen(o => !o)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, color: 'var(--text)' }}
+              >
+                <span>🏬 {activeBranchName || 'All Branches'}</span>
+                <ChevronDown size={12} style={{ color: 'var(--text-muted)', transform: branchDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+              </button>
+              {branchDropOpen && (
+                <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden', zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+                  <button onClick={() => { setActiveBranchId(null); setActiveBranchName(''); setBranchDropOpen(false); }}
+                    style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: !activeBranchId ? 'var(--brand-light)' : 'transparent', border: 'none', fontSize: 12, fontWeight: 600, color: !activeBranchId ? '#15803d' : 'var(--text)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    All Branches
+                  </button>
+                  {branches.map(b => (
+                    <button key={b.id} onClick={() => { setActiveBranchId(b.id); setActiveBranchName(b.name); setBranchDropOpen(false); }}
+                      style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: activeBranchId === b.id ? 'var(--brand-light)' : 'transparent', border: 'none', fontSize: 12, fontWeight: 500, color: activeBranchId === b.id ? '#15803d' : 'var(--text)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {b.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <button onClick={handleLogout} className="nav-item" style={{ width: '100%', color: '#ef4444', background: 'none', border: 'none' }}>
             <LogOut size={14} /> Sign Out
           </button>

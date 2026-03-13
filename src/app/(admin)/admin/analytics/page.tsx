@@ -18,6 +18,8 @@ interface Totals {
 }
 
 const RANGE_LABELS: Record<Range, string> = { '1d':'Today', '7d':'7 Days', '30d':'30 Days', '90d':'90 Days' };
+interface HourlyCell { day_of_week: number; hour_of_day: number; order_count: number; total_revenue: number; }
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 function fmt(n: number) {
   return '₱' + Math.round(n).toLocaleString('en-PH');
@@ -36,6 +38,7 @@ export default function AnalyticsPage() {
   const [topItems, setTopItems]     = useState<TopItem[]>([]);
   const [tenantSlug, setTenantSlug] = useState('');
   const [today, setToday]           = useState(0); // today completed orders
+  const [hourly, setHourly]           = useState<HourlyCell[]>([]);
 
   useEffect(() => {
     let slug = '';
@@ -64,6 +67,7 @@ export default function AnalyticsPage() {
         setDaily(data.dailySummary ?? []);
         setTopItems(data.topItems ?? []);
         setToday(data.todayCompletedOrders ?? 0);
+        setHourly((data as Record<string,unknown>)['heatmap'] as HourlyCell[] ?? []);
       }
     } catch{/**/} finally { setLoading(false); }
   }, []);
@@ -205,6 +209,49 @@ export default function AnalyticsPage() {
               ))
             )}
           </div>
+          {/* Hourly Heatmap */}
+          {hourly.length > 0 && (
+            <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, padding:20, marginTop:14 }}>
+              <h3 style={{ fontWeight:700, fontSize:14, marginBottom:4 }}>Busiest Hours</h3>
+              <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:14 }}>Order volume by day & hour (darker = busier)</p>
+              {/* Hour axis labels */}
+              <div style={{ display:'grid', gridTemplateColumns:'36px repeat(24,1fr)', gap:2, marginBottom:2 }}>
+                <div/>
+                {Array.from({length:24},(_,h)=>(
+                  <div key={h} style={{ fontSize:9, color:'var(--text-muted)', textAlign:'center' as const }}>
+                    {h===0?'12a':h<12?`${h}a`:h===12?'12p':`${h-12}p`}
+                  </div>
+                ))}
+              </div>
+              {DAYS.map((day, d) => {
+                const maxCount = Math.max(...hourly.map(h=>h.order_count), 1);
+                return (
+                  <div key={d} style={{ display:'grid', gridTemplateColumns:'36px repeat(24,1fr)', gap:2, marginBottom:2 }}>
+                    <div style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center' }}>{day}</div>
+                    {Array.from({length:24},(_,h)=>{
+                      const cell = hourly.find(x=>x.day_of_week===d && x.hour_of_day===h);
+                      const intensity = cell ? cell.order_count / maxCount : 0;
+                      const bg = intensity === 0 ? 'var(--surface-2)' :
+                        intensity < 0.25 ? 'rgba(34,197,94,0.2)' :
+                        intensity < 0.5  ? 'rgba(34,197,94,0.45)' :
+                        intensity < 0.75 ? 'rgba(34,197,94,0.7)' : '#16a34a';
+                      return (
+                        <div key={h} title={cell ? `${cell.order_count} orders` : ''}
+                          style={{ height:18, borderRadius:3, background:bg, cursor:cell?'default':'auto' }}/>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:10, fontSize:11, color:'var(--text-muted)' }}>
+                <span>Low</span>
+                {['rgba(34,197,94,0.2)','rgba(34,197,94,0.45)','rgba(34,197,94,0.7)','#16a34a'].map((bg,i)=>(
+                  <div key={i} style={{ width:14, height:14, borderRadius:3, background:bg }}/>
+                ))}
+                <span>High</span>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

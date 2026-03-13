@@ -423,30 +423,66 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 export async function GET(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(req, async (request, ctx) => {
     const { searchParams } = new URL(request.url);
-    const statusFilter = searchParams.get('status'); // 'active' | null
-    const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 50);
+    const statusFilter = searchParams.get('status'); // 'active' | specific status | null
+    const limit        = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200);
+    const dateFrom     = searchParams.get('dateFrom');   // YYYY-MM-DD PH date filter
+    const dateTo       = searchParams.get('dateTo');     // YYYY-MM-DD
+    const search       = searchParams.get('search');     // order number or customer name
 
     const db = createServiceClient();
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+
+    // Default: today (PH time = UTC+8)
+    const phOffset = 8 * 60 * 60 * 1000;
+    const nowPH    = new Date(Date.now() + phOffset);
+    const todayPH  = nowPH.toISOString().slice(0, 10);
+
+    const fromDate = dateFrom ?? todayPH;
+    const toDate   = dateTo   ?? todayPH;
+
+    // Convert PH date range to UTC timestamps
+    const fromUTC = new Date(`${fromDate}T00:00:00+08:00`).toISOString();
+    const toUTC   = new Date(`${toDate}T23:59:59+08:00`).toISOString();
 
     let query = db.from('orders')
       .select(`
-        id, order_number, status, payment_status, total_amount,
-        customer_name, customer_phone, created_at, pax, notes, table_id, branch_id,
+        id, order_number, status, payment_status, total_amount, discount_type, discount_amount,
+        customer_name, customer_phone, created_at, pax, notes, table_id, branch_id, cancel_reason,
+        table:restaurant_tables(name),
         items:order_items(id, item_name, size_label, qty, line_total, addon_total)
       `)
       .eq('tenant_id', ctx.tenantId)
       .eq('is_test', false)
-      .gte('created_at', todayStart.toISOString())
+      .gte('created_at', fromUTC)
+      .lte('created_at', toUTC)
       .order('created_at', { ascending: false })
       .limit(limit);
 
     if (statusFilter === 'active') {
       query = query.in('status', ['PENDING', 'CONFIRMED', 'PREPARING', 'READY']);
+    } else if (statusFilter && statusFilter !== 'ALL') {
+      query = query.eq('status', statusFilter);
     }
 
     const { data, error } = await query;
     if (error) return apiError('Failed to fetch orders', 500);
-    return apiSuccess(data ?? []);
+
+    // Cast away Supabase inferred type — we reshape the object
+    type FlatOrder = Record<string, unknown>;
+    let orders: FlatOrder[] = ((data ?? []) as unknown as FlatOrder[]).map(o => ({
+      ...o,
+      table_name: (o['table'] as { name?: string } | null)?.name ?? null,
+      table: undefined,
+    }));
+
+    if (search) {
+      const q = search.toLowerCase();
+      orders = orders.filter(o =>
+        String(o['order_number']).includes(q) ||
+        (typeof o['customer_name'] === 'string' && (o['customer_name'] as string).toLowerCase().includes(q)) ||
+        (typeof o['customer_phone'] === 'string' && (o['customer_phone'] as string).includes(q))
+      );
+    }
+
+    return apiSuccess(orders);
   }, ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'KITCHEN']);
 }

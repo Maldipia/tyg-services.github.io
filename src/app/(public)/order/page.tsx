@@ -63,6 +63,7 @@ function OrderPageInner() {
   const [pax, setPax] = useState(1);
   const [notes, setNotes] = useState('');
   const [discountType, setDiscountType] = useState<'PWD' | 'SENIOR' | null>(null);
+  const [tableName,  setTableName]      = useState<string | null>(null);
   const [proofFile, setProofFile]       = useState<File | null>(null);
   const [proofMethod, setProofMethod]   = useState<'GCASH' | 'MAYA' | null>(null);
   const [uploading, setUploading]       = useState(false);
@@ -93,6 +94,16 @@ function OrderPageInner() {
           },
         });
         setActiveCategory(res.data.categories?.[0]?.id ?? null);
+        // Resolve table name from token if present
+        if (tableToken) {
+          fetch(`/api/tables?tenant=${encodeURIComponent(tenantSlug)}`)
+            .then(r => r.json())
+            .then((tr: { data?: Array<{qr_token:string;name:string}> }) => {
+              const match = (tr.data ?? []).find(t => t.qr_token === tableToken);
+              if (match) setTableName(match.name);
+            })
+            .catch(() => {/**/});
+        }
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Failed to load menu'))
       .finally(() => setLoading(false));
@@ -171,8 +182,10 @@ function OrderPageInner() {
   if (error) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:24, background:'#f9fafb' }}>
       <div style={{ textAlign:'center', maxWidth:384 }}>
-        <div style={{ fontSize:48, marginBottom:16 }}>😕</div>
-        <h2 style={{ fontSize:20, fontWeight:700, color:'#1f2937', marginBottom:8 }}>Oops</h2>
+        <div style={{ fontSize:48, marginBottom:16 }}>{error.includes('disabled') ? '🔒' : '😕'}</div>
+        <h2 style={{ fontSize:20, fontWeight:700, color:'#1f2937', marginBottom:8 }}>
+          {error.includes('disabled') ? 'Ordering is currently closed' : 'Oops'}
+        </h2>
         <p style={{ color:'#4b5563' }}>{error}</p>
       </div>
     </div>
@@ -193,7 +206,7 @@ function OrderPageInner() {
             )}
             <div>
               <h1 style={{ color:'white', fontWeight:700, fontSize:18, lineHeight:1 }}>{tenant.name}</h1>
-              {tableToken && <p style={{ color:'rgba(255,255,255,0.7)', fontSize:12 }}>{categories.length > 0 ? 'Scan & Order' : 'Menu'}</p>}
+              {tableToken && <p style={{ color:'rgba(255,255,255,0.7)', fontSize:12 }}>{tableName ? `🪑 ${tableName}` : (categories.length > 0 ? 'Scan & Order' : 'Menu')}</p>}
             </div>
           </div>
         </div>

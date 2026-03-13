@@ -22,6 +22,7 @@ interface KitchenOrder {
   pax: number;
   notes?: string | null;
   table_id?: string | null;
+  table_name?: string | null;
   branch_id?: string | null;
   total_amount: number;
   items: KitchenItem[];
@@ -193,7 +194,14 @@ function OrderCard({ order, onUpdate }: { order: KitchenOrder; onUpdate: (id: st
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 20 }}>#{order.order_number}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: 20 }}>#{order.order_number}</span>
+            {order.table_name && (
+              <span style={{ background: '#374151', color: '#f9fafb', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99, letterSpacing: '0.04em' }}>
+                {order.table_name}
+              </span>
+            )}
+          </div>
           <p style={{ color: '#9ca3af', fontSize: 13, margin: '3px 0 0' }}>
             {order.customer_name} · {order.pax} pax
           </p>

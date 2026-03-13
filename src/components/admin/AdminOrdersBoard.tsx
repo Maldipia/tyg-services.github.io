@@ -100,6 +100,9 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [orLoading,   setOrLoading]   = useState<string | null>(null);
   const [cashLoading, setCashLoading] = useState<string | null>(null);
   const [receiptOrder,setReceiptOrder]= useState<ReceiptOrder | null>(null);
+  const [search,      setSearch]      = useState('');
+  const [dateFrom,    setDateFrom]    = useState(() => new Date(Date.now() + 8*3600000).toISOString().slice(0,10));
+  const [dateTo,      setDateTo]      = useState(() => new Date(Date.now() + 8*3600000).toISOString().slice(0,10));
   const knownIdsRef  = useRef<Set<string>>(new Set());
   const isFirstLoad  = useRef(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -128,8 +131,9 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const fetchOrders = useCallback(async (slug: string) => {
     if (!slug) return;
     try {
-      const p = new URLSearchParams({ tenantSlug: slug, limit: '100' });
+      const p = new URLSearchParams({ tenantSlug: slug, limit: '200', dateFrom, dateTo });
       if (filter !== 'ALL') p.set('status', filter);
+      if (search.trim()) p.set('search', search.trim());
       const res = await fetch(`/api/orders?${p}`, { credentials: 'include' });
       if (!res.ok) { setLoading(false); return; }
       const json = await res.json() as { data?: Order[] };
@@ -155,9 +159,9 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
       setOrders(incoming);
     } catch {/**/} finally { setLoading(false); }
-  }, [filter, soundEnabled]);
+  }, [filter, soundEnabled, dateFrom, dateTo, search]);
 
-  useEffect(() => { if (tenantSlug) void fetchOrders(tenantSlug); }, [tenantSlug, filter, fetchOrders]);
+  useEffect(() => { if (tenantSlug) void fetchOrders(tenantSlug); }, [tenantSlug, filter, dateFrom, dateTo, search, fetchOrders]);
 
   // Poll every 15 s for live updates
   useEffect(() => {
@@ -221,6 +225,30 @@ export default function AdminOrdersBoard({ branchId }: Props) {
     } catch { alert('Network error'); } finally { setCashLoading(null); }
   };
 
+  const exportCSV = () => {
+    const rows = [
+      ['Order#','Status','Payment','Table','Customer','Pax','Amount','Date'],
+      ...orders.map(o => {
+        const raw = o as unknown as Record<string, unknown>;
+        return [
+          String(o.order_number),
+          o.status,
+          o.payment_status,
+          String(raw['table_name'] ?? ''),
+          o.customer_name,
+          String(o.pax),
+          String(Number(o.total_amount).toFixed(2)),
+          new Date(o.created_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }),
+        ];
+      }),
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = `orders-${dateFrom}${dateTo !== dateFrom ? '-to-' + dateTo : ''}.csv`;
+    a.click();
+  };
+
   const displayed = branchId
     ? orders.filter(o => !o.branch_id || o.branch_id === branchId)
     : orders;
@@ -272,6 +300,26 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         </div>
       </div>
 
+      {/* Search + date controls */}
+      <div style={{ display:'flex', gap:8, marginBottom:14, flexWrap:'wrap' as const, alignItems:'center' }}>
+        <input
+          type="text" placeholder="Search order# or customer…" value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ flex:'1 1 180px', minWidth:140, padding:'7px 12px', borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', color:'var(--text)', fontSize:13, fontFamily:'inherit', outline:'none' }}
+        />
+        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+          style={{ padding:'7px 10px', borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', color:'var(--text)', fontSize:13, fontFamily:'inherit' }}
+        />
+        <span style={{ fontSize:12, color:'var(--text-muted)' }}>to</span>
+        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+          style={{ padding:'7px 10px', borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', color:'var(--text)', fontSize:13, fontFamily:'inherit' }}
+        />
+        <button onClick={exportCSV}
+          style={{ padding:'7px 14px', borderRadius:8, background:'var(--surface)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' as const }}>
+          ⬇ CSV
+        </button>
+      </div>
+
       {/* Filter tabs */}
       <div style={s.tabs}>
         {TABS.map(tab => {
@@ -318,6 +366,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: st.bg, color: st.color }}>
                     {STATUS_LABEL[order.status]}
                   </span>
+                  {(() => { const tn = (order as unknown as Record<string,unknown>)['table_name']; return tn ? <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: 'rgba(99,102,241,0.1)', color: '#4f46e5' }}>🪑 {String(tn)}</span> : null; })()}
                   {isOverdue && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(239,68,68,0.12)', color: '#dc2626' }}>⚠ {minsAgo}m</span>}
                 </div>
                 <p style={s.meta}>{order.customer_name} · {order.pax} pax</p>

@@ -41,54 +41,65 @@ export default function SuperAdminShell({ children }: { children: React.ReactNod
   const isActive = (item: { href: string; exact: boolean }) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
+  const navStyle = (active: boolean): React.CSSProperties => ({
+    display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:10,
+    fontSize:14, fontWeight:500, textDecoration:'none', whiteSpace:'nowrap', cursor:'pointer',
+    color: active ? '#a78bfa' : 'rgba(255,255,255,0.4)',
+    background: active ? 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(79,70,229,0.1))' : 'transparent',
+    border: active ? '1px solid rgba(124,58,237,0.3)' : '1px solid transparent',
+  });
+
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "'Sora','DM Sans',system-ui,sans-serif", background: '#090c14' }}>
+    <div style={{ minHeight:'100vh', display:'flex', fontFamily:"'Sora','DM Sans',system-ui,sans-serif", background:'#090c14' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 99px; }
-        .sa-nav { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; color:rgba(255,255,255,0.4); font-size:14px; font-weight:500; text-decoration:none; transition:all .15s; white-space:nowrap; }
-        .sa-nav:hover { background:rgba(124,58,237,0.1); color:rgba(255,255,255,0.8); }
-        .sa-nav.active { background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(79,70,229,0.1)); color:#a78bfa; border:1px solid rgba(124,58,237,0.3); }
         @keyframes fade-in { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none} }
         .page-in { animation: fade-in .2s ease forwards; }
       `}</style>
 
       {/* Mobile overlay */}
-      {open && <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && (
+        <div onClick={() => setOpen(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:40 }} />
+      )}
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 h-full z-50 flex flex-col transition-transform duration-300 lg:relative lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{ width: 228, background: '#0f1520', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-
+      <aside style={{
+        position:'fixed', left:0, top:0, height:'100%', zIndex:50,
+        display:'flex', flexDirection:'column', width:228,
+        background:'#0f1520', borderRight:'1px solid rgba(255,255,255,0.06)',
+        transform: open ? 'translateX(0)' : 'translateX(-100%)',
+        transition:'transform 0.3s ease',
+      }}>
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ width:32, height:32, borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
               <ShieldCheck size={15} color="white" />
             </div>
             <div>
-              <div style={{ color: 'white', fontWeight: 700, fontSize: 14 }}>Super Admin</div>
-              <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>TYG Platform</div>
+              <div style={{ color:'white', fontWeight:700, fontSize:14 }}>Super Admin</div>
+              <div style={{ color:'rgba(255,255,255,0.3)', fontSize:11 }}>TYG Platform</div>
             </div>
           </div>
-          <button className="lg:hidden" onClick={() => setOpen(false)} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button onClick={() => setOpen(false)} style={{ color:'rgba(255,255,255,0.4)', background:'none', border:'none', cursor:'pointer', padding:4 }}>
             <X size={14} />
           </button>
         </div>
 
         {/* Quick stats */}
         {stats && (
-          <div className="px-4 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="grid grid-cols-2 gap-2">
+          <div style={{ padding:'16px', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {[
-                { label: 'Tenants', value: stats.tenant_count ?? 0, icon: Building2, color: '#a78bfa' },
-                { label: 'Paying', value: stats.paying ?? 0, icon: TrendingUp, color: '#22c55e' },
+                { label: 'Tenants', value: stats.tenant_count ?? 0, color: '#a78bfa' },
+                { label: 'Paying', value: stats.paying ?? 0, color: '#22c55e' },
               ].map(s => (
-                <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ color: s.color, fontWeight: 800, fontSize: 20 }}>{s.value}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 2 }}>{s.label}</div>
+                <div key={s.label} style={{ borderRadius:12, padding:12, textAlign:'center', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ color:s.color, fontWeight:800, fontSize:20 }}>{s.value}</div>
+                  <div style={{ color:'rgba(255,255,255,0.3)', fontSize:10, marginTop:2 }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -96,9 +107,9 @@ export default function SuperAdminShell({ children }: { children: React.ReactNod
         )}
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav style={{ flex:1, padding:'16px 12px', display:'flex', flexDirection:'column', gap:4 }}>
           {NAV.map(item => (
-            <Link key={item.href} href={item.href} className={`sa-nav ${isActive(item) ? 'active' : ''}`} onClick={() => setOpen(false)}>
+            <Link key={item.href} href={item.href} style={navStyle(isActive(item))} onClick={() => setOpen(false)}>
               <item.icon size={15} />
               {item.label}
             </Link>
@@ -106,17 +117,17 @@ export default function SuperAdminShell({ children }: { children: React.ReactNod
         </nav>
 
         {/* Tenant admin link */}
-        <div className="px-3 pb-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
-          <Link href="/admin/dashboard" target="_blank" className="sa-nav" style={{ fontSize: 12 }}>
+        <div style={{ padding:'0 12px 12px', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:12 }}>
+          <Link href="/admin/dashboard" target="_blank" style={{ ...navStyle(false), fontSize:12 }}>
             <Users size={13} />
             Open Tenant Admin
-            <ChevronRight size={11} style={{ marginLeft: 'auto' }} />
+            <ChevronRight size={11} style={{ marginLeft:'auto' }} />
           </Link>
         </div>
 
         {/* Logout */}
-        <div className="px-3 pb-4">
-          <button onClick={handleLogout} className="sa-nav w-full" style={{ color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <div style={{ padding:'0 12px 16px' }}>
+          <button onClick={handleLogout} style={{ ...navStyle(false), color:'#f87171', width:'100%', background:'none', border:'none' }}>
             <LogOut size={14} />
             Sign Out
           </button>
@@ -124,28 +135,24 @@ export default function SuperAdminShell({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0, marginLeft:open ? 228 : 0 }}>
         {/* Topbar */}
-        <header className="flex items-center gap-4 px-6 py-4 flex-shrink-0"
-          style={{ background: '#0f1520', borderBottom: '1px solid rgba(255,255,255,0.06)', height: 60 }}>
-          <button className="lg:hidden" onClick={() => setOpen(true)} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <header style={{ display:'flex', alignItems:'center', gap:16, padding:'0 24px', flexShrink:0, background:'#0f1520', borderBottom:'1px solid rgba(255,255,255,0.06)', height:60 }}>
+          <button onClick={() => setOpen(o => !o)} style={{ color:'rgba(255,255,255,0.4)', background:'none', border:'none', cursor:'pointer', padding:4 }}>
             <Menu size={18} />
           </button>
-          <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, fontWeight: 500 }}>
-            TYG Super Admin
-          </div>
-          <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: 12 }}>/</div>
-          <div style={{ color: '#a78bfa', fontSize: 13, fontWeight: 600 }}>
+          <div style={{ color:'rgba(255,255,255,0.3)', fontSize:12, fontWeight:500 }}>TYG Super Admin</div>
+          <div style={{ color:'rgba(255,255,255,0.15)', fontSize:12 }}>/</div>
+          <div style={{ color:'#a78bfa', fontSize:13, fontWeight:600 }}>
             {NAV.find(n => isActive(n))?.label ?? 'Panel'}
           </div>
-          <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg"
-            style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)' }}>
-            <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
-            <span style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600 }}>SUPER ADMIN</span>
+          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8, padding:'6px 12px', borderRadius:8, background:'rgba(124,58,237,0.1)', border:'1px solid rgba(124,58,237,0.2)' }}>
+            <div style={{ width:8, height:8, borderRadius:'50%', background:'#22c55e' }} />
+            <span style={{ fontSize:11, color:'#a78bfa', fontWeight:600 }}>SUPER ADMIN</span>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 page-in">
+        <main className="page-in" style={{ flex:1, overflowY:'auto', padding:24 }}>
           {children}
         </main>
       </div>

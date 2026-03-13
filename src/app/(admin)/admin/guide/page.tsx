@@ -2,7 +2,7 @@
 import React from 'react';
 
 import { useState } from 'react';
-import { Printer, QrCode, Clock, ChefHat, CreditCard, AlertTriangle, CheckCircle, Users, LogIn, LogOut } from 'lucide-react';
+import { Printer, QrCode, Clock, ChefHat, CreditCard, AlertTriangle, CheckCircle, Users, LogIn } from 'lucide-react';
 
 type Section = 'login' | 'orders' | 'kitchen' | 'payment' | 'tips';
 
@@ -95,47 +95,45 @@ export default function StaffGuidePage() {
   return (
     <div style={{ color: 'var(--text)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
         <div>
           <h1 style={{ fontWeight: 800, fontSize: 22, color: 'var(--text)' }}>Staff Training Guide</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>YANI Garden Café — TYG POS System</p>
         </div>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+          style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:12, fontSize:13, fontWeight:600, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor:'pointer' }}
         >
           <Printer size={15} /> Print Guide
         </button>
       </div>
 
       {/* Role cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, marginBottom:24 }}>
         {ROLE_TIPS.map(r => (
-          <div key={r.role} className="rounded-2xl p-4" style={{ background: r.bg, border: `1px solid ${r.color}30` }}>
+          <div key={r.role} style={{ borderRadius:20, padding:16, background: r.bg, border: `1px solid ${r.color}30` }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: r.color, marginBottom: 10 }}>{r.role}</div>
-            <ul className="space-y-2">
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {r.tasks.map((t, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: r.color }} />
+                <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
+                  <div style={{ width:6, height:6, borderRadius:'50%', marginTop:6, flexShrink:0, background: r.color }} />
                   <span style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.5 }}>{t}</span>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Section nav */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div style={{ display:'flex', gap:8, marginBottom:24, flexWrap:'wrap' }}>
         {SECTIONS.map(s => (
           <button
             key={s.id}
             onClick={() => setActiveSection(s.id)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
             style={activeSection === s.id
-              ? { background: s.color, color: 'white' }
-              : { background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
+              ? { display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:12, fontSize:13, fontWeight:600, background: s.color, color: 'white', border:'none', cursor:'pointer' }
+              : { display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:12, fontSize:13, fontWeight:600, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor:'pointer' }
             }
           >
             <s.icon size={14} />
@@ -145,32 +143,27 @@ export default function StaffGuidePage() {
       </div>
 
       {/* Steps */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--border)', background: `${sectionMeta.color}10` }}>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background: `${sectionMeta.color}20` }}>
+      <div style={{ borderRadius:20, overflow:'hidden', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div style={{ padding:'20px 24px', borderBottom: '1px solid var(--border)', background: `${sectionMeta.color}10` }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ width:32, height:32, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', background: `${sectionMeta.color}20` }}>
               <sectionMeta.icon size={16} style={{ color: sectionMeta.color }} />
             </div>
             <h2 style={{ fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>{section.title}</h2>
           </div>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
           {section.steps.map(step => (
-            <div key={step.num} className="flex gap-4">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
-                style={{ background: `${sectionMeta.color}15`, color: sectionMeta.color }}
-              >
+            <div key={step.num} style={{ display:'flex', gap:16 }}>
+              <div style={{ width:32, height:32, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontWeight:700, fontSize:13, background: `${sectionMeta.color}15`, color: sectionMeta.color }}>
                 {step.num}
               </div>
-              <div className="flex-1 pt-1">
+              <div style={{ flex:1, paddingTop:4 }}>
                 <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>{step.title}</div>
                 <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6 }}>{step.desc}</p>
                 {step.tip && (
-                  <div className="flex items-start gap-2 mt-2 p-3 rounded-xl"
-                    style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:8, marginTop:8, padding:12, borderRadius:12, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
                     <AlertTriangle size={13} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 2 }} />
                     <span style={{ color: '#f59e0b', fontSize: 12 }}>{step.tip}</span>
                   </div>
@@ -182,16 +175,16 @@ export default function StaffGuidePage() {
       </div>
 
       {/* Quick reference card */}
-      <div className="mt-6 rounded-2xl p-5" style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.2)' }}>
+      <div style={{ marginTop:24, borderRadius:20, padding:20, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.2)' }}>
         <div style={{ fontWeight: 700, fontSize: 14, color: '#22c55e', marginBottom: 12 }}>📌 Quick Reference</div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
           {[
             { label: 'Customer Menu', url: '/order?tenant=yani', icon: QrCode },
             { label: 'Admin Dashboard', url: '/admin/dashboard', icon: Users },
             { label: 'Kitchen Display', url: '/kitchen?tenant=yani', icon: ChefHat },
             { label: 'Track Order', url: '/track/YANI-XXXX', icon: Clock },
           ].map(link => (
-            <div key={link.label} className="rounded-xl p-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div key={link.label} style={{ borderRadius:12, padding:12, background: 'var(--surface)', border: '1px solid var(--border)' }}>
               <link.icon size={14} style={{ color: '#22c55e', marginBottom: 6 }} />
               <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--text)' }}>{link.label}</div>
               <div style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 2, fontFamily: 'monospace' }}>{link.url}</div>

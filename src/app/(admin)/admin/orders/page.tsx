@@ -19,7 +19,7 @@ export default function AdminOrdersPage() {
 
   if (!tenantId) {
     return (
-      <div className="flex items-center justify-center h-64" style={{ color: 'var(--text-muted)' }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:256, color: 'var(--text-muted)' }}>
         Loading orders…
       </div>
     );

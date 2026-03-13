@@ -83,8 +83,8 @@ export default function SuperAdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: '#7c3aed', borderTopColor: 'transparent' }} />
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:256 }}>
+        <div style={{ width:32, height:32, borderRadius:"50%", borderWidth:2, borderStyle:"solid", animation:"spin 1s linear infinite" ,  borderColor: '#7c3aed', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -97,7 +97,7 @@ export default function SuperAdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div style={{ display:"flex", flexDirection:"column", gap:32, maxWidth:1152 }}>
       {/* Header */}
       <div>
         <h1 style={{ color: 'white', fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Platform Overview</h1>
@@ -107,13 +107,11 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
         {statCards.map(s => (
-          <div key={s.label} className="rounded-2xl p-5"
-            style={{ background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: `${s.color}18` }}>
+          <div key={s.label} style={{ borderRadius:20, padding:20, background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:16 }}>
+              <div style={{ width:36, height:36, borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", background: `${s.color}18` }}>
                 <s.icon size={16} style={{ color: s.color }} />
               </div>
             </div>
@@ -128,19 +126,19 @@ export default function SuperAdminDashboard() {
 
       {/* Expiring trials alert */}
       {expiringTrials.length > 0 && (
-        <div className="rounded-2xl p-5" style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}>
-          <div className="flex items-center gap-2 mb-3">
+        <div style={{ borderRadius:20, padding:20 ,  background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
             <AlertTriangle size={15} style={{ color: '#f59e0b' }} />
             <span style={{ color: '#f59e0b', fontWeight: 700, fontSize: 13 }}>Trials Expiring Soon</span>
           </div>
-          <div className="space-y-2">
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {expiringTrials.map(t => (
-              <div key={t.id} className="flex items-center justify-between">
+              <div key={t.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                 <div>
                   <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>{t.name}</span>
                   <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginLeft: 8 }}>{t.owner_email}</span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <span style={{ color: '#f87171', fontSize: 12, fontWeight: 600 }}>
                     {daysUntil(t.trial_ends_at) <= 0 ? 'Expired' : `${daysUntil(t.trial_ends_at)}d left`}
                   </span>
@@ -155,20 +153,19 @@ export default function SuperAdminDashboard() {
       )}
 
       {/* Tenant table */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center gap-2">
+      <div style={{ borderRadius:20, overflow:"hidden" ,  background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 24px" ,  borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <Building2 size={15} style={{ color: '#a78bfa' }} />
             <span style={{ color: 'white', fontWeight: 700, fontSize: 15 }}>All Tenants</span>
           </div>
           <Link href="/superadmin/tenants"
-            className="flex items-center gap-1 text-xs font-semibold"
-            style={{ color: '#a78bfa', textDecoration: 'none' }}>
+            style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, fontWeight:600, color: '#a78bfa', textDecoration: 'none' }}>
             View All <ArrowUpRight size={12} />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
+        <div style={{ overflowX:"auto" }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -184,7 +181,7 @@ export default function SuperAdminDashboard() {
                 const days = daysUntil(t.trial_ends_at);
                 return (
                   <tr key={t.id} style={{ borderBottom: i < tenants.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
-                    className="hover:bg-white/[0.02] transition-colors">
+                    >
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ color: 'white', fontWeight: 600, fontSize: 13 }}>{t.name}</div>
                       <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 2 }}>{t.slug} · {t.owner_email}</div>
@@ -211,15 +208,14 @@ export default function SuperAdminDashboard() {
                       {fmtMoney(t.total_revenue)}
                     </td>
                     <td style={{ padding: '14px 16px', color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
-                      <div className="flex items-center gap-1">
+                      <div style={{ display:"flex", alignItems:"center", gap:4 }}>
                         <Users size={11} />
                         {t.staff_count}
                       </div>
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <Link href={`/superadmin/tenants/${t.slug}`}
-                        className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                        style={{ background: 'rgba(124,58,237,0.1)', color: '#a78bfa', textDecoration: 'none', border: '1px solid rgba(124,58,237,0.2)', whiteSpace: 'nowrap' }}>
+                        style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, fontWeight:600, padding:"6px 12px", borderRadius:8, background: 'rgba(124,58,237,0.1)', color: '#a78bfa', textDecoration: 'none', border: '1px solid rgba(124,58,237,0.2)', whiteSpace: 'nowrap' }}>
                         Manage <ChevronRight size={11} />
                       </Link>
                     </td>

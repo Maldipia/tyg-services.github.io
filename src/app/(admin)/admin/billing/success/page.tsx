@@ -26,58 +26,52 @@ function BillingSuccessContent() {
   const planDisplay = plan.charAt(0) + plan.slice(1).toLowerCase();
 
   return (
-    <div className="text-center max-w-md w-full">
-      <div className="relative inline-flex items-center justify-center mb-8">
-        <div className="absolute w-32 h-32 rounded-full animate-ping opacity-20"
-          style={{ background: color }} />
-        <div className="w-24 h-24 rounded-full flex items-center justify-center shadow-2xl"
-          style={{ background: `${color}20`, border: `2px solid ${color}` }}>
+    <div style={{ textAlign:'center', maxWidth:448, width:'100%' }}>
+      <div style={{ position:'relative', display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}>
+        <div style={{ position:'absolute', width:128, height:128, borderRadius:'50%', opacity:0.2, background: color, animation:'ping 1.5s ease-out infinite' }} />
+        <div style={{ width:96, height:96, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 8px 40px rgba(0,0,0,0.4)', background: `${color}20`, border: `2px solid ${color}` }}>
           <CheckCircle size={40} style={{ color }} />
         </div>
       </div>
-      <h1 className="text-3xl font-black text-white mb-3">
+      <h1 style={{ fontSize:30, fontWeight:900, color:'white', marginBottom:12 }}>
         You&apos;re on {planDisplay}! 🎉
       </h1>
-      <p className="text-gray-400 text-lg mb-8">
+      <p style={{ color:'#9ca3af', fontSize:18, marginBottom:32 }}>
         Your subscription is now active. All features are unlocked.
       </p>
-      <div className="rounded-2xl p-6 mb-8 text-left space-y-3"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">What&apos;s next</div>
+      <div style={{ borderRadius:20, padding:24, marginBottom:32, textAlign:'left', display:'flex', flexDirection:'column', gap:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ fontSize:12, fontWeight:600, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>What&apos;s next</div>
         {[
           'Your plan is activated immediately',
           'Invoice sent to your registered email',
           'New features are available in your dashboard',
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: `${color}20`, border: `1px solid ${color}40` }}>
-              <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+          <div key={i} style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:`${color}20`, border:`1px solid ${color}40` }}>
+              <div style={{ width:8, height:8, borderRadius:'50%', background: color }} />
             </div>
-            <span className="text-gray-300 text-sm">{item}</span>
+            <span style={{ color:'#d1d5db', fontSize:14 }}>{item}</span>
           </div>
         ))}
       </div>
       <button
         onClick={() => router.push('/admin/dashboard')}
-        className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold text-white"
-        style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}>
+        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:12, padding:'16px 0', borderRadius:20, fontWeight:700, color:'white', border:'none', cursor:'pointer', fontSize:15, background:`linear-gradient(135deg, ${color}, ${color}cc)` }}>
         <span>Go to Dashboard</span>
         <ArrowRight size={18} />
       </button>
-      <p className="text-gray-600 text-sm mt-4">Redirecting in {countdown}s...</p>
+      <p style={{ color:'#6b7280', fontSize:14, marginTop:16 }}>Redirecting in {countdown}s...</p>
     </div>
   );
 }
 
 export default function BillingSuccessPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: 'linear-gradient(135deg, #0a0f1e 0%, #111827 100%)' }}>
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:24, background:'linear-gradient(135deg, #0a0f1e 0%, #111827 100%)' }}>
       <Suspense fallback={
-        <div className="text-white text-center">
-          <div className="w-16 h-16 rounded-full border-2 border-green-500 border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading...</p>
+        <div style={{ color:'white', textAlign:'center' }}>
+          <div style={{ width:64, height:64, borderRadius:'50%', border:'2px solid #22c55e', borderTopColor:'transparent', animation:'spin 0.8s linear infinite', margin:'0 auto 16px' }} />
+          <p style={{ color:'#9ca3af' }}>Loading...</p>
         </div>
       }>
         <BillingSuccessContent />

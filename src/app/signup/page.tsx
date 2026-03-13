@@ -136,15 +136,10 @@ function SignupForm() {
 
   if (done) {
     return (
-      <div className="text-center space-y-6">
-        <div className="relative inline-flex items-center justify-center mb-2">
-          <div className="absolute w-28 h-28 rounded-full opacity-10 animate-ping"
-            style={{ background: done.needsConfirmation ? '#6366f1' : '#22c55e' }} />
-          <div className="w-20 h-20 rounded-full flex items-center justify-center"
-            style={{
-              background: done.needsConfirmation ? 'rgba(99,102,241,0.15)' : 'rgba(34,197,94,0.15)',
-              border: done.needsConfirmation ? '2px solid rgba(99,102,241,0.4)' : '2px solid rgba(34,197,94,0.4)',
-            }}>
+      <div style={{ textAlign:"center", display:"flex", flexDirection:"column", gap:24 }}>
+        <div style={{ position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:8 }}>
+          <div style={{ position:"absolute", width:112, height:112, borderRadius:"50%", opacity:0.1, background: done.needsConfirmation ? '#6366f1' : '#22c55e' }} />
+          <div style={{ width:80, height:80, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", background: done.needsConfirmation ? 'rgba(99,102,241,0.15)' : 'rgba(34,197,94,0.15)', border: done.needsConfirmation ? '2px solid rgba(99,102,241,0.4)' : '2px solid rgba(34,197,94,0.4)' }}>
             <Check size={36} style={{ color: done.needsConfirmation ? '#6366f1' : '#22c55e' }} />
           </div>
         </div>
@@ -159,30 +154,25 @@ function SignupForm() {
           </p>
         </div>
         {done.needsConfirmation ? (
-          <div className="rounded-2xl p-5 text-left space-y-3"
-            style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+          <div style={{ borderRadius:20, padding:20, textAlign:"left", display:"flex", flexDirection:"column", gap:12, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
             <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 8 }}>After confirming your email:</p>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold"
-                style={{ background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>1</div>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+              <div style={{ width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2, fontSize:11, fontWeight:700, background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>1</div>
               <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Click the confirmation link in your inbox</span>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold"
-                style={{ background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>2</div>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+              <div style={{ width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2, fontSize:11, fontWeight:700, background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>2</div>
               <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Return here and log in at the PIN screen</span>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold"
-                style={{ background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>3</div>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+              <div style={{ width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2, fontSize:11, fontWeight:700, background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>3</div>
               <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
                 Display name: <strong style={{ color: 'white' }}>Owner</strong> &mdash; PIN: <strong style={{ color: 'white' }}>{form.ownerPin}</strong>
               </span>
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl p-5 text-left space-y-2.5"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ borderRadius:20, padding:20, textAlign:"left", display:"flex", flexDirection:"column", gap:10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 10 }}>Your quick links:</p>
             {[
               { label: '📋 Customer Order Page', href: `/order?tenant=${done.slug}` },
@@ -190,8 +180,7 @@ function SignupForm() {
               { label: '🍳 Kitchen Display',      href: `/kitchen?tenant=${done.slug}` },
             ].map(l => (
               <a key={l.label} href={l.href} target="_blank" rel="noreferrer"
-                className="flex items-center justify-between px-4 py-3 rounded-xl"
-                style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', textDecoration: 'none' }}>
+                style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", borderRadius:12, textDecoration:"none", background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)' }}>
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{l.label}</span>
                 <ChevronRight size={14} style={{ color: '#22c55e' }} />
               </a>
@@ -199,8 +188,7 @@ function SignupForm() {
           </div>
         )}
         <button onClick={() => router.push('/login')}
-          className="w-full py-3 rounded-xl text-sm font-bold"
-          style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: 'white' }}>
+          style={{ width:"100%", padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:700, cursor:"pointer", border:"none", background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: 'white' }}>
           Go to Login
         </button>
       </div>
@@ -211,11 +199,10 @@ function SignupForm() {
   return (
     <>
       {/* Step dots */}
-      <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginBottom:32, flexWrap:"wrap" }}>
         {STEPS.map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-              style={{
+          <div key={s} style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:28, height:28, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700,
                 background: i < step ? '#22c55e' : i === step ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.05)',
                 color: i <= step ? '#22c55e' : 'rgba(255,255,255,0.3)',
                 border: i === step ? '2px solid #22c55e' : '2px solid transparent',
@@ -223,14 +210,13 @@ function SignupForm() {
               {i < step ? <Check size={11} /> : i + 1}
             </div>
             <span style={{ fontSize: 11, color: i === step ? 'white' : 'rgba(255,255,255,0.3)', fontWeight: i === step ? 600 : 400 }}>{s}</span>
-            {i < STEPS.length - 1 && <div className="w-4 h-px" style={{ background: i < step ? '#22c55e' : 'rgba(255,255,255,0.1)' }} />}
+            {i < STEPS.length - 1 && <div style={{ width:16, height:1, background: i < step ? '#22c55e' : 'rgba(255,255,255,0.1)' }} />}
           </div>
         ))}
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 px-4 py-3 rounded-xl mb-5"
-          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"12px 16px", borderRadius:12, marginBottom:20, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
           <AlertCircle size={14} style={{ color: '#ef4444', flexShrink: 0, marginTop: 1 }} />
           <span style={{ fontSize: 13, color: '#ef4444' }}>{error}</span>
         </div>
@@ -238,7 +224,7 @@ function SignupForm() {
 
       {/* Step 0 */}
       {step === 0 && (
-        <div className="space-y-5">
+        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
           <div>
             <h2 style={{ color: 'white', fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Tell us about your cafe</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Start your 14-day free trial. No credit card needed.</p>
@@ -259,11 +245,10 @@ function SignupForm() {
           </div>
           <div>
             <label style={labelStyle}>Business Type</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
               {CATEGORIES.map(c => (
                 <button key={c.value} onClick={() => set('category', c.value)}
-                  className="px-3 py-2.5 rounded-xl text-sm text-left"
-                  style={{
+                  style={{ padding:"10px 12px", borderRadius:12, fontSize:13, textAlign:"left", cursor:"pointer",
                     background: form.category === c.value ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.03)',
                     border: `1px solid ${form.category === c.value ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.07)'}`,
                     color: form.category === c.value ? '#22c55e' : 'rgba(255,255,255,0.55)',
@@ -276,7 +261,7 @@ function SignupForm() {
 
       {/* Step 1 */}
       {step === 1 && (
-        <div className="space-y-5">
+        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
           <div>
             <h2 style={{ color: 'white', fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Create your account</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Your dashboard login credentials.</p>
@@ -309,13 +294,13 @@ function SignupForm() {
 
       {/* Step 2 — PIN */}
       {step === 2 && (
-        <div className="space-y-5">
+        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
           <div>
             <h2 style={{ color: 'white', fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Set your staff PIN</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Staff use this PIN at the counter — no email needed.</p>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
-            <div className="flex items-start gap-3">
+          <div style={{ borderRadius:20, padding:16, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
               <Lock size={15} style={{ color: '#6366f1', flexShrink: 0, marginTop: 2 }} />
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
                 You can create different PINs per staff member from your admin panel. This sets your Owner PIN.
@@ -349,7 +334,7 @@ function SignupForm() {
 
       {/* Step 3 — Location */}
       {step === 3 && (
-        <div className="space-y-5">
+        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
           <div>
             <h2 style={{ color: 'white', fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Where are you located?</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Used for tax, receipts, and timezone settings.</p>
@@ -372,10 +357,10 @@ function SignupForm() {
               ].map(([v, l]) => <option key={v} value={v} style={{ background: '#1e2535' }}>{l}</option>)}
             </select>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)' }}>
+          <div style={{ borderRadius:20, padding:16, background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)' }}>
             <p style={{ fontWeight: 700, color: '#22c55e', fontSize: 13, marginBottom: 8 }}>Free Trial Includes</p>
             {['QR ordering for all tables', 'Kitchen display screen (KDS)', 'Basic analytics', 'Google Sheets sync', 'GCash & bank payment tracking'].map(f => (
-              <div key={f} className="flex items-center gap-2 mb-1.5">
+              <div key={f} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
                 <Check size={10} style={{ color: '#22c55e', flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{f}</span>
               </div>
@@ -386,25 +371,22 @@ function SignupForm() {
       )}
 
       {/* Nav buttons */}
-      <div className="flex gap-3 mt-8">
+      <div style={{ display:"flex", gap:12, marginTop:32 }}>
         {step > 0 && (
           <button onClick={() => { setError(''); setStep(s => s - 1); }}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ display:"flex", alignItems:"center", gap:6, padding:"12px 20px", borderRadius:12, fontSize:13, fontWeight:600, cursor:"pointer", background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <ChevronLeft size={14} /> Back
           </button>
         )}
         {step < 3 ? (
           <button onClick={() => { setError(''); setStep(s => s + 1); }} disabled={!canNext()}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
-            style={{ background: canNext() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.05)', color: canNext() ? 'white' : 'rgba(255,255,255,0.3)' }}>
+            style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:700, cursor:"pointer", border:"none", background: canNext() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.05)', color: canNext() ? 'white' : 'rgba(255,255,255,0.3)' }}>
             Continue <ChevronRight size={14} />
           </button>
         ) : (
           <button onClick={handleSubmit} disabled={!canNext() || submitting}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
-            style={{ background: canNext() && !submitting ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.05)', color: canNext() && !submitting ? 'white' : 'rgba(255,255,255,0.3)' }}>
-            {submitting ? <><Loader2 size={14} className="animate-spin" /> Creating cafe...</> : <>Start Free Trial <ChevronRight size={14} /></>}
+            style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:700, cursor:"pointer", border:"none", background: canNext() && !submitting ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.05)', color: canNext() && !submitting ? 'white' : 'rgba(255,255,255,0.3)' }}>
+            {submitting ? <><Loader2 size={14} style={{ animation:"spin 1s linear infinite" }} /> Creating cafe...</> : <>Start Free Trial <ChevronRight size={14} /></>}
           </button>
         )}
       </div>
@@ -414,25 +396,23 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0f1117 0%, #111827 100%)' }}>
-      <div className="flex items-center justify-center py-8 px-6">
-        <a href="/" className="flex items-center gap-3" style={{ textDecoration: 'none' }}>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", background: 'linear-gradient(135deg, #0f1117 0%, #111827 100%)' }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"32px 24px" }}>
+        <a href="/" style={{ display:"flex", alignItems:"center", gap:12, textDecoration:"none" }}>
+          <div style={{ width:40, height:40, borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
             <Coffee size={20} color="white" />
           </div>
           <span style={{ color: 'white', fontWeight: 800, fontSize: 20 }}>TYG POS</span>
         </a>
       </div>
-      <div className="flex-1 flex items-start justify-center px-4 pb-16 pt-2">
-        <div className="w-full max-w-md">
-          <div className="rounded-3xl p-8"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}>
+      <div style={{ flex:1, display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"8px 16px 64px" }}>
+        <div style={{ width:"100%", maxWidth:448 }}>
+          <div style={{ borderRadius:24, padding:32, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}>
             <Suspense fallback={<div style={{ color: 'white', textAlign: 'center', padding: 32 }}>Loading...</div>}>
               <SignupForm />
             </Suspense>
           </div>
-          <p className="text-center mt-6" style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
+          <p style={{ textAlign:"center", marginTop:24, fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
             Already have an account?{' '}
             <a href="/login" style={{ color: '#22c55e', textDecoration: 'none' }}>Sign in</a>
           </p>

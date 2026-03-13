@@ -107,8 +107,8 @@ export default function TenantDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: '#7c3aed', borderTopColor: 'transparent' }} />
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:256 }}>
+        <div style={{ width:32, height:32, borderRadius:"50%", borderWidth:2, borderStyle:"solid", animation:"spin 1s linear infinite" ,  borderColor: '#7c3aed', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -126,58 +126,54 @@ export default function TenantDetailPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:1024 }}>
       {/* Back + Header */}
       <div>
-        <Link href="/superadmin/tenants" className="flex items-center gap-1.5 text-sm mb-4"
-          style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
+        <Link href="/superadmin/tenants" style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, marginBottom:16 ,  color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
           <ArrowLeft size={13} /> All Tenants
         </Link>
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div style={{ display:"flex", flexWrap:"wrap", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
           <div>
             <h1 style={{ color: 'white', fontSize: 26, fontWeight: 800, marginBottom: 4 }}>
               {t.name as string}
             </h1>
-            <div className="flex flex-wrap items-center gap-3">
+            <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:12 }}>
               <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>/{t.slug as string}</span>
               <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 99, background: pc.bg, color: pc.color, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 {t.plan_tier as string}
               </span>
               {(t.plan_status as string) === 'TRIAL' && (
-                <span className="flex items-center gap-1" style={{ fontSize: 12, color: days <= 3 ? '#f87171' : '#f59e0b' }}>
+                <span style={{ display:"flex", alignItems:"center", gap:4 ,  fontSize: 12, color: days <= 3 ? '#f87171' : '#f59e0b' }}>
                   <Clock size={11} />
                   {days <= 0 ? 'Trial expired' : `${days}d trial remaining`}
                 </span>
               )}
               {saved && (
-                <span className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#22c55e' }}>
+                <span style={{ display:"flex", alignItems:"center", gap:6 ,  fontSize: 12, color: '#22c55e' }}>
                   <CheckCircle size={12} /> Saved
                 </span>
               )}
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
             <Link href={`/order?tenant=${t.slug as string}`} target="_blank"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
-              style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 12px", borderRadius:12, fontSize:11, fontWeight:600 ,  background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.08)' }}>
               <ExternalLink size={11} /> Order Page
             </Link>
             {!editing ? (
               <button onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
-                style={{ background: 'rgba(124,58,237,0.15)', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.25)', cursor: 'pointer' }}>
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:12, fontSize:11, fontWeight:600 ,  background: 'rgba(124,58,237,0.15)', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.25)', cursor: 'pointer' }}>
                 <Edit3 size={11} /> Edit Plan
               </button>
             ) : (
-              <div className="flex gap-2">
+              <div style={{ display:"flex", gap:8 }}>
                 <button onClick={() => setEditing(false)}
                   style={{ padding: '8px 14px', borderRadius: 10, fontSize: 12, background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}>
                   Cancel
                 </button>
                 <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-1.5"
-                  style={{ padding: '8px 16px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: 'white', border: 'none', cursor: 'pointer' }}>
-                  {saving ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
+                  style={{ display:"flex", alignItems:"center", gap:6 ,  padding: '8px 16px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: 'white', border: 'none', cursor: 'pointer' }}>
+                  {saving ? <Loader2 size={11} style={{ animation:"spin 1s linear infinite" }} /> : <Save size={11} />}
                   Save
                 </button>
               </div>
@@ -188,12 +184,12 @@ export default function TenantDetailPage() {
 
       {/* Plan editor */}
       {editing && (
-        <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.2)' }}>
-          <div className="flex items-center gap-2 mb-2">
+        <div style={{ borderRadius:20, padding:20, display:"flex", flexDirection:"column", gap:16 ,  background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.2)' }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
             <Edit3 size={13} style={{ color: '#a78bfa' }} />
             <span style={{ color: '#a78bfa', fontWeight: 700, fontSize: 13 }}>Edit Tenant Plan</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
             <div>
               <label style={{ display: 'block', color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>Plan Tier</label>
               <select value={editPlan} onChange={e => setEditPlan(e.target.value)} style={selectStyle}>
@@ -213,7 +209,7 @@ export default function TenantDetailPage() {
             </div>
           </div>
           {/* Quick actions */}
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8, paddingTop:4 }}>
             <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, alignSelf: 'center' }}>Quick:</span>
             {[
               { label: '+7d trial', action: () => { const d = new Date(); d.setDate(d.getDate() + 7); setEditTrialEnd(d.toISOString().slice(0, 10)); setEditStatus('TRIAL'); setEditPlan('TRIAL'); } },
@@ -231,16 +227,15 @@ export default function TenantDetailPage() {
       )}
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
         {[
           { label: 'Total Orders', value: stats.order_count, icon: ShoppingBag, color: '#38bdf8' },
           { label: 'Revenue (GMV)', value: fmtMoney(stats.total_revenue), icon: TrendingUp, color: '#22c55e', isStr: true },
           { label: 'Staff Members', value: stats.staff_count, icon: Users, color: '#a78bfa' },
           { label: 'Menu Items', value: stats.menu_item_count, icon: UtensilsCrossed, color: '#f59e0b' },
         ].map(s => (
-          <div key={s.label} className="rounded-2xl p-4"
-            style={{ background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="flex items-center gap-2 mb-3">
+          <div key={s.label} style={{ borderRadius:20, padding:16 ,  background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
               <s.icon size={13} style={{ color: s.color }} />
               <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>{s.label}</span>
             </div>
@@ -250,11 +245,11 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Tenant info + Orders by status */}
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
         {/* Tenant info */}
-        <div className="rounded-2xl p-5" style={{ background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ borderRadius:20, padding:20 ,  background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
           <h3 style={{ color: 'white', fontWeight: 700, fontSize: 14, marginBottom: 16 }}>Tenant Info</h3>
-          <div className="space-y-3">
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {[
               { label: 'Owner Email', value: t.owner_email as string, icon: Mail },
               { label: 'Address', value: (t.address as string) ?? '—' },
@@ -263,7 +258,7 @@ export default function TenantDetailPage() {
               { label: 'Trial Ends', value: fmtDate(t.trial_ends_at as string) },
               { label: 'Branches', value: `${branches.length} branch${branches.length !== 1 ? 'es' : ''}` },
             ].map(r => (
-              <div key={r.label} className="flex items-start justify-between gap-4">
+              <div key={r.label} style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
                 <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, flexShrink: 0 }}>{r.label}</span>
                 <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, textAlign: 'right', wordBreak: 'break-all' }}>{r.value}</span>
               </div>
@@ -272,23 +267,23 @@ export default function TenantDetailPage() {
         </div>
 
         {/* Orders by status */}
-        <div className="rounded-2xl p-5" style={{ background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ borderRadius:20, padding:20 ,  background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
           <h3 style={{ color: 'white', fontWeight: 700, fontSize: 14, marginBottom: 16 }}>Orders by Status</h3>
           {Object.keys(stats.orders_by_status).length === 0 ? (
             <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>No orders yet.</p>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {Object.entries(stats.orders_by_status).map(([status, count]) => {
                 const pct = Math.round((count / stats.order_count) * 100);
                 const color = STATUS_C[status] ?? '#94a3b8';
                 return (
                   <div key={status}>
-                    <div className="flex justify-between mb-1">
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
                       <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{status}</span>
                       <span style={{ fontSize: 12, color: 'white', fontWeight: 600 }}>{count}</span>
                     </div>
-                    <div className="h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                      <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+                    <div style={{ height:6, borderRadius:99 ,  background: 'rgba(255,255,255,0.06)' }}>
+                      <div style={{ height:6, borderRadius:99, width: `${pct}%`, background: color }} />
                     </div>
                   </div>
                 );
@@ -299,16 +294,16 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Staff */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center gap-2 px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ borderRadius:20, overflow:"hidden" ,  background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, padding:"16px 20px" ,  borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <Users size={14} style={{ color: '#a78bfa' }} />
           <span style={{ color: 'white', fontWeight: 700, fontSize: 14 }}>Staff ({staff.length})</span>
         </div>
-        <div className="divide-y divide-white/[0.04]">
+        <div style={{}}>
           {staff.length === 0 ? (
             <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, padding: '16px 20px' }}>No staff.</p>
           ) : staff.map(s => (
-            <div key={s.id} className="flex items-center justify-between px-5 py-3">
+            <div key={s.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 20px" }}>
               <div>
                 <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>{s.display_name}</span>
                 <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 99, background: 'rgba(99,102,241,0.12)', color: '#818cf8', textTransform: 'uppercase' }}>{s.role}</span>
@@ -322,15 +317,15 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Recent orders */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center gap-2 px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ borderRadius:20, overflow:"hidden" ,  background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, padding:"16px 20px" ,  borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <ShoppingBag size={14} style={{ color: '#38bdf8' }} />
           <span style={{ color: 'white', fontWeight: 700, fontSize: 14 }}>Recent Orders</span>
         </div>
         {recent_orders.length === 0 ? (
           <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, padding: '16px 20px' }}>No orders yet.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div style={{ overflowX:"auto" }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -361,8 +356,8 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Danger zone */}
-      <div className="rounded-2xl p-5" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)' }}>
-        <div className="flex items-center gap-2 mb-3">
+      <div style={{ borderRadius:20, padding:20 ,  background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)' }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
           <AlertTriangle size={13} style={{ color: '#f87171' }} />
           <span style={{ color: '#f87171', fontWeight: 700, fontSize: 13 }}>Danger Zone</span>
         </div>

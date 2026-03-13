@@ -33,13 +33,11 @@ export default function SuperAdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: 'linear-gradient(135deg,#090c14 0%,#0f1520 100%)' }}>
-      <div className="w-full max-w-sm">
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24, background: 'linear-gradient(135deg,#090c14 0%,#0f1520 100%)' }}>
+      <div style={{ width:"100%", maxWidth:384 }}>
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 0 40px rgba(124,58,237,0.3)' }}>
+        <div style={{ textAlign:"center", marginBottom:32 }}>
+          <div style={{ width:64, height:64, borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 0 40px rgba(124,58,237,0.3)' }}>
             <ShieldCheck size={28} color="white" />
           </div>
           <h1 style={{ color: 'white', fontSize: 24, fontWeight: 800, marginBottom: 6 }}>
@@ -51,12 +49,10 @@ export default function SuperAdminLoginPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl p-7"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ borderRadius:20, padding:28, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
 
           {error && (
-            <div className="flex items-center gap-2 px-4 py-3 rounded-xl mb-5"
-              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"12px 16px", borderRadius:12, marginBottom:20, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
               <AlertCircle size={14} style={{ color: '#ef4444' }} />
               <span style={{ fontSize: 13, color: '#ef4444' }}>{error}</span>
             </div>
@@ -94,11 +90,11 @@ export default function SuperAdminLoginPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            {loading ? <><Loader2 size={14} className="animate-spin" /> Authenticating...</> : 'Access Super Admin'}
+            {loading ? <><Loader2 size={14} style={{ animation:"spin 1s linear infinite" }} /> Authenticating...</> : 'Access Super Admin'}
           </button>
         </div>
 
-        <p className="text-center mt-5" style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
+        <p style={{ textAlign:"center", marginTop:20, fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
           Restricted access. Unauthorized entry is logged.
         </p>
       </div>

@@ -428,15 +428,25 @@ function ItemFormModal({
     if (file.size > 5 * 1024 * 1024) { alert('Max 5MB per image'); return; }
 
     setUploading(true);
-    const { createBrowserClient: createClient } = await import('@/lib/supabase/client');
-    const sb = createClient();
-    const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `menu/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { data, error } = await sb.storage.from('menu-images').upload(path, file, { upsert: false });
-    if (error || !data) { alert('Upload failed: ' + (error?.message ?? 'unknown')); setUploading(false); return; }
-    const { data: urlData } = sb.storage.from('menu-images').getPublicUrl(data.path);
-    setImageUrl(urlData.publicUrl);
-    setUploading(false);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const r = await fetch('/api/menu/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      const json = await r.json() as { data?: { url: string }; error?: string };
+      if (!r.ok || !json.data?.url) {
+        alert('Upload failed: ' + (json.error ?? 'unknown error'));
+        return;
+      }
+      setImageUrl(json.data.url);
+    } catch (err) {
+      alert('Upload failed: ' + String(err));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {

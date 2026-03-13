@@ -92,7 +92,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }));
 
   return apiSuccess({
-    _debug: { dbUrl, cats: uniqueCats.length, items: uniqueItems.length },
+    _debug: { dbUrl, tenantId: tenant.tenantId, tenantSlug: tenant.tenantSlug, cats: uniqueCats.length, items: uniqueItems.length },
     tenant: {
       name: tenantData?.name,
       logoUrl: tenantData?.logo_url,

@@ -8,7 +8,7 @@ import {
   UtensilsCrossed, MapPin, Users,
   BarChart3, Settings, CreditCard,
   ChefHat, Menu, X, LogOut,
-  HelpCircle, Bell, ChevronDown
+  HelpCircle, Bell, ChevronDown, ClipboardList
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -19,8 +19,9 @@ const NAV_GROUPS = [
   {
     group: 'OPERATIONS',
     items: [
-      { href: '/admin/orders',   icon: ShoppingBag, label: 'Orders',       badge: true },
-      { href: '/admin/payments', icon: Banknote,    label: 'Payments' },
+      { href: '/admin/orders',   icon: ShoppingBag,    label: 'Orders',       badge: true },
+      { href: '/admin/payments', icon: Banknote,       label: 'Payments' },
+      { href: '/admin/shift',    icon: ClipboardList,  label: 'Shift Summary' },
     ],
   },
   {

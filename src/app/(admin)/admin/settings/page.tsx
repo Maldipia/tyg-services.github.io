@@ -117,7 +117,7 @@ function SettingsPageInner() {
         if (typeof s['requireCustomerPhone'] === 'boolean') setRequirePhone(s['requireCustomerPhone']);
         if (typeof s['vatEnabled'] === 'boolean') setVatEnabled(s['vatEnabled']);
         if (typeof s['vatRate'] === 'number') setVatRate(String(s['vatRate']));
-        if (typeof s['pwdDiscountEnabled'] === 'boolean') setPwdDiscount(s['pwdDiscountEnabled']);
+        if (typeof s['pwdSeniorDiscountEnabled'] === 'boolean') setPwdDiscount(s['pwdSeniorDiscountEnabled']);
         if (typeof s['smsEnabled'] === 'boolean') setSmsEnabled(s['smsEnabled']);
         if (typeof s['receiptFooter'] === 'string') setReceiptFooter(s['receiptFooter']);
       })
@@ -140,7 +140,7 @@ function SettingsPageInner() {
             orderingEnabled, requireCustomerName: requireName,
             requireCustomerPhone: requirePhone, vatEnabled,
             vatRate: parseFloat(vatRate) || 12,
-            pwdDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
+            pwdSeniorDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
           },
         }),
       });

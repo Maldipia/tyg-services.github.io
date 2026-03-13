@@ -19,7 +19,7 @@ const UpdateSettingsSchema = z.object({
     requireCustomerPhone: z.boolean().optional(),
     vatEnabled: z.boolean().optional(),
     vatRate: z.number().min(0).max(30).optional(),
-    pwdDiscountEnabled: z.boolean().optional(),
+    pwdSeniorDiscountEnabled: z.boolean().optional(),
     receiptFooter: z.string().max(300).optional(),
     smsEnabled: z.boolean().optional(),
   }).optional(),

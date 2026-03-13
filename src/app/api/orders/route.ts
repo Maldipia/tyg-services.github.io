@@ -232,7 +232,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const settings = tenantData?.settings as {
     vatEnabled: boolean;
     vatRate: number;
-    pwdDiscountEnabled: boolean;
+    pwdSeniorDiscountEnabled: boolean;
   } | null;
 
   const vatRate = settings?.vatEnabled ? (settings.vatRate ?? 0.12) : 0;
@@ -243,7 +243,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let discountAmount = 0;
   const discountType = input.discountType ?? null;
 
-  if ((discountType === 'PWD' || discountType === 'SENIOR') && settings?.pwdDiscountEnabled !== false) {
+  if ((discountType === 'PWD' || discountType === 'SENIOR') && settings?.pwdSeniorDiscountEnabled !== false) {
     discountPct = 20;
     discountAmount = Math.round(subtotal * 0.20 * 100) / 100;
     // For PWD/Senior: remove VAT on discounted portion, apply 20% off pre-VAT price

@@ -64,8 +64,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
         .select(`
         id, tenant_id, branch_id, status, order_number,
         customer_name, customer_email, customer_phone,
-        total_amount, subtotal_override, vat_amount, discount_amount,
-        discount_type, or_number,
+        total_amount, subtotal_override, vat_amount,
         order_items ( id, item_name, qty, unit_price, line_total, size_label, addon_total, notes )
       `)
         .eq('id', orderId)
@@ -149,11 +148,8 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
         customer_email: string | null;
         customer_phone: string | null;
         total_amount: number;
-        subtotal_override: number;
+        subtotal_override: number | null;
         vat_amount: number;
-        discount_amount: number;
-        discount_type: string | null;
-        or_number: string | null;
         order_items: Array<{ id: string; item_name: string; qty: number; unit_price: number; line_total: number; size_label?: string; addon_total?: number; notes?: string }>;
       };
 

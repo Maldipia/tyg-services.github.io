@@ -82,7 +82,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   );
 
   // Debug: log DB project being used (first 30 chars of URL)
-  const dbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').slice(0, 40);
+  const dbUrl = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'MISSING').slice(0, 40);
   console.log(`[menu] tenant=${tenant.tenantId} cats=${uniqueCats.length} items=${uniqueItems.length} db=${dbUrl}`);
 
   // Build response: group items under categories

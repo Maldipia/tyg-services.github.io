@@ -19,8 +19,13 @@ function getEnv(key: string): string {
 }
 
 // ── Server (Service Role) ────────────────────────────────────
+// Uses SUPABASE_URL (server-only, never inlined at build time).
+// NEXT_PUBLIC_ vars are statically replaced in ALL Next.js bundles at build,
+// so a cached build would have the old URL hardcoded. SUPABASE_URL is runtime-only.
 export function createServiceClient(): SupabaseClient {
-  return createClient(getEnv('NEXT_PUBLIC_SUPABASE_URL'), getEnv('SUPABASE_SERVICE_ROLE_KEY'), {
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) throw new Error('Missing SUPABASE_URL environment variable');
+  return createClient(url, getEnv('SUPABASE_SERVICE_ROLE_KEY'), {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }

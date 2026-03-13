@@ -29,6 +29,7 @@ interface OrderData {
   subtotal: number;
   vatAmount: number;
   discountAmount: number;
+  discountType?: string | null;
   pax: number;
   notes?: string;
   createdAt: string;
@@ -259,7 +260,12 @@ function TrackPageInner() {
             )}
             {order.discountAmount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444', fontSize: 13, marginBottom: 4 }}>
-                <span>Discount</span><span>-₱{order.discountAmount.toFixed(2)}</span>
+                <span>
+                  {order.discountType === 'PWD' ? '♿ PWD Discount (20%)' :
+                   order.discountType === 'SENIOR' ? '👴 Senior Discount (20%)' :
+                   'Discount'}
+                </span>
+                <span>-₱{order.discountAmount.toFixed(2)}</span>
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', color: text, fontSize: 17, fontWeight: 800, marginTop: 8 }}>

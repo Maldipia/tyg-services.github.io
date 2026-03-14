@@ -84,6 +84,11 @@ function onOpen() {
     .addItem('📧  Send Daily Report Email', 'sendDailyReport')
     .addSeparator()
     .addItem('🔧  View Config', 'showConfig')
+    .addSeparator()
+    .addItem('🚀  Autoconfig (first-time setup)', 'autoSetup')
+    .addItem('❤️  Health Check', 'runHealthCheck')
+    .addItem('⚡  Trigger Status', 'showTriggerStatus')
+    .addItem('🗑️  Remove All Triggers', 'removeAllTriggers')
     .addToUi();
 }
 

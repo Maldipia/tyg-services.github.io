@@ -80,7 +80,7 @@ function setupOrdersTab(ss) {
   sh.getRange('L2:L10000').setDataValidation(statusRule);
   // Payment status validation
   const pmtRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(['PENDING','PENDING_VERIFICATION','VERIFIED','FAILED','REFUNDED'])
+    .requireValueInList(['UNPAID','PENDING_VERIFICATION','VERIFIED','FAILED','REJECTED','REFUNDED'])
     .setAllowInvalid(false).build();
   sh.getRange('M2:M10000').setDataValidation(pmtRule);
 }

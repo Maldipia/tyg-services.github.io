@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
 import Link from 'next/link';
 import {
   TrendingUp, ShoppingBag, CheckCircle, XCircle, Clock,
@@ -49,6 +50,7 @@ export default function DashboardPage() {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [bumping, setBumping] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<{ id: string; msg: string }[]>([]);
+  const [stockAlerts, setStockAlerts] = useState<{ name: string; count: number }[]>([]);
 
   useEffect(() => {
     let slug = '';
@@ -88,15 +90,23 @@ export default function DashboardPage() {
         const readyIds = new Set(active.filter((o: Order) => o.table_id && o.status === 'READY').map((o: Order) => o.table_id));
         setTables(allT.slice(0, 14).map(t => ({ id: t.id, name: t.name, status: readyIds.has(t.id) ? 'READY' : occupiedIds.has(t.id) ? 'OCCUPIED' : 'EMPTY' })));
       }
+      // Stock alerts
+      const stockRes = await fetch('/api/menu/stock', { credentials: 'include' });
+      if (stockRes.ok) {
+        const sj = await stockRes.json() as { data?: { outOfStock: {name:string;stock_count:number}[]; lowStock: {name:string;stock_count:number}[] } };
+        const out = (sj.data?.outOfStock ?? []).map(i => ({ name: i.name, count: 0 }));
+        const low = (sj.data?.lowStock ?? []).map(i => ({ name: i.name, count: i.stock_count }));
+        setStockAlerts([...out, ...low]);
+      }
     } catch {/**/} finally { setLoading(false); setRefreshing(false); }
   }, []);
 
   useEffect(() => { if (tenantSlug) void loadOrders(tenantSlug); }, [tenantSlug, loadOrders]);
-  useEffect(() => {
-    if (!tenantSlug) return;
-    const id = setInterval(() => void loadOrders(tenantSlug), 20000);
-    return () => clearInterval(id);
-  }, [tenantSlug, loadOrders]);
+  // Realtime subscription — replaces 20s poll
+  const rtTenantId = typeof window !== 'undefined'
+    ? (() => { try { return (JSON.parse(localStorage.getItem('tyg_session') ?? '{}') as { tenantId?: string }).tenantId ?? ''; } catch { return ''; } })()
+    : '';
+  useRealtimeOrders({ tenantId: rtTenantId, onOrderChange: () => { if (tenantSlug) void loadOrders(tenantSlug); }, fallbackPollMs: 20_000 });
 
   const bumpStatus = async (orderId: string, newStatus: string) => {
     setBumping(orderId);
@@ -164,12 +174,30 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Alert */}
+      {/* Order alerts */}
       {alerts.length > 0 && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 9, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 9, padding: '10px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
           <AlertTriangle size={14} color="#dc2626" />
           <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 700 }}>{alerts.length} alert{alerts.length > 1 ? 's' : ''} —</span>
           <span style={{ fontSize: 12, color: '#7f1d1d' }}>{alerts[0]!.msg}</span>
+        </div>
+      )}
+
+      {/* Stock alerts */}
+      {stockAlerts.length > 0 && (
+        <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 9, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13 }}>📦</span>
+          <span style={{ fontSize: 12, color: '#c2410c', fontWeight: 700 }}>
+            {stockAlerts.filter(a => a.count === 0).length > 0
+              ? `${stockAlerts.filter(a => a.count === 0).length} item${stockAlerts.filter(a => a.count === 0).length > 1 ? 's' : ''} out of stock`
+              : `${stockAlerts.length} low stock`
+            } —
+          </span>
+          <span style={{ fontSize: 12, color: '#9a3412' }}>
+            {stockAlerts.slice(0, 3).map(a => a.count === 0 ? `⛔ ${a.name}` : `🔶 ${a.name} (${a.count} left)`).join(' · ')}
+            {stockAlerts.length > 3 && ` · +${stockAlerts.length - 3} more`}
+          </span>
+          <a href="/admin/menu" style={{ marginLeft: 'auto', fontSize: 12, color: '#c2410c', fontWeight: 600, textDecoration: 'none' }}>Update stock →</a>
         </div>
       )}
 

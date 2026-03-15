@@ -14,6 +14,8 @@ const UpdateItemSchema = z.object({
   isFeatured: z.boolean().optional(),
   imageUrl: z.string().url().nullable().optional(),
   sortOrder: z.number().int().optional(),
+  stockCount: z.number().int().min(0).nullable().optional(),
+  lowStockThreshold: z.number().int().min(0).optional(),
 });
 
 type Params = { params: { id: string } };
@@ -35,6 +37,8 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
     if (parsed.data.isFeatured !== undefined) updatePayload['is_featured'] = parsed.data.isFeatured;
     if (parsed.data.imageUrl !== undefined) updatePayload['image_url'] = parsed.data.imageUrl;
     if (parsed.data.sortOrder !== undefined) updatePayload['sort_order'] = parsed.data.sortOrder;
+    if (parsed.data.stockCount !== undefined) updatePayload['stock_count'] = parsed.data.stockCount;
+    if (parsed.data.lowStockThreshold !== undefined) updatePayload['low_stock_threshold'] = parsed.data.lowStockThreshold;
     const { data, error } = await db.from('menu_items')
       .update(updatePayload)
       .eq('id', params.id).eq('tenant_id', ctx.tenantId)

@@ -149,6 +149,8 @@ export interface MenuItem {
   is_featured: boolean;
   tags: string[];
   metadata: Record<string, unknown>;
+  stock_count: number | null;
+  low_stock_threshold: number;
   // joined
   sizes?: MenuItemSize[];
   addons?: MenuItemAddon[];

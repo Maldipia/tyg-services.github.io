@@ -453,9 +453,23 @@ function MenuItemRow({
         )}
       </div>
 
-      {/* Price */}
-      <div style={{ fontWeight: 800, fontSize: 16, color: '#22c55e', flexShrink: 0 }}>
-        ₱{Number(item.base_price).toFixed(2)}
+      {/* Price + Stock */}
+      <div style={{ flexShrink: 0, textAlign: 'right' }}>
+        <div style={{ fontWeight: 800, fontSize: 16, color: '#22c55e' }}>
+          ₱{Number(item.base_price).toFixed(2)}
+        </div>
+        {item.stock_count != null && (
+          <div style={{
+            fontSize: 11, fontWeight: 600, marginTop: 2,
+            color: item.stock_count === 0 ? '#ef4444'
+                 : item.stock_count <= (item.low_stock_threshold ?? 5) ? '#f97316'
+                 : '#6b7280',
+          }}>
+            {item.stock_count === 0 ? '⛔ Out of stock'
+             : item.stock_count <= (item.low_stock_threshold ?? 5) ? `🔶 ${item.stock_count} left`
+             : `📦 ${item.stock_count} in stock`}
+          </div>
+        )}
       </div>
 
       {/* Status toggle */}
@@ -501,6 +515,8 @@ function ItemFormModal({
   const [status, setStatus] = useState<ItemStatus>(item?.status ?? 'AVAILABLE');
   const [isFeatured, setIsFeatured] = useState(item?.is_featured ?? false);
   const [imageUrl, setImageUrl] = useState<string | null>(item?.image_url ?? null);
+  const [stockCount, setStockCount] = useState<string>(item?.stock_count != null ? String(item.stock_count) : '');
+  const [lowStockThreshold, setLowStockThreshold] = useState<string>(String(item?.low_stock_threshold ?? 5));
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -544,6 +560,8 @@ function ItemFormModal({
         name: name.trim(), description: description.trim() || null,
         basePrice: parseFloat(basePrice), categoryId,
         status, isFeatured, imageUrl,
+        stockCount: stockCount !== '' ? parseInt(stockCount) : null,
+        lowStockThreshold: parseInt(lowStockThreshold) || 5,
       }),
     });
     const json = await r.json() as { error?: string };
@@ -680,6 +698,51 @@ function ItemFormModal({
                 style={{ position:"absolute", top:4, width:16, height:16, borderRadius:"50%", background:"white", boxShadow:"0 1px 3px rgba(0, 0, 0, 0.3)", transition:"left 0.2s", left: isFeatured ? 26 : 4 }}
               />
             </button>
+          </div>
+
+          {/* Stock Tracking */}
+          <div>
+            <label style={labelStyle}>📦 Stock Tracking</label>
+            <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ ...labelStyle, marginBottom: 4 }}>Current Stock</label>
+                  <input
+                    type="number" min="0"
+                    value={stockCount}
+                    onChange={e => setStockCount(e.target.value)}
+                    placeholder="Leave blank = unlimited"
+                    style={{ ...inputStyle, fontSize: 13 }}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    Blank = unlimited · 0 = auto sold-out
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ ...labelStyle, marginBottom: 4 }}>Low Stock Alert</label>
+                  <input
+                    type="number" min="0"
+                    value={lowStockThreshold}
+                    onChange={e => setLowStockThreshold(e.target.value)}
+                    placeholder="5"
+                    style={{ ...inputStyle, fontSize: 13 }}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    Warn when stock ≤ this
+                  </div>
+                </div>
+              </div>
+              {stockCount !== '' && parseInt(stockCount) === 0 && (
+                <div style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
+                  ⚠️ Stock is 0 — item will be auto-marked Sold Out
+                </div>
+              )}
+              {stockCount !== '' && parseInt(stockCount) > 0 && parseInt(stockCount) <= parseInt(lowStockThreshold || '5') && (
+                <div style={{ fontSize: 12, color: '#f97316', fontWeight: 600 }}>
+                  🔶 Low stock warning — only {stockCount} left
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

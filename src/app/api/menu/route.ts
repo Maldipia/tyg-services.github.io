@@ -85,7 +85,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
     const [categories, items] = await Promise.all([
       pgGet<RawCategory>(`menu_categories?${catFilter}&select=id,name,description,image_url,sort_order`),
-      pgGet<RawItem>(`menu_items?${itemFilter}&select=id,category_id,name,description,image_url,base_price,status,sort_order,is_featured,tags`),
+      pgGet<RawItem>(`menu_items?${itemFilter}&select=id,category_id,name,description,image_url,base_price,status,sort_order,is_featured,tags,stock_count,low_stock_threshold`),
     ]);
 
     // ── 3. Sizes & Addons (batch by item IDs) ───────────────

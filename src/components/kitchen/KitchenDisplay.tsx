@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { OrderStatus } from '@/types';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
 
 interface KitchenItem {
   id: string;
@@ -57,7 +58,6 @@ export default function KitchenDisplay({ branchId, tenantName }: Props) {
   const [orders,  setOrders]  = useState<KitchenOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [tick,    setTick]    = useState(0);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchOrders = useCallback(async () => {
@@ -78,12 +78,11 @@ export default function KitchenDisplay({ branchId, tenantName }: Props) {
   // Initial load
   useEffect(() => { void fetchOrders(); }, [fetchOrders]);
 
-  // Poll every 10s
-  useEffect(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(() => void fetchOrders(), 10_000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [fetchOrders]);
+  // Realtime subscription — replaces 10s poll (falls back to 10s if disconnected)
+  const tenantId = typeof window !== 'undefined'
+    ? (() => { try { return (JSON.parse(localStorage.getItem('tyg_session') ?? '{}') as { tenantId?: string }).tenantId ?? ''; } catch { return ''; } })()
+    : '';
+  useRealtimeOrders({ tenantId, onOrderChange: fetchOrders, fallbackPollMs: 10_000, includeItems: true });
 
   // Tick every 30s to update "minutes ago"
   useEffect(() => {
@@ -152,7 +151,7 @@ export default function KitchenDisplay({ branchId, tenantName }: Props) {
         </div>
         <div style={s.live}>
           <span style={s.dot} />
-          Live · 10s poll
+          Realtime ✨
         </div>
       </div>
 

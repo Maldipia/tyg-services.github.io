@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Order, OrderStatus, PaymentStatus } from '@/types';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   PENDING:   '⏳ Pending',
@@ -105,7 +106,6 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [dateTo,      setDateTo]      = useState(() => new Date(Date.now() + 8*3600000).toISOString().slice(0,10));
   const knownIdsRef  = useRef<Set<string>>(new Set());
   const isFirstLoad  = useRef(true);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     let slug = '';
@@ -163,13 +163,15 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
   useEffect(() => { if (tenantSlug) void fetchOrders(tenantSlug); }, [tenantSlug, filter, dateFrom, dateTo, search, fetchOrders]);
 
-  // Poll every 15 s for live updates
-  useEffect(() => {
-    if (!tenantSlug) return;
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(() => void fetchOrders(tenantSlug), 15_000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [tenantSlug, fetchOrders]);
+  // Realtime subscription — replaces 15s poll (falls back to 15s if disconnected)
+  const rtTenantId = typeof window !== 'undefined'
+    ? (() => { try { return (JSON.parse(localStorage.getItem('tyg_session') ?? '{}') as { tenantId?: string }).tenantId ?? ''; } catch { return ''; } })()
+    : '';
+  useRealtimeOrders({
+    tenantId: rtTenantId,
+    onOrderChange: () => { if (tenantSlug) void fetchOrders(tenantSlug); },
+    fallbackPollMs: 15_000,
+  });
 
   const bumpStatus = async (orderId: string, next: OrderStatus | 'CANCELLED', reason?: string, paymentStatus?: string) => {
     // Guard: warn if completing an unpaid order (cashier oversight prevention)

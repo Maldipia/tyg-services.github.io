@@ -14,11 +14,11 @@ import { createServiceClient } from '@/lib/supabase/client';
 export async function GET(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(req, async (request, ctx) => {
     const { searchParams } = new URL(request.url);
-    const dateStr = searchParams.get('date'); // YYYY-MM-DD in PH time
+    const rawDate = searchParams.get('date');
 
-    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return apiError('date parameter required (YYYY-MM-DD)', 400);
-    }
+    // Default to today in PH time (UTC+8) when date omitted — matches orders list behaviour
+    const phToday = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+    const dateStr = (rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) ? rawDate : phToday;
 
     const db = createServiceClient();
 

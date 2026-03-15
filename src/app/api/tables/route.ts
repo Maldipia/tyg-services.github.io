@@ -16,12 +16,41 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get('tenant');
   if (!slug) return apiError('tenant param required', 400);
+
+  // ?token=QR_TOKEN — public single-table resolve for order page
+  const tokenParam = searchParams.get('token');
+  if (tokenParam) {
+    const db = createServiceClient();
+    const tenant = await resolveTenant(slug);
+    if (!tenant) return apiError('Tenant not found', 404);
+    const { data } = await db
+      .from('restaurant_tables')
+      .select('id, name, branch_id')
+      .eq('tenant_id', tenant.tenantId)
+      .eq('qr_token', tokenParam)
+      .eq('is_active', true)
+      .single();
+    if (!data) return apiError('Table not found', 404);
+    return apiSuccess(data); // Only id+name — no qr_token in response
+  }
+
   const db = createServiceClient();
   const tenant = await resolveTenant(slug);
   if (!tenant) return apiError('Tenant not found', 404);
+
+  // Check for staff session — staff get qr_tokens, public callers do not
+  const { validateStaffSession } = await import('@/lib/auth/staff-auth');
+  const sessionToken = req.cookies.get('tyg-staff-session')?.value;
+  const session = sessionToken ? await validateStaffSession(sessionToken) : null;
+  const isStaff = session !== null && session.tenantId === tenant.tenantId;
+
+  const selectFields = isStaff
+    ? 'id, name, capacity, is_active, qr_token, branch_id'
+    : 'id, name, capacity, is_active, branch_id'; // qr_token withheld from public
+
   const { data, error } = await db
     .from('restaurant_tables')
-    .select('id, name, capacity, is_active, qr_token, branch_id')
+    .select(selectFields)
     .eq('tenant_id', tenant.tenantId)
     .eq('is_active', true)
     .order('name');

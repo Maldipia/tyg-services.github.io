@@ -94,13 +94,12 @@ function OrderPageInner() {
           },
         });
         setActiveCategory(res.data.categories?.[0]?.id ?? null);
-        // Resolve table name from token if present
+        // Resolve table name from token if present — use single-token endpoint (no enumeration)
         if (tableToken) {
-          fetch(`/api/tables?tenant=${encodeURIComponent(tenantSlug)}`)
+          fetch(`/api/tables?tenant=${encodeURIComponent(tenantSlug)}&token=${encodeURIComponent(tableToken)}`)
             .then(r => r.json())
-            .then((tr: { data?: Array<{qr_token:string;name:string}> }) => {
-              const match = (tr.data ?? []).find(t => t.qr_token === tableToken);
-              if (match) setTableName(match.name);
+            .then((tr: { data?: {name:string} }) => {
+              if (tr.data?.name) setTableName(tr.data.name);
             })
             .catch(() => {/**/});
         }

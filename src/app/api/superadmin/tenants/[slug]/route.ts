@@ -9,7 +9,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } }
 ): Promise<NextResponse> {
-  if (!verifySuperAdmin(req)) return superAdminUnauthorized();
+  if (!await verifySuperAdmin(req)) return superAdminUnauthorized();
 
   const db = createServiceClient();
   const { slug } = params;
@@ -71,7 +71,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { slug: string } }
 ): Promise<NextResponse> {
-  if (!verifySuperAdmin(req)) return superAdminUnauthorized();
+  if (!await verifySuperAdmin(req)) return superAdminUnauthorized();
 
   const db = createServiceClient();
   const { slug } = params;

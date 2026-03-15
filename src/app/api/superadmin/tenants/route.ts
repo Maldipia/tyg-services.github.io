@@ -5,7 +5,7 @@ import { verifySuperAdmin, superAdminUnauthorized } from '@/lib/auth/superadmin'
 import { createServiceClient } from '@/lib/supabase/client';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  if (!verifySuperAdmin(req)) return superAdminUnauthorized();
+  if (!await verifySuperAdmin(req)) return superAdminUnauthorized();
 
   const db = createServiceClient();
 

@@ -2,7 +2,7 @@
 
 const securityHeaders = [
   // Prevent clickjacking
-  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  { key: 'X-Frame-Options', value: 'DENY' },
   // Prevent MIME sniffing
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   // XSS protection (legacy browsers)
@@ -25,7 +25,7 @@ const securityHeaders = [
       // Fonts
       "font-src 'self' https://fonts.gstatic.com",
       // Images: self + Supabase storage + data URIs
-      "img-src 'self' data: blob: https://srgimbdbyrrijlppvkrn.supabase.co",
+      "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://api.qrserver.com",
       // Connect: self + Supabase (REST + Realtime) + PayMongo
       "connect-src 'self' https://srgimbdbyrrijlppvkrn.supabase.co wss://srgimbdbyrrijlppvkrn.supabase.co https://api.paymongo.com https://*.upstash.io",
       // Frames: same origin only

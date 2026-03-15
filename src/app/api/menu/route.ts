@@ -76,19 +76,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const tid = tenant.tenantId;
 
   try {
-    // ── 1. Categories ───────────────────────────────────────
-    let catFilter = `tenant_id=eq.${tid}&is_active=eq.true&order=sort_order`;
-    if (branchId) {
-      catFilter += `&or=(branch_id.eq.${branchId},branch_id.is.null)`;
-    }
-    const categories = await pgGet<RawCategory>(`menu_categories?${catFilter}&select=id,name,description,image_url,sort_order`);
-
-    // ── 2. Items ────────────────────────────────────────────
+    // ── 1+2. Categories + Items in parallel ─────────────────
+    let catFilter  = `tenant_id=eq.${tid}&is_active=eq.true&order=sort_order`;
     let itemFilter = `tenant_id=eq.${tid}&status=neq.HIDDEN&order=sort_order`;
     if (branchId) {
+      catFilter  += `&or=(branch_id.eq.${branchId},branch_id.is.null)`;
       itemFilter += `&or=(branch_id.eq.${branchId},branch_id.is.null)`;
     }
-    const items = await pgGet<RawItem>(`menu_items?${itemFilter}&select=id,category_id,name,description,image_url,base_price,status,sort_order,is_featured,tags`);
+    const [categories, items] = await Promise.all([
+      pgGet<RawCategory>(`menu_categories?${catFilter}&select=id,name,description,image_url,sort_order`),
+      pgGet<RawItem>(`menu_items?${itemFilter}&select=id,category_id,name,description,image_url,base_price,status,sort_order,is_featured,tags`),
+    ]);
 
     // ── 3. Sizes & Addons (batch by item IDs) ───────────────
     let sizes:  RawSize[]  = [];

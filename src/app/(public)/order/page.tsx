@@ -61,6 +61,9 @@ function OrderPageInner() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [pax, setPax] = useState(1);
+  const [pwdCount, setPwdCount] = useState(0);
+  const [seniorCount, setSeniorCount] = useState(0);
+  const [orderType, setOrderType] = useState<'DINE_IN'|'TAKEOUT'>('DINE_IN');
   const [notes, setNotes] = useState('');
   const [discountType, setDiscountType] = useState<'PWD' | 'SENIOR' | null>(null);
   const [tableName,  setTableName]      = useState<string | null>(null);
@@ -142,7 +145,17 @@ function OrderPageInner() {
           pax,
           notes: notes.trim() || undefined,
           discountType: discountType ?? undefined,
-          items: cart.map((item) => ({ itemId: item.itemId, sizeId: item.sizeId ?? undefined, qty: item.qty, addonIds: [], notes: item.notes })),
+          items: cart.map((item) => ({
+            itemId: item.itemId,
+            sizeId: item.sizeId ?? undefined,
+            qty: item.qty,
+            addonIds: [],
+            notes: item.notes,
+            ...(item.sugarLevel ? { sugarLevel: item.sugarLevel } : {}),
+          })),
+          pwdCount: discountType === 'PWD' ? pwdCount || 1 : 0,
+          seniorCount: discountType === 'SENIOR' ? seniorCount || 1 : 0,
+          orderType,
         }),
       });
       const data = await res.json() as { data: PlacedOrder | null; error: string | null };
@@ -251,6 +264,8 @@ function OrderPageInner() {
           customerName={customerName} customerPhone={customerPhone} customerEmail={customerEmail}
           onChangeEmail={setCustomerEmail} pax={pax} notes={notes}
           discountType={discountType} onChangeDiscount={setDiscountType}
+          orderType={orderType} pwdCount={pwdCount} seniorCount={seniorCount}
+          onChangeOrderType={setOrderType} onChangePwdCount={setPwdCount} onChangeSeniorCount={setSeniorCount}
           onChangeName={setCustomerName} onChangePhone={setCustomerPhone}
           onChangePax={setPax} onChangeNotes={setNotes}
           onBack={() => setStep('menu')} onSubmit={() => placeOrder()}

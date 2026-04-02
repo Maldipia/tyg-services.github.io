@@ -9,7 +9,7 @@ import {
   BarChart3, Settings, CreditCard,
   ChefHat, Menu, X, LogOut,
   HelpCircle, Bell, ChevronDown, ClipboardList,
-  CalendarDays, Wallet, RotateCcw, Tag
+  CalendarDays, Wallet, RotateCcw, Tag, Package
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -35,6 +35,7 @@ const NAV_GROUPS = [
       { href: '/admin/tables',      icon: MapPin,          label: 'Tables & QR' },
       { href: '/admin/staff',       icon: Users,           label: 'Staff & Roles' },
       { href: '/admin/promo-codes', icon: Tag,             label: 'Promo Codes' },
+      { href: '/admin/inventory',  icon: Package,         label: 'Inventory' },
     ],
   },
   {

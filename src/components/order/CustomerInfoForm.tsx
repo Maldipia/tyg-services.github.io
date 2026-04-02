@@ -3,13 +3,19 @@ import React from 'react';
 
 type DiscountType = 'PWD' | 'SENIOR' | null;
 
+type OrderType = 'DINE_IN' | 'TAKEOUT';
+
 interface Props {
   customerName: string; customerPhone: string; customerEmail: string;
   pax: number; notes: string;
   discountType: DiscountType;
+  orderType: OrderType;
+  pwdCount: number; seniorCount: number;
   onChangeName: (v: string) => void; onChangePhone: (v: string) => void;
   onChangeEmail: (v: string) => void; onChangePax: (v: number) => void;
   onChangeNotes: (v: string) => void; onChangeDiscount: (v: DiscountType) => void;
+  onChangeOrderType: (v: OrderType) => void;
+  onChangePwdCount: (v: number) => void; onChangeSeniorCount: (v: number) => void;
   onBack: () => void; onSubmit: () => void;
   submitting: boolean; cartTotal: number;
 }
@@ -23,11 +29,17 @@ const DISCOUNT_PCT = 0.20; // PH law: 20% for PWD & Senior Citizens
 
 export default function CustomerInfoForm({
   customerName, customerPhone, customerEmail, pax, notes, discountType,
+  orderType, pwdCount, seniorCount,
   onChangeName, onChangePhone, onChangeEmail, onChangePax, onChangeNotes,
-  onChangeDiscount, onBack, onSubmit, submitting, cartTotal,
+  onChangeDiscount, onChangeOrderType, onChangePwdCount, onChangeSeniorCount,
+  onBack, onSubmit, submitting, cartTotal,
 }: Props) {
   const canSubmit = customerName.trim().length > 0 && !submitting;
-  const discountAmt = discountType ? cartTotal * DISCOUNT_PCT : 0;
+  // Per-pax TRAIN Law: qualifying pax proportion × 20%
+  const qualifyingPax = Math.min(pwdCount + seniorCount, pax);
+  const discountAmt = (discountType && qualifyingPax > 0)
+    ? Math.round((cartTotal / 1.12) / pax * qualifyingPax * DISCOUNT_PCT * 100) / 100
+    : 0;
   const finalTotal = cartTotal - discountAmt;
 
   const lbl = (text: string, opt?: string): React.ReactNode => (
@@ -113,6 +125,55 @@ export default function CustomerInfoForm({
             </p>
           )}
         </div>
+
+        {/* Order Type — Dine-In / Takeout */}
+        <div style={{ marginBottom: 18 }}>
+          {lbl('Order Type')}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {(['DINE_IN', 'TAKEOUT'] as const).map(t => (
+              <button key={t} onClick={() => onChangeOrderType(t)} style={{
+                flex: 1, padding: '10px 0', borderRadius: 10, fontWeight: 600, fontSize: 13,
+                cursor: 'pointer', transition: 'all 0.15s',
+                background: orderType === t ? '#f0fdf4' : '#f9fafb',
+                color: orderType === t ? '#16a34a' : '#6b7280',
+                border: `1.5px solid ${orderType === t ? '#16a34a' : '#e5e7eb'}`,
+              }}>
+                {t === 'DINE_IN' ? '🪑 Dine-In' : '🥡 Takeout'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Per-pax count when discount selected */}
+        {discountType && (
+          <div style={{ marginBottom: 18, background: '#fffbeb', borderRadius: 12, padding: '12px 16px', border: '1px solid #fde68a' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e', marginBottom: 10 }}>
+              How many qualifying guests? (out of {pax})
+            </div>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              {discountType === 'PWD' && (
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, color: '#92400e', marginBottom: 6 }}>♿ PWD</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button onClick={() => onChangePwdCount(Math.max(0, pwdCount - 1))} style={{ width:32, height:32, borderRadius:'50%', background:'#fef3c7', border:'none', fontWeight:700, cursor:'pointer' }}>−</button>
+                    <span style={{ fontWeight:700, fontSize:18, width:24, textAlign:'center' }}>{pwdCount}</span>
+                    <button onClick={() => onChangePwdCount(Math.min(pax, pwdCount + 1))} style={{ width:32, height:32, borderRadius:'50%', background:'#fef3c7', border:'none', fontWeight:700, cursor:'pointer' }}>+</button>
+                  </div>
+                </div>
+              )}
+              {discountType === 'SENIOR' && (
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, color: '#92400e', marginBottom: 6 }}>👴 Senior</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button onClick={() => onChangeSeniorCount(Math.max(0, seniorCount - 1))} style={{ width:32, height:32, borderRadius:'50%', background:'#fef3c7', border:'none', fontWeight:700, cursor:'pointer' }}>−</button>
+                    <span style={{ fontWeight:700, fontSize:18, width:24, textAlign:'center' }}>{seniorCount}</span>
+                    <button onClick={() => onChangeSeniorCount(Math.min(pax, seniorCount + 1))} style={{ width:32, height:32, borderRadius:'50%', background:'#fef3c7', border:'none', fontWeight:700, cursor:'pointer' }}>+</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Notes */}
         <div style={{ marginBottom: 20 }}>

@@ -181,6 +181,8 @@ export interface CartItem {
   addons: Array<{ label: string; price: number }>;
   addonTotal: number;
   notes: string;
+  sugarLevel?: 'GROUNDED' | 'YANI' | 'COMFORT' | 'FULL_SWEET' | null;
+  hasSugarLevel?: boolean;
 }
 
 // ── Order Item ────────────────────────────────────────────────

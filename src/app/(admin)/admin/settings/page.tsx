@@ -78,6 +78,7 @@ function SettingsPageInner() {
   const [requirePhone, setRequirePhone] = useState(false);
   const [vatEnabled, setVatEnabled] = useState(true);
   const [vatRate, setVatRate] = useState('12');
+  const [serviceChargeRate, setServiceChargeRate] = useState('0');
   const [pwdDiscount, setPwdDiscount] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
 
@@ -117,6 +118,7 @@ function SettingsPageInner() {
         if (typeof s['requireCustomerPhone'] === 'boolean') setRequirePhone(s['requireCustomerPhone']);
         if (typeof s['vatEnabled'] === 'boolean') setVatEnabled(s['vatEnabled']);
         if (typeof s['vatRate'] === 'number') setVatRate(String(s['vatRate']));
+        if (typeof s['serviceChargeRate'] === 'number') setServiceChargeRate(String((s['serviceChargeRate'] as number) * 100));
         if (typeof s['pwdSeniorDiscountEnabled'] === 'boolean') setPwdDiscount(s['pwdSeniorDiscountEnabled']);
         if (typeof s['smsEnabled'] === 'boolean') setSmsEnabled(s['smsEnabled']);
         if (typeof s['receiptFooter'] === 'string') setReceiptFooter(s['receiptFooter']);
@@ -140,6 +142,7 @@ function SettingsPageInner() {
             orderingEnabled, requireCustomerName: requireName,
             requireCustomerPhone: requirePhone, vatEnabled,
             vatRate: parseFloat(vatRate) || 12,
+            serviceChargeRate: (parseFloat(serviceChargeRate) || 0) / 100,
             pwdSeniorDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
           },
         }),
@@ -409,6 +412,21 @@ function SettingsPageInner() {
                 value={pwdDiscount}
                 onChange={setPwdDiscount}
               />
+              <div>
+                <label style={labelStyle}>Service Charge (%)</label>
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <input
+                    type="number" min="0" max="50" step="0.5"
+                    style={{ ...inputStyle, maxWidth: 120 }}
+                    value={serviceChargeRate}
+                    onChange={e => setServiceChargeRate(e.target.value)}
+                    placeholder="0"
+                  />
+                  <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+                    % added to dine-in orders (not applied on PWD/Senior)
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 

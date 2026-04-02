@@ -17,11 +17,12 @@ import { logEvent } from '@/lib/logger';
 // ── Request Validation Schema ────────────────────────────────
 // Prices are intentionally NOT accepted from client — server re-fetches
 const CartItemSchema = z.object({
-  itemId: z.string().uuid('Invalid item ID'),
-  sizeId: z.string().uuid().nullable().optional(),
-  qty: z.number().int().min(1).max(20),
-  addonIds: z.array(z.string().uuid()).max(10).optional().default([]),
-  notes: z.string().max(200).optional().default(''),
+  itemId:     z.string().uuid('Invalid item ID'),
+  sizeId:     z.string().uuid().nullable().optional(),
+  qty:        z.number().int().min(1).max(20),
+  addonIds:   z.array(z.string().uuid()).max(10).optional().default([]),
+  notes:      z.string().max(200).optional().default(''),
+  sugarLevel: z.enum(['GROUNDED','YANI','COMFORT','FULL_SWEET']).optional(),
 });
 
 const CreateOrderSchema = z.object({
@@ -34,7 +35,14 @@ const CreateOrderSchema = z.object({
   items: z.array(CartItemSchema).min(1).max(30),
   notes: z.string().max(500).optional(),
   isTest: z.boolean().optional().default(false),
-  discountType: z.enum(['PWD', 'SENIOR', 'PROMO', 'CUSTOM']).optional(),
+  discountType:  z.enum(['PWD', 'SENIOR', 'PROMO', 'CUSTOM']).optional(),
+  pwdCount:      z.number().int().min(0).max(50).default(0),   // how many PWD in party
+  seniorCount:   z.number().int().min(0).max(50).default(0),   // how many seniors in party
+  promoCode:     z.string().max(30).trim().toUpperCase().optional(),
+  orderType:     z.enum(['DINE_IN','TAKEOUT','DELIVERY']).default('DINE_IN'),
+  deliveryAddress: z.string().max(300).optional(),
+  deliveryFee:   z.number().min(0).max(9999).optional(),
+  deliveryZone:  z.string().max(50).optional(),
 });
 
 export function OPTIONS() {
@@ -233,6 +241,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     vatEnabled: boolean;
     vatRate: number;
     pwdSeniorDiscountEnabled: boolean;
+    serviceChargeRate?: number;  // e.g. 0.10 for 10%
   } | null;
 
   const vatRate = settings?.vatEnabled ? (settings.vatRate ?? 0.12) : 0;
@@ -247,12 +256,53 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // TRAIN Law PWD/Senior: 20% off pre-VAT base price, then VAT-exempt.
   // The DB trigger `order_items_recalc` is the authoritative calculator — it runs AFTER
   // items insert and overwrites totals. We pass placeholder values here; always re-fetch.
-  if ((discountType === 'PWD' || discountType === 'SENIOR') && settings?.pwdSeniorDiscountEnabled !== false) {
+  const pwdCount    = input.pwdCount ?? 0;
+  const seniorCount = input.seniorCount ?? 0;
+  const qualifyingPax = Math.min(pwdCount + seniorCount, input.pax); // can't exceed total pax
+
+  if ((discountType === 'PWD' || discountType === 'SENIOR') && settings?.pwdSeniorDiscountEnabled !== false && qualifyingPax > 0) {
     discountPct = 20;
-    // Pre-VAT base (TRAIN Law basis for the 20% discount)
+    // TRAIN Law: discount is per qualifying person's proportional share
+    // e.g. 1 PWD out of 3 pax, bill ₱600: ₱600 ÷ 3 × 20% = ₱40 discount
     const preVatBase = Math.round(subtotal / (1 + vatRate) * 100) / 100;
-    discountAmount = Math.round(preVatBase * 0.20 * 100) / 100;
+    const perPersonBase = Math.round(preVatBase / input.pax * 100) / 100;
+    discountAmount = Math.round(perPersonBase * qualifyingPax * 0.20 * 100) / 100;
   }
+
+  // ── Promo code discount ──────────────────────────────────────
+  let promoCodeId: string | null = null;
+  let promoCodeStr: string | null = input.promoCode ?? null;
+  if (promoCodeStr && !discountType) {
+    const { data: promo } = await db.from('promo_codes')
+      .select('id, discount_type, discount_value, usage_limit, usage_count, expires_at, min_order_amount, is_active')
+      .eq('tenant_id', tenant.tenantId).eq('code', promoCodeStr).eq('is_active', true).maybeSingle();
+    if (promo) {
+      const now = new Date();
+      const valid = (!promo.expires_at || new Date(promo.expires_at) > now)
+        && (promo.usage_limit === null || promo.usage_count < promo.usage_limit)
+        && subtotal >= (promo.min_order_amount ?? 0);
+      if (valid) {
+        const promoDisc = promo.discount_type === 'PERCENT'
+          ? Math.round(subtotal * (promo.discount_value / 100) * 100) / 100
+          : Math.min(promo.discount_value, subtotal);
+        discountAmount += promoDisc;
+        discountPct = promo.discount_type === 'PERCENT' ? promo.discount_value : 0;
+        promoCodeId = promo.id;
+        // Increment usage count
+        await db.from('promo_codes').update({ usage_count: promo.usage_count + 1 }).eq('id', promo.id);
+      } else {
+        promoCodeStr = null; // invalid, don't record
+      }
+    } else {
+      promoCodeStr = null;
+    }
+  }
+
+  // ── Service charge ────────────────────────────────────────────
+  const serviceChargeRate = (settings?.serviceChargeRate ?? 0);
+  const serviceChargeAmt = (discountType === 'PWD' || discountType === 'SENIOR')
+    ? 0  // no service charge on PWD/Senior orders per PH law
+    : Math.round(subtotal * serviceChargeRate * 100) / 100;
 
   const prefix = ((tenantData?.slug as string | undefined) ?? 'ORD').toUpperCase().slice(0, 6);
 
@@ -282,6 +332,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       discount_type: discountType,
       discount_pct: discountPct,
       discount_amount: discountAmount,
+      promo_code_id: promoCodeId,
+      promo_code: promoCodeStr,
+      order_type: input.orderType ?? 'DINE_IN',
+      delivery_address: input.deliveryAddress ?? null,
+      delivery_fee: input.deliveryFee ?? 0,
+      delivery_zone: input.deliveryZone ?? null,
+      pwd_count: input.pwdCount ?? 0,
+      senior_count: input.seniorCount ?? 0,
     })
     .select('id, order_number, status, payment_status, created_at')
     .single();
@@ -293,8 +351,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // Insert order items (line_total is GENERATED — do NOT insert it)
   // The order_items_recalc trigger fires AFTER this insert and corrects order totals.
-  const itemInserts = pricedItems.map((item) => ({
+  const itemInserts = pricedItems.map((item, idx) => ({
     tenant_id: item.tenant_id,
+    sugar_level: (input.items[idx]?.sugarLevel ?? null) as string | null,
     order_id: order.id,
     item_id: item.item_id,
     size_id: item.size_id,

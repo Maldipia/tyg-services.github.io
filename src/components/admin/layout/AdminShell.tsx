@@ -8,7 +8,8 @@ import {
   UtensilsCrossed, MapPin, Users,
   BarChart3, Settings, CreditCard,
   ChefHat, Menu, X, LogOut,
-  HelpCircle, Bell, ChevronDown, ClipboardList
+  HelpCircle, Bell, ChevronDown, ClipboardList,
+  CalendarDays, Wallet, RotateCcw, Tag
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -19,17 +20,21 @@ const NAV_GROUPS = [
   {
     group: 'OPERATIONS',
     items: [
-      { href: '/admin/orders',   icon: ShoppingBag,    label: 'Orders',       badge: true },
-      { href: '/admin/payments', icon: Banknote,       label: 'Payments' },
-      { href: '/admin/shift',    icon: ClipboardList,  label: 'Shift Summary' },
+      { href: '/admin/orders',        icon: ShoppingBag,    label: 'Orders',        badge: true },
+      { href: '/admin/payments',      icon: Banknote,       label: 'Payments' },
+      { href: '/admin/cash-sessions', icon: Wallet,         label: 'Cash Sessions' },
+      { href: '/admin/refunds',       icon: RotateCcw,      label: 'Refunds' },
+      { href: '/admin/reservations',  icon: CalendarDays,   label: 'Reservations' },
+      { href: '/admin/shift',         icon: ClipboardList,  label: 'Shift Summary' },
     ],
   },
   {
     group: 'MANAGEMENT',
     items: [
-      { href: '/admin/menu',   icon: UtensilsCrossed, label: 'Menu & Pricing' },
-      { href: '/admin/tables', icon: MapPin,          label: 'Tables & QR' },
-      { href: '/admin/staff',  icon: Users,           label: 'Staff & Roles' },
+      { href: '/admin/menu',        icon: UtensilsCrossed, label: 'Menu & Pricing' },
+      { href: '/admin/tables',      icon: MapPin,          label: 'Tables & QR' },
+      { href: '/admin/staff',       icon: Users,           label: 'Staff & Roles' },
+      { href: '/admin/promo-codes', icon: Tag,             label: 'Promo Codes' },
     ],
   },
   {

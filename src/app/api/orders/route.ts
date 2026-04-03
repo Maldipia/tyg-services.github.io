@@ -424,9 +424,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           .in('status', ['PENDING','CONFIRMED','PREPARING'])
           .eq('is_test', false);
         const eta = count && count > 1 ? (8 + (count - 1) * 3) : 8;
-        const tenantName = (tenantData?.settings as { businessName?: string } | null)?.businessName
-          ?? tenantData?.slug ?? 'TYG POS';
-        await sendSMS(input.customerPhone, orderCreatedSMS(orderNumber as string, tenantName, eta));
+        const tenantName = ((tenantData?.settings as { businessName?: string } | null)?.businessName)
+          ?? (tenantData?.slug ?? 'TYG POS') as string;
+        await sendSMS(input.customerPhone!, orderCreatedSMS(orderNumber as string, tenantName, eta));
       } catch { /* non-fatal */ }
     })();
   }

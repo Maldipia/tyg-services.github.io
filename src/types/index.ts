@@ -151,6 +151,7 @@ export interface MenuItem {
   metadata: Record<string, unknown>;
   stock_count: number | null;
   low_stock_threshold: number;
+  has_sugar_level: boolean;
   // joined
   sizes?: MenuItemSize[];
   addons?: MenuItemAddon[];

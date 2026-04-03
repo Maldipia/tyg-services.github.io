@@ -18,6 +18,7 @@ interface Totals {
 }
 
 const RANGE_LABELS: Record<Range, string> = { '1d':'Today', '7d':'7 Days', '30d':'30 Days', '90d':'90 Days' };
+interface StaffPerfItem { staffId:string; displayName:string; role:string; ordersCompleted:number; totalRevenue:number; paymentsVerified:number; }
 interface HourlyCell { day_of_week: number; hour_of_day: number; order_count: number; total_revenue: number; }
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
@@ -39,8 +40,8 @@ export default function AnalyticsPage() {
   const [tenantSlug, setTenantSlug] = useState('');
   const [today, setToday]           = useState(0); // today completed orders
   const [hourly, setHourly]           = useState<HourlyCell[]>([]);
-  const [staffPerf, setStaffPerf]     = useState<{staffId:string;displayName:string;role:string;ordersCompleted:number;totalRevenue:number;paymentsVerified:number}[]>([]);
-  const [cancelReasons, setCancelReasons] = useState<{reason:string;count:number}[]>([]);
+  const [staffPerf, setStaffPerf]     = useState<StaffPerfItem[]>([]);
+  const [cancelReasons, setCancelReasons] = useState<Array<{reason:string;count:number}>>([]);
   const [activeTab, setActiveTab]     = useState<'overview'|'staff'|'cancels'>('overview');
 
   useEffect(() => {
@@ -72,23 +73,23 @@ export default function AnalyticsPage() {
         setToday(data.todayCompletedOrders ?? 0);
         setHourly((data as Record<string,unknown>)['heatmap'] as HourlyCell[] ?? []);
       }
-      // Also fetch staff performance + cancel reasons in parallel
+      // Parallel: staff performance + cancellations
       const [spRes, crRes] = await Promise.all([
-        fetch(`/api/analytics/staff-performance?tenantSlug=${slug}&range=${r}`, { credentials:'include' }),
-        fetch(`/api/orders?tenantSlug=${slug}&status=CANCELLED&limit=200`, { credentials:'include' }),
+        fetch('/api/analytics/staff-performance?tenantSlug=' + slug + '&range=' + r, { credentials:'include' }),
+        fetch('/api/orders?tenantSlug=' + slug + '&status=CANCELLED&limit=200', { credentials:'include' }),
       ]);
       if (spRes.ok) {
-        const sp = await spRes.json() as {data?:{staff:{staffId:string;displayName:string;role:string;ordersCompleted:number;totalRevenue:number;paymentsVerified:number}[]}};
+        const sp = (await spRes.json()) as { data?: { staff: StaffPerfItem[] } };
         setStaffPerf(sp.data?.staff ?? []);
       }
       if (crRes.ok) {
-        const cr = await crRes.json() as {data?:{cancel_reason?:string}[]};
-        const counts: Record<string,number> = {};
-        for (const o of cr.data ?? []) {
-          const r2 = (o.cancel_reason as string|null) ?? 'No reason given';
-          counts[r2] = (counts[r2] ?? 0) + 1;
+        const cr = (await crRes.json()) as { data?: Array<{ cancel_reason?: string }> };
+        const counts: Record<string, number> = {};
+        for (const o of (cr.data ?? [])) {
+          const key = o.cancel_reason ?? 'No reason given';
+          counts[key] = (counts[key] ?? 0) + 1;
         }
-        setCancelReasons(Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([reason,count])=>({reason,count})));
+        setCancelReasons(Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([reason, count]) => ({ reason, count })));
       }
     } catch{/**/} finally { setLoading(false); }
   }, []);
@@ -142,57 +143,10 @@ export default function AnalyticsPage() {
         </button>
       </div>
 
-      {/* Tab selector */}
-      <div style={{ display:'flex', gap:8, marginBottom:20 }}>
-        {([['overview','📊 Overview'],['staff','👥 Staff'],['cancels','❌ Cancels']] as const).map(([tab,label]) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            padding:'6px 16px', borderRadius:8, border:'1px solid var(--border)', cursor:'pointer',
-            background: activeTab===tab ? '#16a34a' : 'var(--surface)',
-            color: activeTab===tab ? '#fff' : 'var(--text-muted)',
-            fontWeight:600, fontSize:13,
-          }}>{label}</button>
-        ))}
-      </div>
-
       {loading ? (
         <div style={{ padding:60, textAlign:'center', color:'var(--text-muted)' }}>Loading analytics…</div>
       ) : (
         <>
-        {activeTab === 'staff' && (
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, overflow:'hidden', marginBottom:20 }}>
-            <div style={{ padding:'14px 20px', borderBottom:'1px solid var(--border)', fontWeight:700, fontSize:14 }}>👥 Staff Performance — {range}</div>
-            {staffPerf.length === 0
-              ? <div style={{ padding:40, textAlign:'center', color:'var(--text-muted)' }}>No staff activity data for this period</div>
-              : staffPerf.map((s,i) => (
-                <div key={s.staffId} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--border)' }}>
-                  <div>
-                    <div style={{ fontWeight:600, color:'var(--text)', fontSize:14 }}>{s.displayName} <span style={{ color:'var(--text-muted)', fontSize:12, fontWeight:400 }}>· {s.role}</span></div>
-                    <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{s.paymentsVerified} payments verified</div>
-                  </div>
-                  <div style={{ textAlign:'right' }}>
-                    <div style={{ fontWeight:700, color:'#16a34a', fontSize:15 }}>{s.ordersCompleted} orders</div>
-                    {s.totalRevenue > 0 && <div style={{ fontSize:12, color:'var(--text-muted)' }}>₱{Math.round(s.totalRevenue).toLocaleString('en-PH')}</div>}
-                  </div>
-                </div>
-              ))
-            }
-          </div>
-        )}
-        {activeTab === 'cancels' && (
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, overflow:'hidden', marginBottom:20 }}>
-            <div style={{ padding:'14px 20px', borderBottom:'1px solid var(--border)', fontWeight:700, fontSize:14 }}>❌ Cancellation Reasons — {range}</div>
-            {cancelReasons.length === 0
-              ? <div style={{ padding:40, textAlign:'center', color:'var(--text-muted)' }}>No cancellations in this period</div>
-              : cancelReasons.map(({ reason, count }) => (
-                <div key={reason} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--border)' }}>
-                  <span style={{ color:'var(--text)', fontSize:14 }}>{reason}</span>
-                  <span style={{ fontWeight:700, color:'#ef4444', fontSize:14 }}>{count}×</span>
-                </div>
-              ))
-            }
-          </div>
-        )}
-        {activeTab === 'overview' && <>
           {/* KPI row */}
           <div className="analytics-kpi">
             {[

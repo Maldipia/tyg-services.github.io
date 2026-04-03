@@ -33,11 +33,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         payloadKeys: payload && typeof payload === 'object' ? Object.keys(payload as object) : null,
         note: 'GrabFood/FoodPanda webhook received — platform credentials not yet configured',
       },
-    }).catch(() => null);
+    });
   }
 
   // Return 200 so platform doesn't retry aggressively
-  return new Response(JSON.stringify({ received: true, platform, note: 'Integration pending configuration' }), {
-    status: 200, headers: { 'Content-Type': 'application/json' },
-  });
+  return NextResponse.json({ received: true, platform, note: 'Integration pending configuration' });
 }

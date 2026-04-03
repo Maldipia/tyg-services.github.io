@@ -12,6 +12,7 @@ import { createServiceClient } from '@/lib/supabase/client';
 import { resolveTenant, apiSuccess, apiError, getClientIp, withStaffAuth } from '@/lib/auth/middleware';
 import { orderRateLimit } from '@/lib/redis/ratelimit';
 import { fireSheetsWebhook } from '@/lib/sheets/webhook';
+import { sendSMS, orderCreatedSMS } from '@/lib/semaphore/sms';
 import { logEvent } from '@/lib/logger';
 
 // ── Request Validation Schema ────────────────────────────────
@@ -410,6 +411,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       discountAmount: finalDiscount,
     },
   });
+
+  // ── SMS notification on order creation (BUSINESS+ with smsEnabled) ──────────
+  const smsEnabled = (settings as { smsEnabled?: boolean } | null)?.smsEnabled === true;
+  if (smsEnabled && input.customerPhone) {
+    void (async () => {
+      try {
+        // Get estimated wait time
+        const { count } = await db.from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('tenant_id', tenant.tenantId)
+          .in('status', ['PENDING','CONFIRMED','PREPARING'])
+          .eq('is_test', false);
+        const eta = count && count > 1 ? (8 + (count - 1) * 3) : 8;
+        const tenantName = (tenantData?.settings as { businessName?: string } | null)?.businessName
+          ?? tenantData?.slug ?? 'TYG POS';
+        await sendSMS(input.customerPhone, orderCreatedSMS(orderNumber as string, tenantName, eta));
+      } catch { /* non-fatal */ }
+    })();
+  }
 
   fireSheetsWebhook('LOG_ORDER', {
     orderNumber: order.order_number,

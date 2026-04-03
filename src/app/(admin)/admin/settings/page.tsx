@@ -79,6 +79,8 @@ function SettingsPageInner() {
   const [vatEnabled, setVatEnabled] = useState(true);
   const [vatRate, setVatRate] = useState('12');
   const [serviceChargeRate, setServiceChargeRate] = useState('0');
+  const [avgPrepMins, setAvgPrepMins] = useState('8');
+  const [logoUrl, setLogoUrl] = useState('');
   const [pwdDiscount, setPwdDiscount] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
 
@@ -119,6 +121,7 @@ function SettingsPageInner() {
         if (typeof s['vatEnabled'] === 'boolean') setVatEnabled(s['vatEnabled']);
         if (typeof s['vatRate'] === 'number') setVatRate(String(s['vatRate']));
         if (typeof s['serviceChargeRate'] === 'number') setServiceChargeRate(String((s['serviceChargeRate'] as number) * 100));
+        if (typeof s['avgPrepMins'] === 'number') setAvgPrepMins(String(s['avgPrepMins']));
         if (typeof s['pwdSeniorDiscountEnabled'] === 'boolean') setPwdDiscount(s['pwdSeniorDiscountEnabled']);
         if (typeof s['smsEnabled'] === 'boolean') setSmsEnabled(s['smsEnabled']);
         if (typeof s['receiptFooter'] === 'string') setReceiptFooter(s['receiptFooter']);
@@ -143,6 +146,7 @@ function SettingsPageInner() {
             requireCustomerPhone: requirePhone, vatEnabled,
             vatRate: parseFloat(vatRate) || 12,
             serviceChargeRate: (parseFloat(serviceChargeRate) || 0) / 100,
+            avgPrepMins: parseInt(avgPrepMins) || 8,
             pwdSeniorDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
           },
         }),
@@ -424,6 +428,21 @@ function SettingsPageInner() {
                   />
                   <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
                     % added to dine-in orders (not applied on PWD/Senior)
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Average Prep Time (minutes)</label>
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <input
+                    type="number" min="1" max="60"
+                    style={{ ...inputStyle, maxWidth: 120 }}
+                    value={avgPrepMins}
+                    onChange={e => setAvgPrepMins(e.target.value)}
+                    placeholder="8"
+                  />
+                  <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+                    Used to estimate wait time on order tracking page
                   </span>
                 </div>
               </div>

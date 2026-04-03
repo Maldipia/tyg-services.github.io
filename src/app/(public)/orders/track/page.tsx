@@ -36,6 +36,10 @@ interface OrderData {
   updatedAt: string;
   items: OrderItem[];
   tenant: { slug: string; name: string; primaryColor: string };
+  rating?: number | null;
+  feedbackText?: string | null;
+  orderType?: string;
+  sugarLevel?: string | null;
 }
 
 const STATUS_STEPS = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'];
@@ -58,6 +62,11 @@ function TrackPageInner() {
   const [error, setError]     = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [waitTime, setWaitTime]       = useState<{ estimatedMins: number; label: string } | null>(null);
+  const [rating, setRating]           = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackDone, setFeedbackDone] = useState(false);
+  const [feedbackSaving, setFeedbackSaving] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     if (!orderId) return;
@@ -78,6 +87,30 @@ function TrackPageInner() {
       setLastRefresh(Date.now());
     }
   }, [orderId, tenant]);
+
+  // Fetch wait time when order is PENDING/CONFIRMED/PREPARING
+  useEffect(() => {
+    if (!order || !['PENDING','CONFIRMED','PREPARING'].includes(order.status)) return;
+    const tenantSlug = tenant ?? order.tenant?.slug;
+    if (!tenantSlug) return;
+    fetch(`/api/orders/wait-time?tenantSlug=${tenantSlug}`)
+      .then(r => r.json())
+      .then((d: { data?: { estimatedMins: number; label: string } }) => {
+        if (d.data) setWaitTime(d.data);
+      }).catch(() => null);
+  }, [order, tenant]);
+
+  const submitFeedback = async () => {
+    if (!order || rating === 0) return;
+    setFeedbackSaving(true);
+    try {
+      await fetch('/api/orders/feedback', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, rating, feedbackText: feedbackText || undefined }),
+      });
+      setFeedbackDone(true);
+    } catch { /* non-fatal */ } finally { setFeedbackSaving(false); }
+  };
 
   // Initial fetch
   useEffect(() => { void fetchOrder(); }, [fetchOrder]);
@@ -183,6 +216,35 @@ function TrackPageInner() {
               animation: 'glow 1.5s ease-in-out infinite',
             }}>
               🔔 Please proceed to the counter!
+            </div>
+          )}
+          {['PENDING','CONFIRMED','PREPARING'].includes(order.status) && waitTime && (
+            <div style={{ marginTop: 14, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 10, padding: '10px 16px', color: '#6366f1', fontSize: 13, fontWeight: 600 }}>
+              ⏱️ Estimated wait: {waitTime.label}
+            </div>
+          )}
+          {order.status === 'COMPLETED' && !feedbackDone && order.rating === null && (
+            <div style={{ marginTop: 16, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 12, padding: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#92400e', marginBottom: 10 }}>How was your experience? ⭐</div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 10 }}>
+                {[1,2,3,4,5].map(star => (
+                  <button key={star} onClick={() => setRating(star)} style={{ fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', opacity: rating >= star ? 1 : 0.3, transition: 'opacity 0.15s' }}>⭐</button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <>
+                  <input type="text" placeholder="Any comments? (optional)" value={feedbackText} onChange={e => setFeedbackText(e.target.value)} maxLength={300}
+                    style={{ width: '100%', boxSizing: 'border-box' as const, border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: muted, background: 'transparent', outline: 'none', marginBottom: 10 }} />
+                  <button onClick={submitFeedback} disabled={feedbackSaving} style={{ width: '100%', padding: '10px 0', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                    {feedbackSaving ? 'Submitting…' : 'Submit Feedback'}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+          {(order.status === 'COMPLETED' && feedbackDone) && (
+            <div style={{ marginTop: 14, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 10, padding: '10px 16px', color: '#16a34a', fontSize: 13, fontWeight: 600, textAlign: 'center' as const }}>
+              ✅ Thank you for your feedback!
             </div>
           )}
           <style>{`@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(34,197,94,0.3)}50%{box-shadow:0 0 20px rgba(34,197,94,0.6)}}`}</style>

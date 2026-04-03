@@ -76,6 +76,11 @@ export function orderReadySMS(orderNumber: string, businessName: string): string
   return `${businessName}: Order #${orderNumber} is READY! Please proceed to the counter to get your order. - TYG POS`;
 }
 
+export function orderCreatedSMS(orderNumber: string, businessName: string, estimatedMins?: number): string {
+  const etaStr = estimatedMins ? ` Ready in ~${estimatedMins} mins.` : '';
+  return `${businessName}: Hi! Your order #${orderNumber} has been received and is being prepared.${etaStr} Thank you! - TYG POS`;
+}
+
 export function orderConfirmedSMS(orderNumber: string, businessName: string): string {
   return `${businessName}: Order #${orderNumber} has been confirmed. We're preparing it now. - TYG POS`;
 }

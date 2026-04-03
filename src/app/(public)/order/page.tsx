@@ -55,6 +55,7 @@ function OrderPageInner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
@@ -250,7 +251,9 @@ function OrderPageInner() {
               <section key={cat.id} style={{ marginBottom:32 }}>
                 <h2 style={{ fontSize:18, fontWeight:700, color:'#1f2937', marginBottom:12 }}>{cat.name}</h2>
                 <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                  {cat.items.map((item) => <MenuItemCard key={item.id} item={item} onAdd={addToCart} />)}
+                  {cat.items
+                  .filter(item => !tagFilter || item.tags.includes(tagFilter))
+                  .map((item) => <MenuItemCard key={item.id} item={item} onAdd={addToCart} />)}
                   {cat.items.length === 0 && <p style={{ color:'#9ca3af', fontSize:14 }}>No items in this category</p>}
                 </div>
               </section>

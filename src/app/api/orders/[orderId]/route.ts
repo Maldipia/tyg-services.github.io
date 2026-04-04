@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
     subtotal_override: number | null; vat_amount: number; pax: number;
     discount_amount: number; discount_type: string | null;
     notes: string | null; created_at: string; updated_at: string; tenant_id: string;
-  }>(`orders?id=eq.${orderId}&select=id,order_number,customer_name,status,payment_status,total_amount,subtotal_override,vat_amount,pax,notes,created_at,updated_at,tenant_id,discount_amount,discount_type`);
+  }>(`orders?id=eq.${orderId}&select=id,order_number,customer_name,status,payment_status,total_amount,subtotal_override,vat_amount,pax,notes,created_at,updated_at,tenant_id,discount_amount,discount_type,rating,feedback_text,feedback_at,order_type,promo_code,cancel_reason`);
 
   if (!order) {
     return NextResponse.json({ data: null, error: 'Order not found' }, { status: 404 });
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
   const items = await pgMany<{
     id: string; item_name: string; qty: number; unit_price: number;
     line_total: number; size_label: string | null; addon_total: number | null; notes: string | null;
-  }>(`order_items?order_id=eq.${orderId}&select=id,item_name,qty,unit_price,line_total,size_label,addon_total,notes`);
+  }>(`order_items?order_id=eq.${orderId}&select=id,item_name,qty,unit_price,line_total,size_label,addon_total,notes,sugar_level`);
 
   return NextResponse.json({
     data: {

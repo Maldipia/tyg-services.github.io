@@ -504,8 +504,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .select(`
         id, order_number, status, payment_status, total_amount, discount_type, discount_amount,
         customer_name, customer_phone, created_at, pax, notes, table_id, branch_id, cancel_reason,
+        rating, order_type, promo_code,
         table:restaurant_tables(name),
-        items:order_items(id, item_name, size_label, qty, line_total, addon_total)
+        items:order_items(id, item_name, size_label, qty, line_total, addon_total, sugar_level, notes)
       `)
       .eq('tenant_id', ctx.tenantId)
       .eq('is_test', false)

@@ -143,9 +143,68 @@ export default function AnalyticsPage() {
         </button>
       </div>
 
+      {/* Tab selector */}
+      <div style={{ display:'flex', gap:8, marginBottom:20 }}>
+        {['overview','staff','cancels'].map(tab => {
+          const labels: Record<string, string> = { overview:'📊 Overview', staff:'👥 Staff', cancels:'❌ Cancels' };
+          return (
+            <button key={tab}
+              onClick={() => setActiveTab(tab as 'overview'|'staff'|'cancels')}
+              style={{ padding:'6px 16px', borderRadius:8, border:'1px solid var(--border)', cursor:'pointer',
+                background: activeTab===tab ? '#16a34a' : 'var(--surface)',
+                color: activeTab===tab ? '#fff' : 'var(--text-muted)',
+                fontWeight:600, fontSize:13, fontFamily:'inherit' }}>
+              {labels[tab]}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Staff performance panel */}
+      {!loading && activeTab === 'staff' && (
+        <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, overflow:'hidden', marginBottom:20 }}>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid var(--border)', fontWeight:700, fontSize:14, color:'var(--text)' }}>
+            👥 Staff Performance — {range}
+          </div>
+          {staffPerf.length === 0 ? (
+            <div style={{ padding:40, textAlign:'center', color:'var(--text-muted)' }}>No staff activity data for this period</div>
+          ) : staffPerf.map(s => (
+            <div key={s.staffId} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--border)' }}>
+              <div>
+                <div style={{ fontWeight:600, color:'var(--text)', fontSize:14 }}>
+                  {s.displayName} <span style={{ color:'var(--text-muted)', fontSize:12, fontWeight:400 }}>· {s.role}</span>
+                </div>
+                <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{s.paymentsVerified} payments verified</div>
+              </div>
+              <div style={{ textAlign:'right' as const }}>
+                <div style={{ fontWeight:700, color:'#16a34a', fontSize:15 }}>{s.ordersCompleted} orders</div>
+                {s.totalRevenue > 0 && <div style={{ fontSize:12, color:'var(--text-muted)' }}>₱{Math.round(s.totalRevenue).toLocaleString('en-PH')}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Cancel reasons panel */}
+      {!loading && activeTab === 'cancels' && (
+        <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, overflow:'hidden', marginBottom:20 }}>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid var(--border)', fontWeight:700, fontSize:14, color:'var(--text)' }}>
+            ❌ Cancellation Reasons — {range}
+          </div>
+          {cancelReasons.length === 0 ? (
+            <div style={{ padding:40, textAlign:'center', color:'var(--text-muted)' }}>No cancellations in this period</div>
+          ) : cancelReasons.map(({ reason, count }) => (
+            <div key={reason} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--border)' }}>
+              <span style={{ color:'var(--text)', fontSize:14 }}>{reason}</span>
+              <span style={{ fontWeight:700, color:'#ef4444', fontSize:14 }}>{count}×</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div style={{ padding:60, textAlign:'center', color:'var(--text-muted)' }}>Loading analytics…</div>
-      ) : (
+      ) : activeTab !== 'overview' ? null : (
         <>
           {/* KPI row */}
           <div className="analytics-kpi">

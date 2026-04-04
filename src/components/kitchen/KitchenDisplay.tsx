@@ -10,6 +10,7 @@ interface KitchenItem {
   qty: number;
   notes?: string | null;
   addon_total?: number;
+  sugar_level?: string | null;
 }
 
 interface KitchenOrder {
@@ -220,6 +221,11 @@ function OrderCard({ order, onUpdate }: { order: KitchenOrder; onUpdate: (id: st
             <span style={{ fontWeight: 700, color: '#fff' }}>×{item.qty}</span>{' '}
             {item.item_name}
             {item.size_label && <span style={{ color: '#6b7280', fontSize: 12 }}> ({item.size_label})</span>}
+            {item.sugar_level && (
+              <span style={{ marginLeft: 8, fontSize: 11, background: 'rgba(3,105,161,0.15)', color: '#7dd3fc', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
+                {item.sugar_level === 'GROUNDED' ? '25%' : item.sugar_level === 'YANI' ? '50%' : item.sugar_level === 'COMFORT' ? '75%' : '100%'}
+              </span>
+            )}
             {item.notes && (
               <p style={{ color: '#fcd34d', fontSize: 12, marginLeft: 16, marginTop: 2 }}>⚠ {item.notes}</p>
             )}

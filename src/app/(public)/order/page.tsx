@@ -47,7 +47,8 @@ interface PlacedOrder {
 
 function OrderPageInner() {
   const searchParams = useSearchParams();
-  const tableToken = searchParams.get('t');
+  const tableToken   = searchParams.get('t');
+  const addToOrderId = searchParams.get('addToOrder');
   const tenantSlug = searchParams.get('tenant') ?? '';
 
   const [step, setStep] = useState<Step>('menu');
@@ -134,30 +135,35 @@ function OrderPageInner() {
     if (!customerName.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
+      const isAddFlow = !!addToOrderId;
+      const endpoint  = isAddFlow ? `/api/orders/${addToOrderId}/items` : '/api/orders';
+      const method    = isAddFlow ? 'PATCH' : 'POST';
+      const addBody   = { items: cart.map((item) => ({ itemId: item.itemId, sizeId: item.sizeId ?? undefined, qty: item.qty, addonIds: ([] as string[]), notes: item.notes, ...(item.sugarLevel ? { sugarLevel: item.sugarLevel } : {} as Record<string,string>) })) };
+      const postBody = {
+        tenantSlug,
+        tableToken: tableToken ?? undefined,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim() || undefined,
+        customerEmail: customerEmail.trim() || undefined,
+        pax,
+        notes: notes.trim() || undefined,
+        discountType: discountType ?? undefined,
+        items: cart.map((item) => ({
+          itemId: item.itemId,
+          sizeId: item.sizeId ?? undefined,
+          qty: item.qty,
+          addonIds: [] as string[],
+          notes: item.notes,
+          ...(item.sugarLevel ? { sugarLevel: item.sugarLevel } : {}),
+        })),
+        pwdCount: discountType === 'PWD' ? pwdCount || 1 : 0,
+        seniorCount: discountType === 'SENIOR' ? seniorCount || 1 : 0,
+        orderType,
+      };
+      const res = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tenantSlug,
-          tableToken: tableToken ?? undefined,
-          customerName: customerName.trim(),
-          customerPhone: customerPhone.trim() || undefined,
-          customerEmail: customerEmail.trim() || undefined,
-          pax,
-          notes: notes.trim() || undefined,
-          discountType: discountType ?? undefined,
-          items: cart.map((item) => ({
-            itemId: item.itemId,
-            sizeId: item.sizeId ?? undefined,
-            qty: item.qty,
-            addonIds: [],
-            notes: item.notes,
-            ...(item.sugarLevel ? { sugarLevel: item.sugarLevel } : {}),
-          })),
-          pwdCount: discountType === 'PWD' ? pwdCount || 1 : 0,
-          seniorCount: discountType === 'SENIOR' ? seniorCount || 1 : 0,
-          orderType,
-        }),
+        body: JSON.stringify(isAddFlow ? addBody : postBody),
       });
       const data = await res.json() as { data: PlacedOrder | null; error: string | null };
       if (data.error || !data.data) throw new Error(data.error ?? 'Failed to place order');

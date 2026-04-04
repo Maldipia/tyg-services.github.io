@@ -137,7 +137,7 @@ function SettingsPageInner() {
         method: 'PATCH', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: businessName, phone, address,
+          name: businessName, phone, address, logo_url: logoUrl || undefined,
           primaryColor, accentColor,
           birTin: birTin.trim() || null,
           birAtpSeries: birAtpSeries.trim() || null,
@@ -340,17 +340,29 @@ function SettingsPageInner() {
 
           <div style={sectionStyle}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Logo</h3>
-            <div
-              style={{ border:"2px dashed rgba(255, 255, 255, 0.1)", borderRadius:12, padding:32, textAlign:"center", cursor:"pointer" }}
-            >
-              <Upload size={24} style={{ color: 'var(--text-muted)', margin: '0 auto 8px' }} />
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-                Upload logo — PNG or SVG, max 2MB
-              </p>
-              <p style={{ color: 'var(--text-dim)', fontSize: 11, marginTop: 4 }}>
-                Appears in the header of your customer menu
-              </p>
-            </div>
+            <label style={{ display:'block', border:"2px dashed rgba(255,255,255,0.1)", borderRadius:12, padding:32, textAlign:"center" as const, cursor:"pointer" }}>
+              <input type="file" accept="image/*" style={{ display:'none' }} onChange={async e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (file.size > 2*1024*1024) { alert('Max 2MB'); return; }
+                const fd = new FormData(); fd.append('file', file);
+                const r = await fetch('/api/menu/upload', { method:'POST', credentials:'include', body:fd });
+                const d = await r.json() as { data?: { url: string } };
+                if (d.data?.url) setLogoUrl(d.data.url);
+              }} />
+              {logoUrl ? (
+                <div>
+                  <img src={logoUrl} alt="Logo" style={{ maxHeight:80, maxWidth:200, objectFit:'contain', margin:'0 auto 8px', display:'block', borderRadius:8 }} />
+                  <p style={{ color:'var(--text-muted)', fontSize:12 }}>Click to change logo</p>
+                </div>
+              ) : (
+                <>
+                  <Upload size={24} style={{ color: 'var(--text-muted)', margin: '0 auto 8px' }} />
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Upload logo — PNG or SVG, max 2MB</p>
+                  <p style={{ color: 'var(--text-dim)', fontSize: 11, marginTop: 4 }}>Appears in the header of your customer menu</p>
+                </>
+              )}
+            </label>
           </div>
         </div>
       )}

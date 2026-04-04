@@ -223,6 +223,27 @@ function TrackPageInner() {
               ⏱️ Estimated wait: {waitTime.label}
             </div>
           )}
+          {order.status === 'PENDING' && (() => {
+            const ageMins = (Date.now() - new Date(order.createdAt).getTime()) / 60000;
+            const minsLeft = Math.max(0, 5 - ageMins);
+            if (minsLeft <= 0) return null;
+            return (
+              <div style={{ marginTop: 14, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#16a34a', marginBottom: 8 }}>
+                  ➕ Want to add more items? ({Math.ceil(minsLeft)} min left)
+                </div>
+                <p style={{ fontSize: 12, color: muted, margin: '0 0 10px' }}>
+                  You can add items to this order within 5 minutes of placing it.
+                </p>
+                <a
+                  href={`/order?tenant=${order.tenant?.slug ?? ''}&addToOrder=${order.id}`}
+                  style={{ display:'inline-block', padding:'8px 18px', background:'#16a34a', color:'#fff', borderRadius:8, fontWeight:700, fontSize:13, textDecoration:'none' }}
+                >
+                  Add Items →
+                </a>
+              </div>
+            );
+          })()}
           {order.status === 'COMPLETED' && !feedbackDone && order.rating === null && (
             <div style={{ marginTop: 16, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 12, padding: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#92400e', marginBottom: 10 }}>How was your experience? ⭐</div>

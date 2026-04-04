@@ -38,7 +38,7 @@ const PAY_BADGE: Record<PaymentStatus, string> = {
 
 interface OrderItem {
   id: string; item_name: string; size_label?: string | null;
-  qty: number; line_total: number; addon_total?: number;
+  qty: number; line_total: number; addon_total?: number; sugar_level?: string | null;
 }
 
 interface Props { tenantId: string; branchId: string | null; }
@@ -372,6 +372,11 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   {isOverdue && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(239,68,68,0.12)', color: '#dc2626' }}>⚠ {minsAgo}m</span>}
                 </div>
                 <p style={s.meta}>{order.customer_name} · {order.pax} pax</p>
+                {order.status === 'CANCELLED' && (order as unknown as Record<string,unknown>)['cancel_reason'] ? (
+                  <p style={{ fontSize:11, color:'#dc2626', marginTop:2, fontStyle:'italic' }}>
+                    ↩ {String((order as unknown as Record<string,unknown>)['cancel_reason'])}
+                  </p>
+                ) : null}
                 <p style={s.time}>{new Date(order.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}</p>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -385,7 +390,11 @@ export default function AdminOrdersBoard({ branchId }: Props) {
               <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
                 {items.map(item => (
                   <div key={item.id} style={s.itemRow}>
-                    <span>×{item.qty} {item.item_name}{item.size_label ? ` (${item.size_label})` : ''}</span>
+                    <span>×{item.qty} {item.item_name}{item.size_label ? ` (${item.size_label})` : ''}
+                      {item.sugar_level && <span style={{ marginLeft:6, fontSize:11, background:'rgba(3,105,161,0.15)', color:'#7dd3fc', borderRadius:4, padding:'1px 5px', fontWeight:600 }}>
+                        {item.sugar_level==='GROUNDED'?'25%':item.sugar_level==='YANI'?'50%':item.sugar_level==='COMFORT'?'75%':'100%'}
+                      </span>}
+                    </span>
                     <span style={{ color: 'var(--text-muted)' }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
                   </div>
                 ))}

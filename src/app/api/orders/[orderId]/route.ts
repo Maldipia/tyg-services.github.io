@@ -57,6 +57,8 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
     subtotal_override: number | null; vat_amount: number; pax: number;
     discount_amount: number; discount_type: string | null;
     notes: string | null; created_at: string; updated_at: string; tenant_id: string;
+    rating: number | null; feedback_text: string | null; feedback_at: string | null;
+    order_type: string | null; promo_code: string | null; cancel_reason: string | null;
   }>(`orders?id=eq.${orderId}&select=id,order_number,customer_name,status,payment_status,total_amount,subtotal_override,vat_amount,pax,notes,created_at,updated_at,tenant_id,discount_amount,discount_type,rating,feedback_text,feedback_at,order_type,promo_code,cancel_reason`);
 
   if (!order) {
@@ -76,7 +78,8 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
   // 4. Fetch order items
   const items = await pgMany<{
     id: string; item_name: string; qty: number; unit_price: number;
-    line_total: number; size_label: string | null; addon_total: number | null; notes: string | null;
+    line_total: number; size_label: string | null; addon_total: number | null;
+    notes: string | null; sugar_level: string | null;
   }>(`order_items?order_id=eq.${orderId}&select=id,item_name,qty,unit_price,line_total,size_label,addon_total,notes,sugar_level`);
 
   return NextResponse.json({
@@ -96,6 +99,11 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
       notes: order.notes,
       createdAt: order.created_at,
       updatedAt: order.updated_at,
+      rating: order.rating ?? null,
+      feedbackText: order.feedback_text ?? null,
+      orderType: order.order_type ?? null,
+      promoCode: order.promo_code ?? null,
+      cancelReason: order.cancel_reason ?? null,
       items,
       tenant: {
         slug: tenant?.slug ?? '',

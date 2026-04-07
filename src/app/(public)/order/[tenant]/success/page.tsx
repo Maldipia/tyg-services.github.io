@@ -8,8 +8,8 @@ const TEXT = '#e8eaf0'; const MUTED = '#6b7280'; const GREEN = '#16a34a';
 
 interface PlacedOrder { orderId: string; orderNumber: string; totalAmount: number; status: string; deliveryFee?: number; }
 
-export default function SuccessPage({ params }: { params: Promise<{ tenant: string }> }) {
-  const { tenant: tenantSlug } = use(params);
+export default function SuccessPage({ params }: { params: { tenant: string } }) {
+  const { tenant: tenantSlug } = params;
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderId = searchParams.get('order');

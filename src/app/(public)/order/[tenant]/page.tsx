@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback, useRef, use } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ShoppingCart, Plus, Minus, X, ChevronRight, Star } from 'lucide-react';
@@ -89,8 +89,8 @@ function ItemModal({ item, onClose, onAdd }: { item:MenuItem; onClose:()=>void; 
   );
 }
 
-export default function TenantOrderPage({ params }: { params: Promise<{ tenant: string }> }) {
-  const { tenant: tenantSlug } = use(params);
+export default function TenantOrderPage({ params }: { params: { tenant: string } }) {
+  const { tenant: tenantSlug } = params;
   const searchParams = useSearchParams();
   const router = useRouter();
   const tableParam = searchParams.get('table');

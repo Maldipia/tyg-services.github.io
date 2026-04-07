@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ChevronRight, Truck, ShoppingBag, UtensilsCrossed, AlertCircle } from 'lucide-react';
 import { CartItem, cartTotal, loadCart, clearCart } from '@/lib/online-order/cart';
@@ -18,8 +18,8 @@ const inputStyle: React.CSSProperties = {
 };
 const labelStyle: React.CSSProperties = { color: MUTED, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, display: 'block' };
 
-export default function CheckoutPage({ params }: { params: Promise<{ tenant: string }> }) {
-  const { tenant: tenantSlug } = use(params);
+export default function CheckoutPage({ params }: { params: { tenant: string } }) {
+  const { tenant: tenantSlug } = params;
   const router = useRouter();
 
   const [cart, setCart] = useState<CartItem[]>([]);

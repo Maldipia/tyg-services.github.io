@@ -43,14 +43,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (expiredTrials && expiredTrials.length > 0) {
       for (const tenant of expiredTrials) {
-        // Update plan_status → SUSPENDED
+        // Update plan_status → GRACE (7-day grace period, not instant SUSPENDED)
+        const graceEnds = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         await db.from('tenants')
-          .update({ plan_status: 'SUSPENDED', updated_at: new Date().toISOString() })
+          .update({ plan_status: 'GRACE', grace_ends_at: graceEnds, updated_at: new Date().toISOString() })
           .eq('id', tenant.id);
         // Send trial expiry email
         await sendTrialExpiredEmail(tenant.owner_email as string, tenant.name as string);
       }
-      results['trials_expired'] = expiredTrials.length;
+      results['trials_to_grace'] = expiredTrials.length;
     } else {
       results['trials_expired'] = 0;
     }
@@ -86,6 +87,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     results['grace_to_suspended'] = count ?? 0;
   } catch (err) {
     results['grace_suspend'] = `error: ${String(err)}`;
+  }
+
+  // ── 3b. Cleanup abandoned orders ─────────────────────────
+  try {
+    const { data: abandonedCount } = await db.rpc('cleanup_abandoned_orders');
+    results['abandoned_orders_cancelled'] = abandonedCount ?? 0;
+  } catch (err) {
+    results['abandoned_cleanup'] = `error: ${String(err)}`;
   }
 
   // ── 4. Cleanup expired staff sessions ────────────────────

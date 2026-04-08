@@ -30,7 +30,12 @@ function makeLimiter(requests: number, windowSeconds: number) {
   return {
     limit: async (identifier: string) => {
       if (!isUpstashConfigured()) {
-        // Allow all requests when Redis is not configured (dev/staging without Redis)
+        if (process.env.NODE_ENV === 'production') {
+          // FAIL CLOSED in production — missing Upstash config is a deployment error
+          console.error('[RateLimit] FATAL: Upstash not configured in production. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.');
+          return { success: false, limit: 0, remaining: 0, reset: 0, pending: Promise.resolve() };
+        }
+        // Dev/staging: allow all
         return { success: true, limit: requests, remaining: requests, reset: 0, pending: Promise.resolve() };
       }
       const limiter = new Ratelimit({

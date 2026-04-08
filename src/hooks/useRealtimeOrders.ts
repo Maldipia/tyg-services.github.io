@@ -62,6 +62,7 @@ export function useRealtimeOrders({
           event:  '*',
           schema: 'public',
           table:  'order_items',
+          filter: `tenant_id=eq.${tenantId}`,
         }, onChange);
     }
 

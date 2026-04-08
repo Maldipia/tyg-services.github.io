@@ -34,7 +34,7 @@ export async function resolveTenant(slugOrId: string): Promise<TenantContext | n
   const isUUID = /^[0-9a-f-]{36}$/i.test(slugOrId);
   const query = db
     .from('tenants')
-    .select('id, slug, plan_tier, plan_status, trial_ends_at, settings')
+    .select('id, slug, plan_tier, plan_status, trial_ends_at, grace_ends_at, settings')
     .eq(isUUID ? 'id' : 'slug', slugOrId)
     .single();
 
@@ -88,6 +88,15 @@ export async function withStaffAuth(
   if (tenant.planStatus === 'SUSPENDED' || tenant.planStatus === 'CANCELLED') {
     return apiError('Account suspended — please contact support', 402, 'ACCOUNT_SUSPENDED');
   }
+  // GRACE: allow staff to operate but flag it — owner must be notified
+  if (tenant.planStatus === 'GRACE') {
+    const graceEnds = (tenant as unknown as Record<string,unknown>).graceEndsAt;
+    if (graceEnds && new Date(graceEnds as string) < new Date()) {
+      // Grace period expired — now actually suspend
+      return apiError('Account subscription has expired — please contact support', 402, 'GRACE_EXPIRED');
+    }
+    // Still within grace — allow operation, append header warning
+  }
 
   const ctx: AuthContext = {
     ...tenant,
@@ -125,7 +134,7 @@ export async function withOwnerAuth(
   // Fetch tenant owned by this user
   const { data: tenant, error: tenantError } = await db
     .from('tenants')
-    .select('id, slug, plan_tier, plan_status, trial_ends_at, settings')
+    .select('id, slug, plan_tier, plan_status, trial_ends_at, grace_ends_at, settings')
     .eq('owner_user_id', user.id)
     .single();
 

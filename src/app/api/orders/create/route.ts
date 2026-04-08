@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { sendSMS, orderCreatedSMS } from '@/lib/semaphore/sms';
 import { createServiceClient } from '@/lib/supabase/client';
 import { orderRateLimit } from '@/lib/redis/ratelimit';
 import { getClientIp } from '@/lib/auth/middleware';
@@ -217,6 +218,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const o = Array.isArray(result) ? result[0] : result;
+
+  // SMS notification (fire-and-forget)
+  const smsEnabled = (settings as { smsEnabled?: boolean } | null)?.smsEnabled === true;
+  if (smsEnabled && input.customerPhone?.trim()) {
+    void (async () => {
+      try {
+        const { count } = await db.from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('tenant_id', tenant.id as string)
+          .in('status', ['PENDING','CONFIRMED','PREPARING'])
+          .eq('is_test', false);
+        const eta = count && count > 1 ? (8 + (count - 1) * 3) : 8;
+        const tenantName = ((settings as Record<string,unknown>)?.businessName as string | undefined)
+          ?? (tenant.slug as string) ?? 'TYG POS';
+        await sendSMS(input.customerPhone!, orderCreatedSMS(o.order_number as string, tenantName, eta));
+      } catch { /* non-fatal */ }
+    })();
+  }
+
   return NextResponse.json({ data: {
     orderId: o.order_id,
     orderNumber: o.order_number,

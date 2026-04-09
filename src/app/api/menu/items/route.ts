@@ -19,6 +19,22 @@ const CreateItemSchema = z.object({
 
 export function OPTIONS() { return new Response(null, { status: 204 }); }
 
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  return withStaffAuth(req, async (request, ctx) => {
+    const { searchParams } = new URL(request.url);
+    const categoryId = searchParams.get('categoryId');
+    const db = createServiceClient();
+    let query = db.from('menu_items')
+      .select('id, name, description, base_price, status, is_featured, image_url, sort_order, category_id, stock_count, has_sugar_level, tags')
+      .eq('tenant_id', ctx.tenantId)
+      .order('sort_order', { ascending: true });
+    if (categoryId) query = query.eq('category_id', categoryId);
+    const { data, error } = await query;
+    if (error) return apiError('Failed to fetch items', 500);
+    return apiSuccess(data ?? []);
+  }, ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN']);
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(req, async (request, ctx) => {
     let body: unknown;

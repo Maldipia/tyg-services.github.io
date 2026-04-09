@@ -15,6 +15,23 @@ export function OPTIONS() { return new Response(null, { status: 204 }); }
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get('tenant');
+
+  // Staff-auth path: no tenant slug needed — uses session context
+  const sessionCookie = req.cookies.get('tyg-staff-session')?.value;
+  if (!slug && sessionCookie) {
+    return withStaffAuth(req, async (_req, ctx) => {
+      const db = createServiceClient();
+      const { data, error } = await db
+        .from('restaurant_tables')
+        .select('id, name, capacity, is_active, qr_token, branch_id')
+        .eq('tenant_id', ctx.tenantId)
+        .eq('is_active', true)
+        .order('name');
+      if (error) return apiError('Failed to fetch tables', 500);
+      return apiSuccess(data ?? []);
+    }, ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN']);
+  }
+
   if (!slug) return apiError('tenant param required', 400);
 
   // ?token=QR_TOKEN — public single-table resolve for order page

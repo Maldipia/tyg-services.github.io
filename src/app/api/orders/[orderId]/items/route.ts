@@ -114,3 +114,28 @@ export function PATCH(req: NextRequest, { params }: Params): Promise<NextRespons
     return apiSuccess({ added: inserts.length, order: updated, minutesLeft: Math.max(0, WINDOW_MINUTES - ageMins) });
   }, ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN']);
 }
+
+// ── PUT /api/orders/[orderId]/items — toggle item prepared status (kitchen)
+export async function PUT(req: NextRequest, { params }: Params): Promise<NextResponse> {
+  return withStaffAuth(req, async (request, _ctx) => {
+    const { orderId } = params;
+    if (!orderId || !/^[0-9a-f-]{36}$/.test(orderId)) return apiError('Invalid order ID', 400);
+
+    let body: unknown;
+    try { body = await request.json(); } catch { return apiError('Invalid JSON', 400); }
+
+    const b = body as { itemId?: string; prepared?: boolean };
+    if (!b.itemId || typeof b.prepared !== 'boolean')
+      return apiError('itemId and prepared (boolean) required', 400);
+
+    const db = createServiceClient();
+    const { error } = await db
+      .from('order_items')
+      .update({ prepared: b.prepared })
+      .eq('id', b.itemId)
+      .eq('order_id', orderId);
+
+    if (error) return apiError('Failed to update item', 500);
+    return apiSuccess({ updated: true, prepared: b.prepared });
+  }, ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN']);
+}

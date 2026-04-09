@@ -45,6 +45,7 @@ const CreateOrderSchema = z.object({
   promoCode:       z.string().max(50).trim().toUpperCase().optional(),
   idempotencyKey:  z.string().min(1).max(100).optional(),
   isTest:          z.boolean().optional().default(false),
+  source:          z.enum(['QR','POS','PLATFORM']).optional().default('QR'),
 });
 
 export function OPTIONS() { return new Response(null, { status: 204 }); }
@@ -119,6 +120,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     p_promo_code:       input.promoCode ?? null,
     p_idempotency_key:  input.idempotencyKey ?? null,
     p_items:            rpcItems,
+    p_source:           input.source ?? 'QR',
   });
 
   if (rpcErr) {
@@ -142,11 +144,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const o           = Array.isArray(result) ? result[0] : result;
-  const orderId     = o?.order_id     as string;
-  const orderNumber = o?.order_number as string;
-  const totalAmount = Number(o?.total_amount ?? 0); // INCLUSIVE of delivery_fee — NOT added again
-  const subtotal    = Number(o?.subtotal     ?? 0);
-  const deliveryFee = Number(o?.delivery_fee ?? 0);
+  const orderId       = o?.order_id      as string;
+  const orderNumber   = o?.order_number  as string;
+  const totalAmount   = Number(o?.total_amount   ?? 0); // INCLUSIVE of delivery_fee + service_charge
+  const subtotal      = Number(o?.subtotal       ?? 0);
+  const deliveryFee   = Number(o?.delivery_fee   ?? 0);
+  const serviceCharge = Number(o?.service_charge ?? 0);
 
   void logEvent({
     eventType: 'ORDER_CREATED', entityType: 'ORDER', entityId: orderId,
@@ -172,7 +175,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   fireSheetsWebhook('LOG_ORDER', {
     orderNumber, createdAt: new Date().toISOString(),
     customerName: input.customerName, pax: input.pax,
-    subtotal, totalAmount, deliveryFee,
+    subtotal, totalAmount, deliveryFee, serviceCharge,
     orderType: input.orderType,
     deliveryAddress: input.deliveryAddress ?? null,
     status: 'PENDING', paymentStatus: 'UNPAID',
@@ -180,7 +183,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     items: input.items.map(i => ({ itemId: i.itemId, qty: i.qty })),
   }).catch(() => {});
 
-  return apiSuccess({ orderId, orderNumber, totalAmount, deliveryFee, status: 'PENDING', paymentStatus: 'UNPAID', trackUrl: `/orders/track?id=${orderId}` }, 201);
+  return apiSuccess({ orderId, orderNumber, totalAmount, subtotal, deliveryFee, serviceCharge, status: 'PENDING', paymentStatus: 'UNPAID', trackUrl: `/orders/track?id=${orderId}` }, 201);
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {

@@ -80,10 +80,12 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
         body: JSON.stringify({
           tenantSlug,
           items: cart.map(c => ({
-            itemId: c.itemId, itemName: c.itemName,
-            sizeId: c.sizeId ?? null, sizeLabel: c.sizeLabel ?? null,
-            qty: c.qty, addonTotal: c.addonTotal ?? 0,
-            notes: c.notes ?? null, sugarLevel: c.sugarLevel ?? null,
+            itemId: c.itemId,
+            sizeId: c.sizeId ?? null,
+            addonIds: c.addonIds ?? [],
+            qty: c.qty,
+            notes: c.notes ?? null,
+            sugarLevel: c.sugarLevel ?? null,
           })),
           orderType,
           customerName: name.trim(),

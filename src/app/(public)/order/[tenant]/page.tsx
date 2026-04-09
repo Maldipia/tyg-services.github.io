@@ -79,7 +79,7 @@ function ItemModal({ item, onClose, onAdd }: { item:MenuItem; onClose:()=>void; 
           <button onClick={() => setQty(q => Math.min(item.stock_count ?? 20, q+1))} style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:TEXT, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}><Plus size={14}/></button>
         </div>
         <button onClick={() => {
-          onAdd({ itemId:item.id, itemName:item.name, unitPrice:item.base_price, qty, addonTotal:0, ...(notes?{notes}:{}), ...(item.has_sugar_level?{sugarLevel:sugar}:{}), hasSugarLevel:item.has_sugar_level });
+          onAdd({ itemId:item.id, itemName:item.name, unitPrice:item.base_price, qty, addonIds:[], addonTotal:0, ...(notes?{notes}:{}), ...(item.has_sugar_level?{sugarLevel:sugar}:{}), hasSugarLevel:item.has_sugar_level });
           onClose();
         }} style={{ width:'100%', padding:'14px 0', background:GREEN, color:'#fff', border:'none', borderRadius:12, fontWeight:800, fontSize:15, cursor:'pointer' }}>
           Add {qty}× — ₱{price.toFixed(2)}

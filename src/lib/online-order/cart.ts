@@ -11,7 +11,8 @@ export interface CartItem {
   sizeLabel?: string | null;
   unitPrice: number;
   qty: number;
-  addonTotal: number;
+  addonIds: string[];   // addon UUIDs — passed to RPC for server-side pricing
+  addonTotal: number;   // client-side display total (not trusted by RPC)
   notes?: string;
   sugarLevel?: string;
   hasSugarLevel?: boolean;

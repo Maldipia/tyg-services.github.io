@@ -18,7 +18,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // Orders bumped through status changes — actor tracked in order_events
     const { data: events } = await db.from('order_events')
-      .select('actor_id, event_type, created_at, order:orders!order_id(total_amount)')
+      .select('staff_id, event_type, created_at, order:orders!order_id(total_amount)')
       .eq('tenant_id', ctx.tenantId)
       .gte('created_at', fromTs)
       .in('event_type', ['ORDER_CONFIRMED','ORDER_COMPLETED','PAYMENT_VERIFIED']);
@@ -45,8 +45,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     for (const e of (events ?? [])) {
       const ev = e as EventRow;
-      if (!ev.actor_id) continue;
-      const entry = staffMap.get(ev.actor_id);
+      if (!ev.staff_id) continue;
+      const entry = staffMap.get(ev.staff_id);
       if (!entry) continue;
       if (ev.event_type === 'ORDER_CONFIRMED')    entry.ordersConfirmed++;
       if (ev.event_type === 'ORDER_COMPLETED')    { entry.ordersCompleted++; entry.totalRevenue += Number((ev.order as {total_amount?: number})?.total_amount ?? 0); }

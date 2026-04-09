@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { resolveTenant, apiSuccess, apiError, getClientIp, withStaffAuth } from '@/lib/auth/middleware';
 import { orderRateLimit } from '@/lib/redis/ratelimit';
-import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 import { sendSMS, orderCreatedSMS } from '@/lib/semaphore/sms';
 import { logEvent } from '@/lib/logger';
 import type { AuthContext } from '@/types';
@@ -239,7 +238,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })();
   }
 
-  fireSheetsWebhook('LOG_ORDER', { orderNumber: finalNumber, createdAt: new Date().toISOString(), customerName: input.customerName, pax: input.pax, subtotal, vatAmount: 0, totalAmount: finalTotal, orderType: input.orderType, deliveryAddress: input.deliveryAddress ?? null, deliveryFee, status: 'PENDING', paymentStatus: 'UNPAID', notes: input.notes ?? '', isTest: input.isTest ?? false, items: pricedItems.map(i => ({ itemName: i.item_name, sizeLabel: i.size_label, qty: i.qty, unitPrice: i.unit_price })) }).catch(() => {});
 
   return apiSuccess({ orderId, orderNumber: finalNumber, totalAmount: finalTotal, deliveryFee, status: 'PENDING', paymentStatus: 'UNPAID', trackUrl: `/orders/track?id=${orderId}` }, 201);
 }

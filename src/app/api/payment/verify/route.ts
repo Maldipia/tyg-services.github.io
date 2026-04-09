@@ -84,7 +84,7 @@ async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextRes
   if (action === 'verify') {
     await supabase
       .from('orders')
-      .update({ payment_status: 'PAID', updated_at: now })
+      .update({ payment_status: 'VERIFIED', updated_at: now })
       .eq('id', orderId)
       .eq('tenant_id', ctx.tenantId);
   }
@@ -109,15 +109,7 @@ async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextRes
   }
 
   // Audit log
-  await supabase.from('audit_log').insert({
-    actor: ctx.staffId,
-    action: action === 'verify' ? 'PAYMENT_VERIFY' : 'PAYMENT_REJECT',
-    target_type: 'payment',
-    target_id: paymentId,
-    metadata: { orderId, amount: order.total_amount, reason: reason ?? null },
-  });
-
-  // Fire-and-forget Sheets sync
+  // logEvent below is the single audit trail (system_logs)
   void logEvent({
     eventType: action === 'verify' ? 'PAYMENT_VERIFIED' : 'PAYMENT_REJECTED',
     entityType: 'PAYMENT',

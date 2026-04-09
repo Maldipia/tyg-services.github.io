@@ -93,7 +93,11 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
   const { error } = await db.from('order_items').insert(inserts);
   if (error) return apiError('Failed to add items', 500);
 
-  // Re-fetch corrected totals (trigger updates total_amount)
+  // recompute_order_totals() is the single source of truth for final totals:
+  // simplified trigger set subtotal_override; this fn applies VAT + discounts.
+  const { data: recomputed } = await db.rpc('recompute_order_totals', { p_order_id: orderId });
+  void recomputed; // result read back from orders below
+
   const { data: updated } = await db.from('orders')
     .select('id, order_number, total_amount, status')
     .eq('id', orderId).single();

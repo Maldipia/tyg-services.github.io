@@ -1,10 +1,11 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Building2, TrendingUp, Users, Clock, AlertTriangle,
   CheckCircle, XCircle, RefreshCw, Search, ExternalLink,
-  ShoppingBag, BarChart2
+  ShoppingBag, BarChart2, ChevronRight
 } from 'lucide-react';
 
 interface Tenant {
@@ -171,7 +172,7 @@ export default function SuperAdminDashboard() {
               <tr key={t.id} style={{ borderBottom: i<filtered.length-1 ? `1px solid ${C.border}` : 'none', background: i%2===0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                 {/* Name */}
                 <td style={{ padding:'14px 16px' }}>
-                  <div style={{ fontWeight:700, color:C.text, marginBottom:2 }}>{t.name}</div>
+                  <Link href={`/superadmin/tenants/${t.slug}`} style={{ fontWeight:700, color:C.text, marginBottom:2, textDecoration:'none', display:'flex', alignItems:'center', gap:6 }}>{t.name}<ChevronRight size={12} color="#6b7280"/></Link>
                   <div style={{ color:C.muted, fontSize:11 }}>
                     <span style={{ color:'#22c55e' }}>{t.slug}</span> · {t.owner_email}
                   </div>

@@ -13,6 +13,19 @@ const CreateCatSchema = z.object({
 
 export function OPTIONS() { return new Response(null,{status:204}); }
 
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  return withStaffAuth(req, async (_request, ctx) => {
+    const db = createServiceClient();
+    const { data, error } = await db
+      .from('menu_categories')
+      .select('id, name, description, sort_order, is_active, branch_id')
+      .eq('tenant_id', ctx.tenantId)
+      .order('sort_order', { ascending: true });
+    if (error) return apiError('Failed to fetch categories', 500);
+    return apiSuccess(data ?? []);
+  }, ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN']);
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(req, async (request, ctx) => {
     let body: unknown;

@@ -61,17 +61,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const { businessName, slug, ownerPin, phone, address, timezone } = parsed.data;
 
-  // ── VALIDATION (slug first → better UX) ──────────────────
-  const { data: slugCheck } = await db
-    .from('tenants').select('id').eq('slug', slug).maybeSingle();
-  if (slugCheck) {
-    return apiError(`"${slug}" is already taken. Try a different slug.`, 409, 'SLUG_TAKEN');
-  }
-
+  // ── VALIDATION ────────────────────────────────────────────
+  // Owner check FIRST: if user already has a tenant, redirect them to login
+  // (signup/confirm.tsx keys on TENANT_EXISTS to redirect rather than show error)
   const { data: existingTenant } = await db
     .from('tenants').select('id').eq('owner_user_id', user.id).maybeSingle();
   if (existingTenant) {
     return apiError('You already have a TYG POS account. Log in at /login.', 409, 'TENANT_EXISTS');
+  }
+
+  // Slug check second
+  const { data: slugCheck } = await db
+    .from('tenants').select('id').eq('slug', slug).maybeSingle();
+  if (slugCheck) {
+    return apiError(`"${slug}" is already taken. Try a different slug.`, 409, 'SLUG_TAKEN');
   }
 
   // ── SEEDING — sequential, all awaited, rollback on failure ─

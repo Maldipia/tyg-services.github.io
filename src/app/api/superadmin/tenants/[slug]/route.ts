@@ -105,13 +105,15 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Audit log every superadmin plan change
-  void db.from("audit_log").insert({
-    actor: "superadmin",
-    action: "PLAN_CHANGE",
-    target_type: "tenant",
-    target_id: data.id as string,
-    metadata: { slug, updates, note: body.note ?? null },
+  // Audit via system_logs (single logging system — audit_log was dropped)
+  const { logEvent } = await import('@/lib/logger');
+  void logEvent({
+    eventType: 'TENANT_PLAN_UPGRADED',
+    entityType: 'TENANT',
+    entityId: data.id as string,
+    source: 'API',
+    status: 'SUCCESS',
+    details: { slug, updates, note: body.note ?? null, actor: 'superadmin' },
   });
 
   return NextResponse.json({ data });

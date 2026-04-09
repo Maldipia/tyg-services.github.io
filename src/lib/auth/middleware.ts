@@ -54,6 +54,7 @@ export async function resolveTenant(slugOrId: string): Promise<TenantContext | n
     planStatus: data.plan_status as 'TRIAL' | 'ACTIVE' | 'GRACE' | 'SUSPENDED' | 'CANCELLED',
     isTrialActive,
     isOrderingEnabled: settings.orderingEnabled,
+    graceEndsAt: (data.grace_ends_at as string | null) ?? null,
   };
 }
 
@@ -90,12 +91,10 @@ export async function withStaffAuth(
   }
   // GRACE: allow staff to operate but flag it — owner must be notified
   if (tenant.planStatus === 'GRACE') {
-    const graceEnds = (tenant as unknown as Record<string,unknown>).graceEndsAt;
-    if (graceEnds && new Date(graceEnds as string) < new Date()) {
-      // Grace period expired — now actually suspend
+    if (tenant.graceEndsAt && new Date(tenant.graceEndsAt) < new Date()) {
       return apiError('Account subscription has expired — please contact support', 402, 'GRACE_EXPIRED');
     }
-    // Still within grace — allow operation, append header warning
+    // Still within grace — allow operation
   }
 
   const ctx: AuthContext = {
@@ -153,6 +152,7 @@ export async function withOwnerAuth(
     planStatus: tenant.plan_status as 'TRIAL' | 'ACTIVE' | 'GRACE' | 'SUSPENDED' | 'CANCELLED',
     isTrialActive: tenant.plan_status === 'TRIAL' && trialEnds !== null && trialEnds > now,
     isOrderingEnabled: settings.orderingEnabled,
+    graceEndsAt: (tenant.grace_ends_at as string | null) ?? null,
     ownerUserId: user.id,
   };
 

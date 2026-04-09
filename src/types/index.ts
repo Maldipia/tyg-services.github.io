@@ -269,6 +269,7 @@ export interface TenantContext {
   planStatus: PlanStatus;
   isTrialActive: boolean;
   isOrderingEnabled: boolean;
+  graceEndsAt: string | null;   // UTC ISO — null if not in GRACE or not set
 }
 
 // ── Auth Context (injected by middleware for staff routes) ────

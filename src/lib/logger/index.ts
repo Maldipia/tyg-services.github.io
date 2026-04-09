@@ -85,14 +85,9 @@ export async function logEvent(params: LogEventParams): Promise<void> {
     console.error('[logEvent] Supabase exception:', err);
   }
 
-  // ── Step 2: Sync to Google Sheets (fire-and-forget) ───────
-  void pushToSheets({
-    logId: logId ?? 'unknown',
-    timestamp,
-    eventType, entityType, entityId,
-    tenantId, branchId, userId, userName,
-    source, status, details,
-  });
+  // Sheets sync handled explicitly via fireSheetsWebhook() in each route.
+  // logEvent() is DB-only — APPEND_SYSTEM_LOG caused consistent failures.
+  // system_logs.sheets_synced remains false intentionally for system events.
 }
 
 // ── Internal: push to Sheets ──────────────────────────────────

@@ -6,6 +6,7 @@ import { resolveTenant, apiSuccess, apiError, getClientIp, withStaffAuth } from 
 import { orderRateLimit } from '@/lib/redis/ratelimit';
 import { sendSMS, orderCreatedSMS } from '@/lib/semaphore/sms';
 import { logEvent } from '@/lib/logger';
+import { fireSheetsWebhook } from '@/lib/sheets/webhook';
 import type { AuthContext } from '@/types';
 
 const CartItemSchema = z.object({
@@ -92,8 +93,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const [itemsRes, sizesRes, addonsRes] = await Promise.all([
     db.from('menu_items').select('id, name, base_price, status, tenant_id').in('id', itemIds).eq('tenant_id', tenant.tenantId),
-    sizeIds.length  > 0 ? db.from('menu_item_sizes').select('id, item_id, label, price, is_available').in('id', sizeIds).eq('tenant_id', tenant.tenantId)   : { data: [], error: null },
-    addonIds.length > 0 ? db.from('menu_item_addons').select('id, item_id, label, price, is_available').in('id', addonIds).eq('tenant_id', tenant.tenantId) : { data: [], error: null },
+    // No tenant_id column on sizes/addons — isolation via item_id cross-check below
+    sizeIds.length  > 0 ? db.from('menu_item_sizes').select('id, item_id, label, price, is_available').in('id', sizeIds)   : { data: [], error: null },
+    addonIds.length > 0 ? db.from('menu_item_addons').select('id, item_id, label, price, is_available').in('id', addonIds) : { data: [], error: null },
   ]);
 
   if (itemsRes.error) return apiError('Failed to fetch menu items', 500);
@@ -238,6 +240,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })();
   }
 
+
+  // Sheets: explicit business event for order tab (logEvent is DB-only now)
+  fireSheetsWebhook('LOG_ORDER', {
+    orderNumber: finalNumber, createdAt: new Date().toISOString(),
+    customerName: input.customerName, pax: input.pax,
+    subtotal, vatAmount: 0, totalAmount: finalTotal,
+    orderType: input.orderType,
+    deliveryAddress: input.deliveryAddress ?? null, deliveryFee,
+    status: 'PENDING', paymentStatus: 'UNPAID',
+    notes: input.notes ?? '', isTest: input.isTest ?? false,
+    items: pricedItems.map(i => ({ itemName: i.item_name, sizeLabel: i.size_label, qty: i.qty, unitPrice: i.unit_price })),
+  }).catch(() => {});
 
   return apiSuccess({ orderId, orderNumber: finalNumber, totalAmount: finalTotal, deliveryFee, status: 'PENDING', paymentStatus: 'UNPAID', trackUrl: `/orders/track?id=${orderId}` }, 201);
 }

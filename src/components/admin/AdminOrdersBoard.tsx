@@ -4,28 +4,34 @@ import type { Order, OrderStatus, PaymentStatus } from '@/types';
 import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  PENDING:   '⏳ Pending',
-  CONFIRMED: '👍 Confirmed',
-  PREPARING: '👨‍🍳 Preparing',
-  READY:     '🔔 Ready',
-  COMPLETED: '✅ Done',
-  CANCELLED: '❌ Cancelled',
+  PENDING:          '⏳ Pending',
+  CONFIRMED:        '✅ Confirmed',
+  PREPARING:        '👨‍🍳 Preparing',
+  READY:            '🔔 Ready',
+  OUT_FOR_DELIVERY: '🛵 Out for Delivery',
+  DELIVERED:        '📦 Delivered',
+  COMPLETED:        '✓ Completed',
+  CANCELLED:        '✗ Cancelled',
 };
 
 const STATUS_STYLE: Record<OrderStatus, { bg: string; color: string; border: string }> = {
-  PENDING:   { bg: 'rgba(245,158,11,0.12)', color: '#d97706', border: 'rgba(245,158,11,0.3)' },
-  CONFIRMED: { bg: 'rgba(99,102,241,0.12)', color: '#6366f1', border: 'rgba(99,102,241,0.3)' },
-  PREPARING: { bg: 'rgba(249,115,22,0.12)', color: '#ea580c', border: 'rgba(249,115,22,0.3)' },
-  READY:     { bg: 'rgba(34,197,94,0.12)',  color: '#16a34a', border: 'rgba(34,197,94,0.3)'  },
-  COMPLETED: { bg: 'rgba(16,185,129,0.12)', color: '#059669', border: 'rgba(16,185,129,0.3)' },
-  CANCELLED: { bg: 'rgba(239,68,68,0.12)',  color: '#dc2626', border: 'rgba(239,68,68,0.3)'  },
+  PENDING:          { bg: 'rgba(99,102,241,0.12)',  color: '#6366f1', border: '#6366f1' },
+  CONFIRMED:        { bg: 'rgba(245,158,11,0.12)',  color: '#d97706', border: '#d97706' },
+  PREPARING:        { bg: 'rgba(249,115,22,0.12)',  color: '#ea580c', border: '#ea580c' },
+  READY:            { bg: 'rgba(34,197,94,0.12)',   color: '#16a34a', border: '#16a34a' },
+  OUT_FOR_DELIVERY: { bg: 'rgba(6,182,212,0.12)',   color: '#0891b2', border: '#0891b2' },
+  DELIVERED:        { bg: 'rgba(16,185,129,0.12)',  color: '#059669', border: '#059669' },
+  COMPLETED:        { bg: 'rgba(107,114,128,0.12)', color: '#6b7280', border: '#6b7280' },
+  CANCELLED:        { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: '#dc2626' },
 };
 
 const NEXT_STATUS: Partial<Record<OrderStatus, { label: string; next: OrderStatus; color: string }>> = {
-  PENDING:   { label: 'Confirm Order',  next: 'CONFIRMED', color: '#6366f1' },
-  CONFIRMED: { label: 'Start Cooking',  next: 'PREPARING', color: '#f97316' },
-  PREPARING: { label: 'Mark Ready 🔔', next: 'READY',     color: '#22c55e' },
-  READY:     { label: 'Complete ✓',    next: 'COMPLETED', color: '#10b981' },
+  PENDING:          { label: 'Confirm Order',       next: 'CONFIRMED',        color: '#6366f1' },
+  CONFIRMED:        { label: 'Start Cooking',        next: 'PREPARING',        color: '#f97316' },
+  PREPARING:        { label: 'Mark Ready 🔔',        next: 'READY',            color: '#22c55e' },
+  READY:            { label: 'Complete ✓',           next: 'COMPLETED',        color: '#10b981' },
+  OUT_FOR_DELIVERY: { label: 'Mark Delivered 📦',    next: 'DELIVERED',        color: '#0891b2' },
+  DELIVERED:        { label: 'Complete ✓',           next: 'COMPLETED',        color: '#059669' },
 };
 
 const PAY_BADGE: Record<PaymentStatus, string> = {
@@ -50,7 +56,7 @@ interface ORData {
   subtotal: number; vatableSales: number; vatAmount: number; total: number; cashierName: string;
 }
 
-const TABS: Array<OrderStatus | 'ALL'> = ['ALL','PENDING','CONFIRMED','PREPARING','READY','COMPLETED','CANCELLED'];
+const TABS: Array<OrderStatus | 'ALL'> = ['ALL','PENDING','CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','COMPLETED','CANCELLED'];
 
 // ── Web Audio chime — no external files needed ─────────────────
 function playNewOrderChime() {
@@ -371,7 +377,13 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   {(() => { const tn = (order as unknown as Record<string,unknown>)['table_name']; return tn ? <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: 'rgba(99,102,241,0.1)', color: '#4f46e5' }}>🪑 {String(tn)}</span> : null; })()}
                   {isOverdue && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(239,68,68,0.12)', color: '#dc2626' }}>⚠ {minsAgo}m</span>}
                 </div>
-                <p style={s.meta}>{order.customer_name} · {order.pax} pax</p>
+                <p style={s.meta}>{order.customer_name} · {order.pax} pax
+                  {(order as unknown as Record<string,unknown>)['order_type'] === 'DELIVERY' && <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 12, fontSize: 11, fontWeight: 700, background: 'rgba(6,182,212,0.12)', color: '#0891b2' }}>🛵 Delivery</span>}
+                  {(order as unknown as Record<string,unknown>)['order_type'] === 'TAKEOUT' && <span style={{ marginLeft: 6, padding: '1px 7px', borderRadius: 12, fontSize: 11, fontWeight: 700, background: 'rgba(245,158,11,0.10)', color: '#d97706' }}>🛍 Takeout</span>}
+                </p>
+                {!!(order as unknown as Record<string,unknown>)['delivery_address'] && (
+                  <p style={{ fontSize: 11, color: '#0891b2', marginTop: 2, fontStyle: 'italic' }}>📍 {String((order as unknown as Record<string,unknown>)['delivery_address'] ?? '')}</p>
+                )}
                 {order.status === 'CANCELLED' && (order as unknown as Record<string,unknown>)['cancel_reason'] ? (
                   <p style={{ fontSize:11, color:'#dc2626', marginTop:2, fontStyle:'italic' }}>
                     ↩ {String((order as unknown as Record<string,unknown>)['cancel_reason'])}
@@ -406,10 +418,16 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
             {/* Actions */}
             <div style={s.actions}>
-              {nextAct && (
+              {nextAct && !(order.status === 'READY' && (order as unknown as Record<string,unknown>)['order_type'] === 'DELIVERY') && (
                 <button disabled={isBumping} onClick={() => void bumpStatus(order.id, nextAct.next, undefined, order.payment_status)}
                   style={{ padding: '8px 18px', borderRadius: 8, background: nextAct.color, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: isBumping ? 'not-allowed' : 'pointer', opacity: isBumping ? 0.7 : 1 }}>
                   {isBumping ? '…' : nextAct.label}
+                </button>
+              )}
+              {order.status === 'READY' && (order as unknown as Record<string,unknown>)['order_type'] === 'DELIVERY' && (
+                <button disabled={isBumping} onClick={() => void bumpStatus(order.id, 'OUT_FOR_DELIVERY', undefined, order.payment_status)}
+                  style={{ padding: '8px 18px', borderRadius: 8, background: '#0891b2', color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: isBumping ? 'not-allowed' : 'pointer', opacity: isBumping ? 0.7 : 1 }}>
+                  {isBumping ? '…' : '🛵 Dispatch Delivery'}
                 </button>
               )}
               {!['COMPLETED','CANCELLED'].includes(order.status) && (

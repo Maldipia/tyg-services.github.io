@@ -27,6 +27,8 @@ interface KitchenOrder {
   table_name?: string | null;
   branch_id?: string | null;
   total_amount: number;
+  order_type?: string | null;
+  delivery_address?: string | null;
   items: KitchenItem[];
   minutesAgo: number;
 }
@@ -37,17 +39,19 @@ interface Props {
   tenantName: string;
 }
 
-const KITCHEN_STATUSES = ['PENDING', 'CONFIRMED', 'PREPARING'];
+const KITCHEN_STATUSES = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'];
 
 const NEXT_ACTION: Record<string, { label: string; status: string; bg: string }> = {
   PENDING:   { label: 'Confirm',       status: 'CONFIRMED', bg: '#7c3aed' },
   CONFIRMED: { label: 'Start Cooking', status: 'PREPARING', bg: '#d97706' },
   PREPARING: { label: 'Mark Ready 🔔', status: 'READY',     bg: '#16a34a' },
+  READY:     { label: 'Complete ✓',    status: 'COMPLETED', bg: '#10b981' },
 };
 
 const LEFT_COLOR: Record<string, string> = {
   PENDING:   '#60a5fa',
   CONFIRMED: '#a78bfa',
+  READY:     '#10b981',
   PREPARING: '#fbbf24',
 };
 
@@ -196,6 +200,11 @@ function OrderCard({ order, onUpdate }: { order: KitchenOrder; onUpdate: (id: st
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ color: '#fff', fontWeight: 700, fontSize: 20 }}>#{order.order_number}</span>
+            {order.order_type === 'DELIVERY' && (
+              <span style={{ background: 'rgba(6,182,212,0.2)', color: '#22d3ee', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99 }}>
+                🛵 DELIVERY
+              </span>
+            )}
             {order.table_name && (
               <span style={{ background: '#374151', color: '#f9fafb', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99, letterSpacing: '0.04em' }}>
                 {order.table_name}
@@ -205,6 +214,11 @@ function OrderCard({ order, onUpdate }: { order: KitchenOrder; onUpdate: (id: st
           <p style={{ color: '#9ca3af', fontSize: 13, margin: '3px 0 0' }}>
             {order.customer_name} · {order.pax} pax
           </p>
+          {order.delivery_address && (
+            <p style={{ color: '#22d3ee', fontSize: 11, margin: '2px 0 0', fontStyle: 'italic' }}>
+              📍 {order.delivery_address}
+            </p>
+          )}
         </div>
         <span style={{
           fontSize: 13, fontWeight: 700,

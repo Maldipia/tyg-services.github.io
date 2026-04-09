@@ -26,7 +26,7 @@ const CANCEL_REASONS = [
 ] as const;
 
 const StatusUpdateSchema = z.object({
-  status: z.enum(['CONFIRMED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED']),
+  status: z.enum(['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED', 'CANCELLED']),
   cancelReason: z.enum(CANCEL_REASONS).optional(),
   cancelNote: z.string().max(500).optional(),
 });
@@ -216,12 +216,14 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
 // ── Valid Status Transitions ──────────────────────────────────
 function isValidTransition(from: OrderStatus, to: string): boolean {
   const transitions: Record<OrderStatus, string[]> = {
-    PENDING:    ['CONFIRMED', 'CANCELLED'],
-    CONFIRMED:  ['PREPARING', 'CANCELLED'],
-    PREPARING:  ['READY', 'CANCELLED'],
-    READY:      ['COMPLETED', 'CANCELLED'],
-    COMPLETED:  [],   // terminal — cannot transition out
-    CANCELLED:  [],   // terminal
+    PENDING:           ['CONFIRMED', 'CANCELLED'],
+    CONFIRMED:         ['PREPARING', 'CANCELLED'],
+    PREPARING:         ['READY', 'CANCELLED'],
+    READY:             ['OUT_FOR_DELIVERY', 'COMPLETED', 'CANCELLED'],
+    OUT_FOR_DELIVERY:  ['DELIVERED', 'CANCELLED'],
+    DELIVERED:         ['COMPLETED'],
+    COMPLETED:         [],
+    CANCELLED:         [],
   };
 
   return transitions[from]?.includes(to) ?? false;

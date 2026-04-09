@@ -74,7 +74,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
     const idKey = sessionStorage.getItem('tyg_idkey') ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     try {
-      const res = await fetch('/api/orders/create', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

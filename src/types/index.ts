@@ -5,7 +5,7 @@
 
 export type PlanTier = 'TRIAL' | 'STARTER' | 'BUSINESS' | 'PRO' | 'ENTERPRISE';
 export type PlanStatus = 'TRIAL' | 'ACTIVE' | 'GRACE' | 'SUSPENDED' | 'CANCELLED';
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
 export type PaymentStatus = 'UNPAID' | 'PENDING_VERIFICATION' | 'VERIFIED' | 'FAILED' | 'REFUNDED';
 export type PaymentMethod = 'GCASH' | 'MAYA' | 'BPI' | 'BDO' | 'UNIONBANK' | 'CASH' | 'PAYMONGO' | 'OTHER';
 export type StaffRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'CASHIER' | 'KITCHEN';

@@ -87,8 +87,38 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       break;
     }
 
+    case 'payment.failed':
+    case 'checkout_session.expired': {
+      const attrs = event.data.attributes.data.attributes;
+      const tenantId = attrs.metadata?.tenantId;
+      if (!tenantId) break;
+      const graceEnds = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      await db.from('tenants').update({ plan_status: 'GRACE', grace_ends_at: graceEnds }).eq('id', tenantId).eq('plan_status', 'ACTIVE');
+      console.log(`Tenant ${tenantId} moved to GRACE (payment failed)`);
+      break;
+    }
+
+    case 'subscription.cancelled':
+    case 'subscription.payment.failed': {
+      const attrs = event.data.attributes.data.attributes;
+      const tenantId = attrs.metadata?.tenantId;
+      if (!tenantId) break;
+      const graceEnds = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      await db.from('tenants').update({ plan_status: 'GRACE', grace_ends_at: graceEnds }).eq('id', tenantId).in('plan_status', ['ACTIVE','TRIAL']);
+      console.log(`Tenant ${tenantId} subscription cancelled — 7-day grace`);
+      break;
+    }
+
+    case 'subscription.terminated': {
+      const attrs = event.data.attributes.data.attributes;
+      const tenantId = attrs.metadata?.tenantId;
+      if (!tenantId) break;
+      await db.from('tenants').update({ plan_status: 'SUSPENDED', grace_ends_at: null }).eq('id', tenantId);
+      console.log(`Tenant ${tenantId} terminated → SUSPENDED`);
+      break;
+    }
+
     default:
-      // Log unhandled events for debugging
       console.log('Unhandled PayMongo event:', eventType);
   }
 

@@ -132,10 +132,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     is_active: true,
   });
 
-  // ── Seed order sequence ──────────────────────────────────
-  await db.from('order_sequences').insert({
-    tenant_id: tenantId,
-    last_seq: 0,
+  // ── Seed order sequence (idempotent) ────────────────────
+  const { data: existingSeq } = await db.from('order_sequences').select('id').eq('tenant_id', tenantId).single();
+  if (!existingSeq) {
+    await db.from('order_sequences').insert({ tenant_id: tenantId, last_seq: 0 });
+  }
+
+  // ── Seed default pickup zone ──────────────────────────────
+  void db.from('delivery_zones').insert({
+    tenant_id: tenantId, name: 'Pickup (No Fee)', fee: 0, min_order: 0, sort_order: 0, is_active: true,
   });
 
   return apiSuccess(
@@ -144,7 +149,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       slug: tenant.slug,
       branchId: branch?.id ?? null,
       trialEndsAt,
+      loginUrl: `/login`,
       dashboardUrl: `/admin/dashboard`,
+      orderUrl: `/order/${slug}`,
     },
     201
   );

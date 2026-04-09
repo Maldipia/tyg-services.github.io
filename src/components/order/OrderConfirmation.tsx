@@ -9,12 +9,14 @@ interface Props {
 }
 
 const STATUS: Record<OrderStatus, { label: string; emoji: string; color: string }> = {
-  PENDING:   { label: 'Order Received',     emoji: '✅', color: '#2563eb' },
-  CONFIRMED: { label: 'Confirmed by Staff', emoji: '👍', color: '#1d4ed8' },
-  PREPARING: { label: 'Being Prepared',     emoji: '👨‍🍳', color: '#d97706' },
-  READY:     { label: 'Ready to Serve!',    emoji: '🔔', color: '#16a34a' },
-  COMPLETED: { label: 'Completed',          emoji: '🎉', color: '#065f46' },
-  CANCELLED: { label: 'Cancelled',          emoji: '❌', color: '#dc2626' },
+  PENDING:          { label: 'Order Received',    emoji: '✅', color: '#2563eb' },
+  CONFIRMED:        { label: 'Confirmed',          emoji: '👍', color: '#7c3aed' },
+  PREPARING:        { label: 'Preparing',          emoji: '👨‍🍳', color: '#d97706' },
+  READY:            { label: 'Ready for Pickup',   emoji: '🔔', color: '#16a34a' },
+  OUT_FOR_DELIVERY: { label: 'Out for Delivery',   emoji: '🛵', color: '#0891b2' },
+  DELIVERED:        { label: 'Delivered',          emoji: '📦', color: '#059669' },
+  COMPLETED:        { label: 'Completed',          emoji: '🎉', color: '#059669' },
+  CANCELLED:        { label: 'Cancelled',          emoji: '❌', color: '#dc2626' },
 };
 const STEPS: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'];
 

@@ -53,7 +53,7 @@ export async function fireSheetsWebhook(
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
+    const timeout = setTimeout(() => controller.abort(), 25_000); // 25s — Apps Script needs time to write
 
     const res = await fetch(scriptUrl, {
       method: 'POST',
@@ -89,6 +89,10 @@ export async function fireSheetsWebhook(
  * Queue a failed webhook for retry by the Vercel Cron job.
  * Writes to a `pending_webhook_syncs` table in Supabase.
  */
+// NOTE: fireSheetsWebhook calls from API routes may be aborted when Vercel Lambda
+// freezes after response is sent. This is expected — the retry cron (*/15 min)
+// replays any aborted entries from pending_webhook_syncs automatically.
+
 async function queueRetry(
   action: SheetsAction,
   data: Record<string, unknown>,

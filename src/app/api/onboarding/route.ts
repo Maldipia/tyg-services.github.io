@@ -40,17 +40,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const { data: { user }, error: authError } = await db.auth.getUser(token);
   if (authError || !user) return apiError('Invalid token', 401);
 
-  // Check if this user already has a tenant
-  const { data: existingTenant } = await db
-    .from('tenants')
-    .select('id')
-    .eq('owner_user_id', user.id)
-    .single();
-
-  if (existingTenant) {
-    return apiError('You already have a TYG POS account', 409, 'TENANT_EXISTS');
-  }
-
   let body: unknown;
   try { body = await req.json(); }
   catch { return apiError('Invalid JSON', 400); }
@@ -62,7 +51,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const { businessName, slug, ownerPin, phone, address, timezone } = parsed.data;
 
-  // Check slug uniqueness
+  // Check slug uniqueness FIRST — better UX (slug error before ownership error)
   const { data: slugCheck } = await db
     .from('tenants')
     .select('id')
@@ -71,6 +60,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (slugCheck) {
     return apiError(`"${slug}" is already taken. Try a different slug.`, 409, 'SLUG_TAKEN');
+  }
+
+  // Check if this user already has a tenant
+  const { data: existingTenant } = await db
+    .from('tenants')
+    .select('id')
+    .eq('owner_user_id', user.id)
+    .single();
+
+  if (existingTenant) {
+    return apiError('You already have a TYG POS account', 409, 'TENANT_EXISTS');
   }
 
   // ── Create tenant ────────────────────────────────────────
@@ -132,16 +132,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     is_active: true,
   });
 
-  // ── Seed order sequence (idempotent) ────────────────────
-  const { data: existingSeq } = await db.from('order_sequences').select('id').eq('tenant_id', tenantId).single();
-  if (!existingSeq) {
-    await db.from('order_sequences').insert({ tenant_id: tenantId, last_seq: 0 });
+  // ── Seed order sequence ──────────────────────────────────
+  const { data: seqExists } = await db.from('order_sequences')
+    .select('tenant_id').eq('tenant_id', tenantId).maybeSingle();
+  if (!seqExists) {
+    await db.from('order_sequences').insert({
+      tenant_id: tenantId,
+      prefix: slug.toUpperCase().slice(0, 6),
+      last_number: 0,
+    });
   }
 
   // ── Seed default pickup zone ──────────────────────────────
-  void db.from('delivery_zones').insert({
-    tenant_id: tenantId, name: 'Pickup (No Fee)', fee: 0, min_order: 0, sort_order: 0, is_active: true,
+  const { error: zoneErr } = await db.from('delivery_zones').insert({
+    tenant_id: tenantId, name: 'Pickup (No Delivery Fee)', fee: 0, min_order: 0, sort_order: 0, is_active: true,
   });
+  if (zoneErr) console.error('Delivery zone seed failed:', zoneErr.message);
 
   return apiSuccess(
     {

@@ -68,8 +68,14 @@ export async function fireSheetsWebhook(
     clearTimeout(timeout);
 
     if (!res.ok) {
+      const ct = res.headers.get('content-type') ?? '';
+      // 4xx with HTML = Apps Script deleted/undeployed — don't queue retry, just warn
+      if (res.status >= 400 && ct.includes('text/html')) {
+        console.warn(`[SheetsWebhook] ${action} skipped — Apps Script endpoint returned ${res.status} (HTML). Script may be undeployed.`);
+        return;
+      }
       const text = await res.text();
-      console.error(`[SheetsWebhook] ${action} failed: ${res.status} — ${text}`);
+      console.error(`[SheetsWebhook] ${action} failed: ${res.status} — ${text.slice(0,100)}`);
       await queueRetry(action, data, `HTTP ${res.status}`);
     }
   } catch (err: unknown) {

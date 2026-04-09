@@ -47,8 +47,10 @@ function makeLimiter(requests: number, windowSeconds: number) {
   };
 }
 
-export const orderRateLimit       = makeLimiter(10, 600);  // 10/10min
-export const pinLoginRateLimit    = makeLimiter(5, 900);   // 5/15min
-export const ownerLoginRateLimit  = makeLimiter(10, 3600); // 10/1hr
-export const paymentUploadRateLimit = makeLimiter(5, 300); // 5/5min
-export const menuFetchRateLimit   = makeLimiter(100, 60);  // 100/1min
+export const orderRateLimit         = makeLimiter(10, 600);  // 10/10min
+export const pinLoginRateLimit      = makeLimiter(5, 900);   // 5/15min
+export const ownerLoginRateLimit    = makeLimiter(10, 3600); // 10/1hr
+export const paymentUploadRateLimit = makeLimiter(5, 300);   // 5/5min
+export const menuFetchRateLimit     = makeLimiter(100, 60);  // 100/1min
+export const promoValidateRateLimit = makeLimiter(20, 60);   // 20/min per IP — promo enumeration guard
+export const feedbackRateLimit      = makeLimiter(5, 300);   // 5/5min per IP — rating spam guard

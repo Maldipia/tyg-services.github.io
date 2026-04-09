@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { apiSuccess, apiError } from '@/lib/auth/middleware';
+import { apiSuccess, apiError, getClientIp } from '@/lib/auth/middleware';
+import { feedbackRateLimit } from '@/lib/redis/ratelimit';
 import { createServiceClient } from '@/lib/supabase/client';
 
 const FeedbackSchema = z.object({
@@ -16,6 +17,10 @@ const FeedbackSchema = z.object({
 export function OPTIONS() { return new Response(null, { status: 204 }); }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // Rate-limited: 10/10min per IP — prevents rating spam
+  const { success } = await feedbackRateLimit.limit(getClientIp(req));
+  if (!success) return apiError('Too many requests. Please wait.', 429);
+
   let body: unknown;
   try { body = await req.json(); } catch { return apiError('Invalid JSON', 400); }
   const parsed = FeedbackSchema.safeParse(body);

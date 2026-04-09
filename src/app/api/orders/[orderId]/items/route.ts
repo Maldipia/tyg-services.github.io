@@ -4,8 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { apiSuccess, apiError } from '@/lib/auth/middleware';
+import { apiSuccess, apiError, getClientIp, withStaffAuth } from '@/lib/auth/middleware';
+import type { AuthContext } from '@/types';
 import { createServiceClient } from '@/lib/supabase/client';
+import { orderRateLimit } from '@/lib/redis/ratelimit';
 
 const AddItemsSchema = z.object({
   items: z.array(z.object({
@@ -24,7 +26,13 @@ type Params = { params: { orderId: string } };
 
 export function OPTIONS() { return new Response(null, { status: 204 }); }
 
-export async function PATCH(req: NextRequest, { params }: Params): Promise<NextResponse> {
+export function PATCH(req: NextRequest, { params }: Params): Promise<NextResponse> {
+  return withStaffAuth(req, async (request, _ctx: AuthContext) => {
+  // Rate-limited — same limiter as order creation (10/10min per IP)
+  const ip = getClientIp(req);
+  const { success } = await orderRateLimit.limit(ip);
+  if (!success) return apiError('Too many requests. Please wait.', 429, 'RATE_LIMIT_EXCEEDED');
+
   const { orderId } = params;
   if (!orderId || !/^[0-9a-f-]{36}$/.test(orderId)) return apiError('Invalid order ID', 400);
 
@@ -103,5 +111,6 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
     .select('id, order_number, total_amount, status')
     .eq('id', orderId).single();
 
-  return apiSuccess({ added: inserts.length, order: updated, minutesLeft: Math.max(0, WINDOW_MINUTES - ageMins) });
+    return apiSuccess({ added: inserts.length, order: updated, minutesLeft: Math.max(0, WINDOW_MINUTES - ageMins) });
+  }, ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN']);
 }

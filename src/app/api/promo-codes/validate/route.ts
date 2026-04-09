@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 // Returns the discount details without exposing all promo data.
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { resolveTenant, apiSuccess, apiError } from '@/lib/auth/middleware';
+import { resolveTenant, apiSuccess, apiError, getClientIp } from '@/lib/auth/middleware';
+import { promoValidateRateLimit } from '@/lib/redis/ratelimit';
 import { createServiceClient } from '@/lib/supabase/client';
 
 const ValidateSchema = z.object({
@@ -16,6 +17,10 @@ const ValidateSchema = z.object({
 export function OPTIONS() { return new Response(null, { status: 204 }); }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // Rate-limited: 10/10min per IP — prevents promo code enumeration
+  const { success } = await promoValidateRateLimit.limit(getClientIp(req));
+  if (!success) return apiError('Too many requests. Please wait.', 429);
+
   let body: unknown;
   try { body = await req.json(); } catch { return apiError('Invalid JSON', 400); }
   const parsed = ValidateSchema.safeParse(body);

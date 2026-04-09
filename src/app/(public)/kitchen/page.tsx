@@ -33,7 +33,7 @@ function KitchenPageInner() {
     const raw = localStorage.getItem('tyg_session');
     if (!raw) {
       // Redirect to login preserving tenant param
-      const dest = slugParam ? `/login?tenant=${slugParam}&redirect=/kitchen` : '/login';
+      const dest = slugParam ? `/login/${slugParam}` : '/login';
       router.replace(dest);
       return;
     }
@@ -44,7 +44,7 @@ function KitchenPageInner() {
       // Kitchen page is accessible to all staff roles — KITCHEN, CASHIER, OWNER, etc.
       // If a tenant slug param is present, match it
       if (slugParam && s.tenantSlug !== slugParam) {
-        router.replace(`/login?tenant=${slugParam}&redirect=/kitchen`);
+        router.replace(`/login/${slugParam}`);
         return;
       }
 
@@ -118,7 +118,7 @@ function KitchenPageInner() {
               fetch('/api/auth/staff/login', { method: 'DELETE' }).finally(() => {
                 localStorage.removeItem('tyg_session');
                 localStorage.removeItem('tyg_tenant');
-                router.push(slugParam ? `/login?tenant=${slugParam}` : '/login');
+                router.push(slugParam ? `/login/${slugParam}` : '/login');
               });
             }}
             style={{

@@ -130,7 +130,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     try { await fetch('/api/auth/staff/login', { method: 'DELETE' }); } catch {/**/}
     localStorage.removeItem('tyg_session');
     localStorage.removeItem('tyg_tenant');
-    router.push('/login');
+    const slug = JSON.parse(localStorage.getItem('tyg_tenant') || '{}').slug || '';
+    router.push(slug ? `/login/${slug}` : '/login');
   };
 
   const allItems = NAV_GROUPS.flatMap(g => g.items as Array<{ href: string; label: string }>);

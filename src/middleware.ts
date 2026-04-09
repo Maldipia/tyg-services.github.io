@@ -20,8 +20,9 @@ export function middleware(req: NextRequest): NextResponse {
   if (pathname.startsWith('/admin') || pathname.startsWith('/kitchen')) {
     const sessionCookie = req.cookies.get('tyg-staff-session');
     if (!sessionCookie) {
+      // Redirect to /login — user must enter their café slug
+      // Tenant slug is part of the URL path /login/[tenant], not a query param
       const loginUrl = new URL('/login', req.url);
-      loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
   }

@@ -1,243 +1,76 @@
 'use client';
-import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Delete } from 'lucide-react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-const KEYPAD = [['1','2','3'],['4','5','6'],['7','8','9'],['','0','⌫']];
-
-function LoginForm() {
+// /login — redirects to /login/[tenant]
+// No default tenant. No fallback. Tenant must be explicit.
+export default function LoginRedirectPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [slug, setSlug] = useState('');
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
 
-  // Step 1: tenant slug  Step 2: display name  Step 3: PIN
-  const [step, setStep] = useState<'tenant'|'name'|'pin'>(
-    searchParams.get('tenant') ? 'name' : 'tenant'
-  );
-  const [tenantSlug, setTenantSlug]   = useState(searchParams.get('tenant') ?? '');
-  const [tenantName, setTenantName]   = useState('');
-  const [tenantError, setTenantError] = useState('');
-  const [checkingTenant, setCheckingTenant] = useState(false);
-  const [displayName, setDisplayName] = useState('');
-  const [pin, setPin]                 = useState('');
-  const [error, setError]             = useState('');
-  const [loading, setLoading]         = useState(false);
-  const [shake, setShake]             = useState(false);
-
-  const slugRef = useRef<HTMLInputElement>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
-
-  // If tenant was pre-set in URL, verify it on mount
-  useEffect(() => {
-    const preSlug = searchParams.get('tenant');
-    if (preSlug) verifyTenant(preSlug);
-    else setTimeout(() => slugRef.current?.focus(), 100);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (step === 'name') setTimeout(() => nameRef.current?.focus(), 100);
-  }, [step]);
-
-  const triggerShake = () => { setShake(true); setTimeout(() => setShake(false), 500); };
-
-  const verifyTenant = async (slug: string) => {
-    if (!slug.trim()) return;
-    setCheckingTenant(true); setTenantError('');
+  const go = async () => {
+    const s = slug.trim().toLowerCase();
+    if (!s) return;
+    setChecking(true); setError('');
     try {
-      const res = await fetch(`/api/menu?tenant=${slug.trim().toLowerCase()}`);
-      const d = await res.json() as { data?: { tenantName?: string }; error?: string };
+      const res = await fetch(`/api/menu?tenant=${s}`);
+      const d   = await res.json() as { data?: unknown; error?: string };
       if (!res.ok || !d?.data) {
-        setTenantError('Café not found. Check the slug and try again.');
-        setCheckingTenant(false); return;
+        setError(`No café found for "${s}"`); setChecking(false); return;
       }
-      setTenantName(d.data.tenantName ?? slug);
-      setTenantSlug(slug.trim().toLowerCase());
-      setStep('name');
+      router.push(`/login/${s}`);
     } catch {
-      setTenantError('Network error — try again');
-    }
-    setCheckingTenant(false);
-  };
-
-  const handleKeyPress = (key: string) => {
-    if (key === '⌫') { setPin(p => p.slice(0,-1)); setError(''); return; }
-    if (pin.length >= 8) return;
-    const next = pin + key;
-    setPin(next); setError('');
-    if (next.length >= 4) setTimeout(() => handleLoginWithPin(next), 80);
-  };
-
-  const handleLoginWithPin = async (pinVal: string) => {
-    if (!displayName.trim() || pinVal.length < 4) return;
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('/api/auth/staff/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantSlug, displayName: displayName.trim(), pin: pinVal }),
-      });
-      const data = await res.json() as {
-        data?: { staffId:string; displayName:string; role:string; branchId:string|null;
-                  tenantId:string; tenantSlug:string; tenantName:string; tenantAddress:string|null;
-                  planTier:string; planStatus:string; trialEndsAt:string|null };
-        error?: string|null
-      };
-      if (!res.ok || data.error) {
-        setError(data.error ?? 'Wrong PIN'); setPin(''); triggerShake(); setLoading(false); return;
-      }
-      if (data.data) {
-        const d = data.data;
-        localStorage.setItem('tyg_tenant', JSON.stringify({ id:d.tenantId, slug:d.tenantSlug, name:d.tenantName, address:d.tenantAddress, plan:d.planTier, trialEndsAt:d.trialEndsAt }));
-        localStorage.setItem('tyg_session', JSON.stringify({ tenantId:d.tenantId, tenantSlug:d.tenantSlug, tenantName:d.tenantName, tenantAddress:d.tenantAddress, staffId:d.staffId, displayName:d.displayName, role:d.role, branchId:d.branchId }));
-      }
-      router.push(searchParams.get('redirect') ?? '/admin/dashboard');
-    } catch {
-      setError('Network error — try again'); setPin(''); triggerShake(); setLoading(false);
+      setError('Network error — try again'); setChecking(false);
     }
   };
 
   const bg = '#0c0f16';
-  const card: React.CSSProperties = { width:'100%', maxWidth:360 };
-  const logoBox: React.CSSProperties = { width:64, height:64, borderRadius:20, margin:'0 auto 16px', background:'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow:'0 8px 40px rgba(34,197,94,0.35)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 };
-
   return (
     <>
       <style>{`
-        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
-        @keyframes pop{0%{transform:scale(0.6);opacity:0.4}60%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-        .tyg-shake{animation:shake 0.4s ease}
-        .tyg-pop{animation:pop 0.18s ease forwards}
-        .tyg-fadeup{animation:fadeUp 0.3s ease forwards}
-        .tyg-key{display:flex;align-items:center;justify-content:center;width:76px;height:76px;border-radius:50%;font-size:26px;font-weight:700;cursor:pointer;background:rgba(255,255,255,0.06);color:#e8eaf0;border:1px solid rgba(255,255,255,0.09);transition:background .12s,transform .08s;user-select:none;-webkit-user-select:none}
-        .tyg-key:hover{background:rgba(255,255,255,0.12)}
-        .tyg-key:active{transform:scale(0.88);background:rgba(34,197,94,0.18);color:#22c55e}
-        .tyg-key-row{display:flex;gap:18px;justify-content:center}
-        .tyg-key-grid{display:flex;flex-direction:column;gap:14px;align-items:center}
-        .tyg-input{width:100%;background:transparent;border:none;outline:none;color:#e8eaf0;font-size:20px;font-weight:600;font-family:inherit}
-        .tyg-input::placeholder{color:rgba(255,255,255,0.2)}
-        .tyg-field{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px 20px;margin-bottom:16px}
-        .tyg-label{color:#6b7280;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px}
-        .tyg-btn{width:100%;padding:16px;border-radius:16px;border:none;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.2s}
-        .tyg-btn-primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:white}
-        .tyg-btn-disabled{background:rgba(255,255,255,0.05);color:#4b5563;cursor:not-allowed}
-        .tyg-back{background:none;border:none;cursor:pointer;color:#22c55e;font-size:14px;display:block;margin:0 auto 6px}
-        @media(max-height:700px),.tyg-small{.tyg-key{width:64px!important;height:64px!important;font-size:22px!important}.tyg-key-row{gap:12px!important}.tyg-key-grid{gap:10px!important}}
+        .fu{animation:fadeUp 0.3s ease forwards}
+        .inp{width:100%;background:transparent;border:none;outline:none;color:#e8eaf0;font-size:18px;font-weight:600;font-family:inherit}
+        .inp::placeholder{color:rgba(255,255,255,0.2)}
+        .btn{width:100%;padding:16px;border-radius:16px;border:none;font-size:16px;font-weight:700;cursor:pointer}
       `}</style>
-
-      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:16, background:bg, fontFamily:"'Inter',system-ui,sans-serif" }}>
-        <div style={card} className="tyg-fadeup">
-
-          {/* Logo */}
+      <div style={{ minHeight:'100vh', background:bg, display:'flex', alignItems:'center', justifyContent:'center', padding:16, fontFamily:"'Inter',system-ui,sans-serif" }}>
+        <div className="fu" style={{ width:'100%', maxWidth:360 }}>
           <div style={{ textAlign:'center', marginBottom:32 }}>
-            <div style={logoBox}>☕</div>
+            <div style={{ width:64, height:64, borderRadius:20, margin:'0 auto 16px', background:'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow:'0 8px 40px rgba(34,197,94,0.35)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 }}>☕</div>
             <div style={{ color:'#e8eaf0', fontWeight:800, fontSize:22, marginBottom:4 }}>Staff Login</div>
-            <div style={{ color:'#6b7280', fontSize:14 }}>{tenantName || 'TYG POS'}</div>
+            <div style={{ color:'#6b7280', fontSize:14 }}>Enter your café's URL slug</div>
           </div>
-
-          {/* ── STEP 1: Café slug ── */}
-          {step === 'tenant' && (
-            <div>
-              <div className="tyg-field">
-                <div className="tyg-label">Café Slug</div>
-                <input
-                  ref={slugRef}
-                  className="tyg-input"
-                  type="text"
-                  value={tenantSlug}
-                  onChange={e => { setTenantSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,'')); setTenantError(''); }}
-                  onKeyDown={e => e.key==='Enter' && verifyTenant(tenantSlug)}
-                  placeholder="e.g. yani"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                />
-              </div>
-              {tenantError && <div style={{ color:'#f87171', fontSize:13, marginBottom:12, textAlign:'center' }}>{tenantError}</div>}
-              <button
-                className={`tyg-btn ${tenantSlug.trim() && !checkingTenant ? 'tyg-btn-primary' : 'tyg-btn-disabled'}`}
-                onClick={() => verifyTenant(tenantSlug)}
-                disabled={!tenantSlug.trim() || checkingTenant}
-              >
-                {checkingTenant ? 'Finding café…' : 'Continue →'}
-              </button>
-            </div>
-          )}
-
-          {/* ── STEP 2: Display name ── */}
-          {step === 'name' && (
-            <div>
-              <div style={{ textAlign:'center', marginBottom:20 }}>
-                <button className="tyg-back" onClick={() => { setStep('tenant'); setTenantName(''); setDisplayName(''); }}>← {tenantName}</button>
-              </div>
-              <div className="tyg-field">
-                <div className="tyg-label">Your Name</div>
-                <input
-                  ref={nameRef}
-                  className="tyg-input"
-                  type="text"
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  onKeyDown={e => e.key==='Enter' && displayName.trim() && setStep('pin')}
-                  placeholder="Enter your display name"
-                />
-              </div>
-              <button
-                className={`tyg-btn ${displayName.trim() ? 'tyg-btn-primary' : 'tyg-btn-disabled'}`}
-                onClick={() => displayName.trim() && setStep('pin')}
-                disabled={!displayName.trim()}
-              >
-                Continue →
-              </button>
-            </div>
-          )}
-
-          {/* ── STEP 3: PIN ── */}
-          {step === 'pin' && (
-            <div>
-              <div style={{ textAlign:'center', marginBottom:28 }}>
-                <button className="tyg-back" onClick={() => { setStep('name'); setPin(''); setError(''); }}>← {displayName}</button>
-                <div style={{ color:'#9ca3af', fontSize:15 }}>Enter your PIN</div>
-              </div>
-
-              <div className={shake ? 'tyg-shake' : ''} style={{ display:'flex', justifyContent:'center', gap:16, marginBottom:32 }}>
-                {Array.from({ length: Math.max(4, pin.length) }, (_,i) => (
-                  <div key={i} className={pin.length===i+1 ? 'tyg-pop' : ''} style={{ width:14, height:14, borderRadius:'50%', background: pin.length>i ? (error ? '#ef4444' : '#22c55e') : 'rgba(255,255,255,0.12)', transition:'background 0.15s' }} />
-                ))}
-              </div>
-
-              {error && <div style={{ textAlign:'center', color:'#f87171', fontSize:14, marginBottom:20 }}>{error}</div>}
-
-              <div className="tyg-key-grid">
-                {KEYPAD.map((row,ri) => (
-                  <div key={ri} className="tyg-key-row">
-                    {row.map((key,ki) =>
-                      key==='' ? <div key={ki} style={{ width:76, height:76 }} /> :
-                      key==='⌫' ? <button key={ki} className="tyg-key" onClick={() => handleKeyPress('⌫')}><Delete size={22}/></button> :
-                      <button key={ki} className="tyg-key" onClick={() => handleKeyPress(key)}>{key}</button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {loading && <div style={{ textAlign:'center', color:'#6b7280', fontSize:14, marginTop:20 }}>Verifying…</div>}
-            </div>
-          )}
-
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'18px 20px', marginBottom:16 }}>
+            <div style={{ color:'#6b7280', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:12 }}>Café Slug</div>
+            <input
+              className="inp"
+              autoFocus
+              type="text"
+              value={slug}
+              onChange={e => { setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,'')); setError(''); }}
+              onKeyDown={e => e.key==='Enter' && go()}
+              placeholder="e.g. yani"
+              autoCapitalize="none"
+              autoCorrect="off"
+            />
+          </div>
+          {error && <div style={{ color:'#f87171', fontSize:13, marginBottom:12, textAlign:'center' }}>{error}</div>}
+          <button
+            className="btn"
+            style={{ background: slug.trim() && !checking ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.05)', color: slug.trim() && !checking ? 'white' : '#4b5563', cursor: slug.trim() && !checking ? 'pointer' : 'not-allowed' }}
+            onClick={go}
+            disabled={!slug.trim() || checking}
+          >
+            {checking ? 'Finding café…' : 'Continue →'}
+          </button>
+          <div style={{ textAlign:'center', marginTop:24, color:'#374151', fontSize:13 }}>
+            Direct URL: <code style={{ color:'#22c55e' }}>/login/your-slug</code>
+          </div>
         </div>
       </div>
     </>
-  );
-}
-
-export default function StaffLoginPage() {
-  return (
-    <Suspense fallback={
-      <div style={{ minHeight:'100vh', background:'#0c0f16', display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <style>{`@keyframes sp{to{transform:rotate(360deg)}}`}</style>
-        <div style={{ width:36, height:36, borderRadius:'50%', border:'3px solid rgba(34,197,94,0.2)', borderTopColor:'#22c55e', animation:'sp 0.8s linear infinite' }} />
-      </div>
-    }>
-      <LoginForm />
-    </Suspense>
   );
 }

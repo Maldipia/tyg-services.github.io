@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/client';
-import { fireSheetsWebhook } from '@/lib/sheets/webhook';
+import { writeSheetsAction } from '@/lib/sheets/direct';
 
 const MAX_RETRIES = 5;
 
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
   for (const item of pending) {
     try {
-      await fireSheetsWebhook(item.action, item.payload as Record<string, unknown>);
+      await writeSheetsAction(item.action, item.payload as Record<string, unknown>);
 
       // Mark as done
       await supabase

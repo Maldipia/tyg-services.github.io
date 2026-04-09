@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { createServiceClient } from '@/lib/supabase/client';
-import { fireSheetsWebhook } from '@/lib/sheets/webhook';
+import { writeSheetsAction } from '@/lib/sheets/direct';
 import type { AuthContext } from '@/types';
 import { logEvent } from '@/lib/logger';
 import { sendPaymentVerifiedEmail } from '@/lib/resend/email';
@@ -125,7 +125,7 @@ async function handleVerify(req: NextRequest, ctx: AuthContext): Promise<NextRes
     },
   });
 
-  fireSheetsWebhook('UPDATE_PAYMENT', {
+  writeSheetsAction('UPDATE_PAYMENT', {
     tenantId: ctx.tenantId,
     paymentId,
     orderId,

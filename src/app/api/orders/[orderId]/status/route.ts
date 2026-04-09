@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/client';
 import { withStaffAuth, apiSuccess, apiError } from '@/lib/auth/middleware';
 import type { OrderStatus, AuthContext } from '@/types';
-import { fireSheetsWebhook } from '@/lib/sheets/webhook';
+import { writeSheetsAction } from '@/lib/sheets/direct';
 import { logEvent } from '@/lib/logger';
 import { sendOrderReceipt } from '@/lib/resend/email';
 import { sendSMS, orderReadySMS, orderConfirmedSMS } from '@/lib/semaphore/sms';
@@ -200,7 +200,7 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
         },
       });
 
-      fireSheetsWebhook('UPDATE_ORDER', {
+      writeSheetsAction('UPDATE_ORDER', {
         orderNumber: (order as { order_number: string }).order_number ?? orderId,
         status: newStatus,
         updatedAt: new Date().toISOString(),

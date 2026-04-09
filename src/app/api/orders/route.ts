@@ -13,7 +13,7 @@ import { resolveTenant, apiSuccess, apiError, getClientIp, withStaffAuth } from 
 import { orderRateLimit } from '@/lib/redis/ratelimit';
 import { sendSMS, orderCreatedSMS } from '@/lib/semaphore/sms';
 import { logEvent } from '@/lib/logger';
-import { fireSheetsWebhook } from '@/lib/sheets/webhook';
+import { writeSheetsAction } from '@/lib/sheets/direct';
 import type { AuthContext } from '@/types';
 
 const CartItemSchema = z.object({
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })();
   }
 
-  fireSheetsWebhook('LOG_ORDER', {
+  writeSheetsAction('LOG_ORDER', {
     orderNumber, createdAt: new Date().toISOString(),
     customerName: input.customerName, pax: input.pax,
     subtotal, totalAmount, deliveryFee, serviceCharge,

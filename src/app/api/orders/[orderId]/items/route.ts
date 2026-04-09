@@ -78,14 +78,15 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
     }
 
     inserts.push({
-      order_id:   orderId,
-      tenant_id:  order.tenant_id,
-      item_id:    menu.id,
-      item_name:  menu.name,
-      qty:        cartItem.qty,
-      unit_price: unitPrice,
+      order_id:    orderId,
+      tenant_id:   order.tenant_id,
+      item_id:     menu.id,
+      item_name:   menu.name,
+      qty:         cartItem.qty,
+      unit_price:  unitPrice,
+      line_total:  Math.round(unitPrice * cartItem.qty * 100) / 100,
       addon_total: 0,
-      notes:      cartItem.notes || null,
+      notes:       cartItem.notes || null,
       sugar_level: cartItem.sugarLevel ?? null,
     });
   }

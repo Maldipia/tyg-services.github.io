@@ -58,11 +58,12 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const validate = (): string | null => {
     if (!name.trim()) return 'Name is required';
     if (orderType === 'DELIVERY') {
+      if (!phone.trim()) return 'Mobile number is required for delivery';
+      if (!/^(09|\+639)\d{9}$/.test(phone.replace(/\s/g, ''))) return 'Invalid Philippine mobile number (e.g. 09xxxxxxxxx)';
       if (!address.trim()) return 'Delivery address required';
       if (!zone) return 'Please select a delivery zone';
       if (selectedZone && subtotal < selectedZone.min_order) return `Minimum order ₱${selectedZone.min_order} for this zone`;
     }
-    if (phone.trim() && !/^(09|\+639)\d{9}$/.test(phone.replace(/\s/g, ''))) return 'Invalid Philippine mobile number';
     return null;
   };
 
@@ -153,22 +154,20 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           </div>
         </div>
 
-        {/* Customer info */}
+        {/* Customer info — Delivery needs name+phone; Dine-In/Takeout needs name only */}
         <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14 }}>
           <p style={{ ...labelStyle, marginBottom: 14 }}>Your Details</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
-              <label style={labelStyle}>Full Name *</label>
+              <label style={labelStyle}>Name *</label>
               <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Juan dela Cruz"/>
             </div>
-            <div>
-              <label style={labelStyle}>Mobile Number</label>
-              <input style={inputStyle} type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="09xxxxxxxxx"/>
-            </div>
-            <div>
-              <label style={labelStyle}>Email (optional)</label>
-              <input style={inputStyle} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="juan@email.com"/>
-            </div>
+            {orderType === 'DELIVERY' && (
+              <div>
+                <label style={labelStyle}>Mobile Number *</label>
+                <input style={inputStyle} type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="09xxxxxxxxx"/>
+              </div>
+            )}
           </div>
         </div>
 

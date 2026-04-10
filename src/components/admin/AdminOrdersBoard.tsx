@@ -453,15 +453,17 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                       <span style={{ color: 'var(--text-muted)', fontSize:12 }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
                     </div>
                   ))}
-                  {/* Prepared progress bar */}
-                  <div style={{ marginTop:8 }}>
-                    <div style={{ background:'#e2e8f0', borderRadius:4, height:4, overflow:'hidden' }}>
-                      <div style={{ height:'100%', borderRadius:4, background: allPrepped ? '#16a34a' : '#f59e0b', width:`${(preparedCount/items.length)*100}%`, transition:'width 0.3s' }}/>
+                  {/* Progress: only show when partially done. All checked = self-evident. Nothing = no clutter. */}
+                  {!allPrepped && preparedCount > 0 && (
+                    <div style={{ marginTop:8 }}>
+                      <div style={{ background:'#e2e8f0', borderRadius:4, height:4, overflow:'hidden' }}>
+                        <div style={{ height:'100%', borderRadius:4, background:'#f59e0b', width:`${(preparedCount/items.length)*100}%`, transition:'width 0.3s' }}/>
+                      </div>
+                      <div style={{ textAlign:'right', fontSize:11, color:'#f59e0b', marginTop:3, fontWeight:700 }}>
+                        {preparedCount}/{items.length} prepped
+                      </div>
                     </div>
-                    <div style={{ textAlign:'right', fontSize:11, color: allPrepped ? '#16a34a' : '#f59e0b', marginTop:3, fontWeight:700 }}>
-                      {preparedCount}/{items.length} prepped
-                    </div>
-                  </div>
+                  )}
                 </div>
               );
             })()}

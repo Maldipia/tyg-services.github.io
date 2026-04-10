@@ -114,6 +114,10 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [discountTotalPax, setDiscountTotalPax] = useState(1);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [prepToggling, setPrepToggling] = useState<string|null>(null);
+  const [emailModal, setEmailModal] = useState<{orderId:string;orderNumber:string}|null>(null);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [cancelModal, setCancelModal] = useState<{orderId:string;orderNumber:string}|null>(null);
   const [cancelReason, setCancelReason] = useState('Customer changed mind');
   const [receiptOrder,setReceiptOrder]= useState<ReceiptOrder | null>(null);
@@ -567,7 +571,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                 🖨️ Print Receipt
               </button>
               {/* Email Receipt (show if customer phone available) */}
-              <button onClick={() => alert('Email receipt: Customer phone — ' + (order.customer_phone ?? 'not provided'))}
+              <button onClick={() => { setEmailInput(''); setEmailSent(false); setEmailModal({orderId:order.id, orderNumber:order.order_number}); }}
                 style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(59,130,246,0.3)', background:'rgba(59,130,246,0.05)', color:'#2563eb', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 📧 Email Receipt
               </button>
@@ -895,6 +899,65 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         );
       })()}
 
+      {/* ── Email Receipt Modal ───────────────────────────── */}
+      {emailModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}
+          onClick={() => setEmailModal(null)}>
+          <div style={{ background:'#fff', borderRadius:16, padding:24, width:'100%', maxWidth:400, margin:16 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight:800, fontSize:16, color:'#111', marginBottom:4 }}>📧 Email Receipt</div>
+            <div style={{ color:'#6b7280', fontSize:13, marginBottom:20 }}>#{emailModal.orderNumber}</div>
+
+            {emailSent ? (
+              <div style={{ textAlign:'center', padding:'20px 0' }}>
+                <div style={{ fontSize:40, marginBottom:8 }}>✅</div>
+                <div style={{ fontWeight:700, color:'#16a34a', fontSize:16 }}>Receipt sent!</div>
+                <div style={{ color:'#6b7280', fontSize:13, marginTop:4 }}>Check {emailInput}</div>
+                <button onClick={() => setEmailModal(null)}
+                  style={{ marginTop:16, padding:'10px 24px', borderRadius:10, border:'none', background:'#16a34a', color:'#fff', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#374151', textTransform:'uppercase', letterSpacing:'0.04em', marginBottom:8 }}>
+                  Customer Email *
+                </label>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={e => setEmailInput(e.target.value)}
+                  placeholder="customer@email.com"
+                  style={{ width:'100%', boxSizing:'border-box', border:'1.5px solid #e5e7eb', borderRadius:8, padding:'10px 12px', fontSize:14, color:'#111', outline:'none', marginBottom:16 }}
+                />
+                <div style={{ display:'flex', gap:10 }}>
+                  <button onClick={() => setEmailModal(null)}
+                    style={{ flex:1, padding:'10px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#6b7280', fontWeight:600, fontSize:14, cursor:'pointer' }}>
+                    Cancel
+                  </button>
+                  <button disabled={emailSending || !emailInput.includes('@')} onClick={async () => {
+                    setEmailSending(true);
+                    const r = await fetch(`/api/orders/${emailModal.orderId}/email-receipt`, {
+                      method:'POST', credentials:'include',
+                      headers:{'Content-Type':'application/json'},
+                      body:JSON.stringify({ email: emailInput }),
+                    });
+                    setEmailSending(false);
+                    if (r.ok) setEmailSent(true);
+                    else {
+                      const d = await r.json() as {error?:string};
+                      alert(d.error ?? 'Failed to send email');
+                    }
+                  }} style={{ flex:2, padding:'10px', borderRadius:10, border:'none', background: emailSending||!emailInput.includes('@')?'#9ca3af':'#2563eb', color:'#fff', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                    {emailSending ? 'Sending…' : '📧 Send Receipt'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {cancelModal && (
         <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}
           onClick={() => setCancelModal(null)}>
@@ -923,6 +986,65 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         </div>
       )}
 
+
+      {/* ── Email Receipt Modal ───────────────────────────── */}
+      {emailModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}
+          onClick={() => setEmailModal(null)}>
+          <div style={{ background:'#fff', borderRadius:16, padding:24, width:'100%', maxWidth:400, margin:16 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight:800, fontSize:16, color:'#111', marginBottom:4 }}>📧 Email Receipt</div>
+            <div style={{ color:'#6b7280', fontSize:13, marginBottom:20 }}>#{emailModal.orderNumber}</div>
+
+            {emailSent ? (
+              <div style={{ textAlign:'center', padding:'20px 0' }}>
+                <div style={{ fontSize:40, marginBottom:8 }}>✅</div>
+                <div style={{ fontWeight:700, color:'#16a34a', fontSize:16 }}>Receipt sent!</div>
+                <div style={{ color:'#6b7280', fontSize:13, marginTop:4 }}>Check {emailInput}</div>
+                <button onClick={() => setEmailModal(null)}
+                  style={{ marginTop:16, padding:'10px 24px', borderRadius:10, border:'none', background:'#16a34a', color:'#fff', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#374151', textTransform:'uppercase', letterSpacing:'0.04em', marginBottom:8 }}>
+                  Customer Email *
+                </label>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={e => setEmailInput(e.target.value)}
+                  placeholder="customer@email.com"
+                  style={{ width:'100%', boxSizing:'border-box', border:'1.5px solid #e5e7eb', borderRadius:8, padding:'10px 12px', fontSize:14, color:'#111', outline:'none', marginBottom:16 }}
+                />
+                <div style={{ display:'flex', gap:10 }}>
+                  <button onClick={() => setEmailModal(null)}
+                    style={{ flex:1, padding:'10px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#6b7280', fontWeight:600, fontSize:14, cursor:'pointer' }}>
+                    Cancel
+                  </button>
+                  <button disabled={emailSending || !emailInput.includes('@')} onClick={async () => {
+                    setEmailSending(true);
+                    const r = await fetch(`/api/orders/${emailModal.orderId}/email-receipt`, {
+                      method:'POST', credentials:'include',
+                      headers:{'Content-Type':'application/json'},
+                      body:JSON.stringify({ email: emailInput }),
+                    });
+                    setEmailSending(false);
+                    if (r.ok) setEmailSent(true);
+                    else {
+                      const d = await r.json() as {error?:string};
+                      alert(d.error ?? 'Failed to send email');
+                    }
+                  }} style={{ flex:2, padding:'10px', borderRadius:10, border:'none', background: emailSending||!emailInput.includes('@')?'#9ca3af':'#2563eb', color:'#fff', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                    {emailSending ? 'Sending…' : '📧 Send Receipt'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {cancelModal && (
         <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}

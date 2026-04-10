@@ -16,12 +16,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const fromTs = new Date(Date.now() - days * 86400_000).toISOString();
     const db     = createServiceClient();
 
-    // Orders bumped through status changes — actor tracked in order_events
+    // Orders bumped through status changes — actor tracked via staff_id on status_change events
     const { data: events } = await db.from('order_events')
-      .select('staff_id, event_type, created_at, order:orders!order_id(total_amount)')
+      .select('staff_id, event_type, to_status, created_at, order:orders!order_id(total_amount)')
       .eq('tenant_id', ctx.tenantId)
+      .eq('event_type', 'status_change')
+      .not('staff_id', 'is', null)
       .gte('created_at', fromTs)
-      .in('event_type', ['ORDER_CONFIRMED','ORDER_COMPLETED','PAYMENT_VERIFIED']);
+      .in('to_status', ['CONFIRMED','COMPLETED']);
 
     // Staff list
     const { data: staffList } = await db.from('staff')
@@ -48,9 +50,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       if (!ev.staff_id) continue;
       const entry = staffMap.get(ev.staff_id);
       if (!entry) continue;
-      if (ev.event_type === 'ORDER_CONFIRMED')    entry.ordersConfirmed++;
-      if (ev.event_type === 'ORDER_COMPLETED')    { entry.ordersCompleted++; entry.totalRevenue += Number((ev.order as {total_amount?: number})?.total_amount ?? 0); }
-      if (ev.event_type === 'PAYMENT_VERIFIED')   entry.paymentsVerified++;
+      const toSt = (ev as unknown as Record<string,unknown>)['to_status'] as string | undefined;
+      if (toSt === 'CONFIRMED') entry.ordersConfirmed++;
+      if (toSt === 'COMPLETED') { entry.ordersCompleted++; entry.totalRevenue += Number((ev.order as {total_amount?: number})?.total_amount ?? 0); }
     }
 
     const result = Array.from(staffMap.values())

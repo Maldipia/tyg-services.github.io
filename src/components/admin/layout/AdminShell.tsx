@@ -86,6 +86,18 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         setTrialDaysLeft(days > 0 ? days : 0);
       }
     } catch {/**/}
+
+    // Refresh plan/trial status from server (more accurate than localStorage)
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { data?: { planTier?: string; planStatus?: string; trialDaysLeft?: number; trialEndsAt?: string; tenantName?: string } } | null) => {
+        if (!d?.data) return;
+        if (d.data.planTier) setPlanTier(d.data.planTier);
+        if (d.data.trialDaysLeft !== undefined) setTrialDaysLeft(d.data.trialDaysLeft);
+        if (d.data.tenantName) setTenantName(d.data.tenantName);
+      })
+      .catch(() => {/* non-critical */});
+
     try {
       const s = JSON.parse(localStorage.getItem('tyg_session') || '{}') as { role?: StaffRole; displayName?: string; branchId?: string; branchName?: string };
       if (s.role) setStaffRole(s.role);

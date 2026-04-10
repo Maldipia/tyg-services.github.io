@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Zap, Building2, Crown, Rocket, ExternalLink, CreditCard, Calendar, ChevronRight, AlertTriangle } from 'lucide-react';
 
 type PlanTier = 'TRIAL' | 'STARTER' | 'BUSINESS' | 'PRO' | 'ENTERPRISE';
@@ -98,9 +98,22 @@ const INVOICES = [
 ];
 
 export default function BillingPage() {
-  const [currentPlan] = useState<PlanTier>('BUSINESS');
-  const [planStatus] = useState<'TRIAL' | 'ACTIVE' | 'GRACE'>('ACTIVE');
+  const [currentPlan, setCurrentPlan] = useState<PlanTier>('TRIAL');
+  const [planStatus, setPlanStatus] = useState<'TRIAL' | 'ACTIVE' | 'GRACE' | 'SUSPENDED'>('TRIAL');
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [cycle, setCycle] = useState<Cycle>('monthly');
+
+  useEffect(() => {
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then((d: { data?: { planTier?: string; planStatus?: string; trialEndsAt?: string } }) => {
+        if (d.data) {
+          setCurrentPlan((d.data.planTier as PlanTier) ?? 'TRIAL');
+          setPlanStatus((d.data.planStatus as 'TRIAL'|'ACTIVE'|'GRACE'|'SUSPENDED') ?? 'TRIAL');
+          setTrialEndsAt(d.data.trialEndsAt ?? null);
+        }
+      });
+  }, []);
   const [upgrading, setUpgrading] = useState<PlanTier | null>(null);
 
   const handleUpgrade = async (tier: PlanTier) => {
@@ -140,7 +153,9 @@ export default function BillingPage() {
           <AlertTriangle size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
           <div style={{ flex:1 }}>
             <div style={{ fontWeight: 600, color: '#f59e0b', fontSize: 14 }}>
-              3 days left on your free trial
+              {trialEndsAt
+                ? `${Math.max(0, Math.floor((new Date(trialEndsAt).getTime() - Date.now()) / 86400000))} days left on your free trial`
+                : 'Trial period active'}
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>
               Upgrade now to keep your menu and order history. No data loss.

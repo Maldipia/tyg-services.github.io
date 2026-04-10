@@ -52,6 +52,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const [tableName, setTableName] = useState('');
   const [notes, setNotes]         = useState('');
   const [promoCode, setPromoCode] = useState('');
+  const [receiptEmail, setReceiptEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [proofFile, setProofFile] = useState<File|null>(null);
   const [proofPreview, setProofPreview] = useState<string|null>(null);
@@ -151,7 +152,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           orderType,
           customerName: name.trim(),
           customerPhone: phone.trim() || null,
-          customerEmail: null,
+          customerEmail: receiptEmail.trim() || null,
           pax: 1,
           tableName: orderType === 'DINE_IN' ? (tableName || tableFromQR || null) : null,
           deliveryAddress: orderType === 'DELIVERY' ? address.trim() : null,
@@ -251,6 +252,10 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
                 <input style={inputStyle} type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="09xxxxxxxxx"/>
               </div>
             )}
+            <div>
+              <label style={labelStyle}>Email (for receipt — optional)</label>
+              <input style={inputStyle} type="email" value={receiptEmail} onChange={e => setReceiptEmail(e.target.value)} placeholder="juan@email.com"/>
+            </div>
           </div>
         </div>
 

@@ -53,9 +53,11 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const [notes, setNotes]         = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [proofFile, setProofFile]       = useState<File | null>(null);
-  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<File|null>(null);
+  const [proofPreview, setProofPreview] = useState<string|null>(null);
   const [proofUploading, setProofUploading] = useState(false);
+  const [proofUploaded, setProofUploaded] = useState(false);
+
   const [proofUrl, setProofUrl]         = useState<string | null>(null);
   const [error, setError]         = useState<string | null>(null);
   const [tableFromQR, setTableFromQR] = useState('');
@@ -107,6 +109,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
     if (m === 'QR_BANK') return 'GCASH'; // generic — staff records exact method
     if (m === 'CASH')    return 'CASH';
     if (m === 'CARD')    return 'CARD';
+    if (mop === 'QR_BANK' && !proofUploaded) return 'Please upload your payment screenshot before placing the order.';
     return null;
   };
 
@@ -120,6 +123,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
       if (!zone) return 'Please select a delivery zone';
       if (selectedZone && subtotal < selectedZone.min_order) return `Minimum order ₱${selectedZone.min_order} for this zone`;
     }
+    if (mop === 'QR_BANK' && !proofUploaded) return 'Please upload your payment screenshot before placing the order.';
     return null;
   };
 
@@ -174,6 +178,17 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
         fd.append('orderId', d.data.orderId);
         await fetch('/api/upload/payment-proof', { method: 'POST', body: fd });
         setProofUploading(false);
+      }
+
+      // Upload payment proof if QR was selected
+      if (mop === 'QR_BANK' && proofFile && d.data?.orderId) {
+        try {
+          const fd = new FormData();
+          fd.append('file', proofFile);
+          fd.append('orderId', d.data.orderId);
+          fd.append('tenantSlug', tenantSlug);
+          await fetch('/api/payments/upload-proof', { method: 'POST', body: fd });
+        } catch { /* non-blocking — order already created */ }
       }
 
       clearCart(tenantSlug);
@@ -370,6 +385,39 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
                 </div>
               </div>
             )}
+
+                {/* Payment proof upload — required for QR/Bank Transfer */}
+                {mop === 'QR_BANK' && (
+                  <div style={{ marginTop:12, border:`2px dashed ${proofUploaded?'#16a34a':'rgba(22,163,74,0.4)'}`, borderRadius:12, padding:16, textAlign:'center', background:'rgba(22,163,74,0.03)' }}>
+                    {proofPreview ? (
+                      <div>
+                        <img src={proofPreview} alt="Payment proof" style={{ maxWidth:'100%', maxHeight:180, borderRadius:8, marginBottom:10, objectFit:'contain' }}/>
+                        <div style={{ display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap' }}>
+                          {!proofUploaded ? (
+                            <button disabled={proofUploading} onClick={() => setProofUploaded(true)}
+                              style={{ padding:'8px 20px', borderRadius:8, background:'#16a34a', border:'none', color:'#fff', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                              ✓ Use This Screenshot
+                            </button>
+                          ) : (
+                            <div style={{ color:'#16a34a', fontWeight:700, fontSize:14, display:'flex', alignItems:'center', gap:6 }}>✅ Screenshot confirmed</div>
+                          )}
+                          <label style={{ padding:'8px 16px', borderRadius:8, background:'rgba(255,255,255,0.08)', border:`1px solid ${BORDER}`, color:MUTED, fontWeight:600, fontSize:13, cursor:'pointer' }}>
+                            Change
+                            <input type="file" accept="image/*" style={{ display:'none' }} onChange={e => { const f=e.target.files?.[0]; if(f){setProofFile(f);setProofPreview(URL.createObjectURL(f));setProofUploaded(false);} }}/>
+                          </label>
+                        </div>
+                      </div>
+                    ) : (
+                      <label style={{ cursor:'pointer', display:'block' }}>
+                        <div style={{ fontSize:32, marginBottom:8 }}>📸</div>
+                        <div style={{ color:TEXT, fontWeight:700, fontSize:15, marginBottom:4 }}>Upload Payment Screenshot</div>
+                        <div style={{ color:MUTED, fontSize:12, marginBottom:12 }}>Screenshot of your GCash / Maya / bank transfer confirmation</div>
+                        <div style={{ display:'inline-block', padding:'10px 24px', borderRadius:10, background:'rgba(22,163,74,0.15)', border:'1px solid rgba(22,163,74,0.3)', color:'#16a34a', fontWeight:700, fontSize:14 }}>📷 Choose Photo</div>
+                        <input type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={e => { const f=e.target.files?.[0]; if(f){setProofFile(f);setProofPreview(URL.createObjectURL(f));} }}/>
+                      </label>
+                    )}
+                  </div>
+                )}
 
             {mop === 'CASH' && (
               <div style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 10, padding: '12px 14px', fontSize: 13 }}>

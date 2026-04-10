@@ -376,10 +376,11 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         const nextAct = NEXT_STATUS[order.status];
         const isBumping = bumping === order.id;
         const paymentMethod = String((order as unknown as Record<string,unknown>)['payment_method'] ?? '');
+        const proofUrl = String((order as unknown as Record<string,unknown>)['payment_proof_url'] ?? '');
         const serviceCharge = Number((order as unknown as Record<string,unknown>)['service_charge'] ?? 0);
         const discountAmount = Number((order as unknown as Record<string,unknown>)['discount_amount'] ?? 0);
         const discountType = String((order as unknown as Record<string,unknown>)['discount_type'] ?? '');
-        const proofUrl = (order as unknown as Record<string,unknown>)['payment_proof_url'] as string | null | undefined;
+
         const items = (order.items ?? []) as OrderItem[];
         const minsAgo = Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000);
         const isOverdue = minsAgo > 20 && ['PENDING', 'CONFIRMED'].includes(order.status);
@@ -492,6 +493,18 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                 <div style={{ flex:1, padding:'8px 12px', borderRadius:8, background: order.payment_status==='VERIFIED' ? '#f0fdf4' : 'var(--surface-2)', border:`1px solid ${order.payment_status==='VERIFIED'?'#bbf7d0':'var(--border)'}`, fontSize:13, fontWeight:700, color: order.payment_status==='VERIFIED' ? '#16a34a' : 'var(--text)' }}>
                   {paymentMethod==='CASH'?'💵':paymentMethod==='CARD'?'💳':'📲'} {paymentMethod}{order.payment_status==='VERIFIED' ? ' · Paid ✅' : ''}
                 </div>
+                {/* Payment proof thumbnail — clickable */}
+                {proofUrl && (
+                  <a href={proofUrl} target="_blank" rel="noreferrer" title="View payment screenshot"
+                    style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 10px', borderRadius:8, background:'rgba(56,189,248,0.08)', border:'1px solid rgba(56,189,248,0.2)', textDecoration:'none', marginTop:6, marginBottom:2 }}>
+                    <img src={proofUrl} alt="Payment proof" style={{ width:44, height:44, borderRadius:6, objectFit:'cover', flexShrink:0 }}/>
+                    <div style={{ flex:1 }}>
+                      <div style={{ color:'#38bdf8', fontWeight:700, fontSize:12 }}>📎 Payment Screenshot</div>
+                      <div style={{ color:'#6b7280', fontSize:11 }}>Tap to view full image</div>
+                    </div>
+                    <span style={{ color:'#38bdf8', fontSize:16 }}>↗</span>
+                  </a>
+                )}
                 {!['CANCELLED'].includes(order.status) && order.payment_status!=='VERIFIED' && (
                   <button onClick={() => {
                     const methods = ['CASH','CARD','GCASH'];

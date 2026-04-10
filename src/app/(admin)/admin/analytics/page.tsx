@@ -18,7 +18,7 @@ interface Totals {
 }
 
 const RANGE_LABELS: Record<Range, string> = { '1d':'Today', '7d':'7 Days', '30d':'30 Days', '90d':'90 Days' };
-interface StaffPerfItem { staffId:string; displayName:string; role:string; ordersCompleted:number; totalRevenue:number; paymentsVerified:number; }
+interface StaffPerfItem { staffId:string; name:string; displayName:string; role:string; ordersConfirmed:number; ordersCompleted:number; totalRevenue:number; paymentsVerified:number; }
 interface HourlyCell { day_of_week: number; hour_of_day: number; order_count: number; total_revenue: number; }
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
@@ -177,8 +177,10 @@ export default function AnalyticsPage() {
                 <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{s.paymentsVerified} payments verified</div>
               </div>
               <div style={{ textAlign:'right' as const }}>
-                <div style={{ fontWeight:700, color:'#16a34a', fontSize:15 }}>{s.ordersCompleted} orders</div>
-                {s.totalRevenue > 0 && <div style={{ fontSize:12, color:'var(--text-muted)' }}>₱{Math.round(s.totalRevenue).toLocaleString('en-PH')}</div>}
+                <div style={{ fontWeight:700, color:'#16a34a', fontSize:15 }}>₱{Math.round(s.totalRevenue).toLocaleString('en-PH')}</div>
+                <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>
+                  {s.ordersConfirmed} confirmed · {s.ordersCompleted} completed
+                </div>
               </div>
             </div>
           ))}

@@ -202,6 +202,8 @@ export interface OrderItem {
   addons: Array<{ label: string; price: number }>;
   addon_total: number;
   notes: string | null;
+  prepared?: boolean;
+  sugar_level?: string | null;
 }
 
 // ── Order ─────────────────────────────────────────────────────

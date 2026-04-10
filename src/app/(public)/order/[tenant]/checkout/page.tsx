@@ -52,6 +52,9 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const [tableName, setTableName] = useState('');
   const [notes, setNotes]         = useState('');
   const [promoCode, setPromoCode] = useState('');
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [promoData, setPromoData] = useState<{code:string;discountAmount:number;description:string|null;finalAmount:number}|null>(null);
+  const [promoError, setPromoError] = useState<string|null>(null);
   const [receiptEmail, setReceiptEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [proofFile, setProofFile] = useState<File|null>(null);
@@ -158,7 +161,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           deliveryAddress: orderType === 'DELIVERY' ? address.trim() : null,
           deliveryZone: orderType === 'DELIVERY' ? zone : null,
           notes: notes.trim() || null,
-          promoCode: promoCode.trim() || null,
+          promoCode: promoData?.code ?? null,
           paymentMethod: mopToPaymentMethod(mop),
           idempotencyKey: idKey,
         }),
@@ -450,7 +453,42 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
             </div>
             <div>
               <label style={labelStyle}>Promo Code</label>
-              <input style={{ ...inputStyle, textTransform: 'uppercase' as const }} value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="Enter promo code…"/>
+              <div style={{ display:'flex', gap:8 }}>
+                <input style={{ ...inputStyle, textTransform:'uppercase', flex:1 }}
+                  value={promoCode}
+                  onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoData(null); setPromoError(null); }}
+                  placeholder="Enter promo code…"
+                  disabled={!!promoData}
+                />
+                {!promoData ? (
+                  <button disabled={promoValidating || !promoCode.trim()} onClick={async () => {
+                    setPromoValidating(true); setPromoError(null);
+                    const subtotal = cart.reduce((s,i) => s + Number(i.unitPrice) * i.qty, 0);
+                    const r = await fetch('/api/promo-codes/validate', {
+                      method:'POST', headers:{'Content-Type':'application/json'},
+                      body: JSON.stringify({ tenantSlug, code: promoCode.trim(), orderAmount: subtotal }),
+                    });
+                    const d = await r.json() as { data?: {code:string;discountAmount:number;description:string|null;finalAmount:number}; error?: string };
+                    setPromoValidating(false);
+                    if (r.ok && d.data) setPromoData(d.data);
+                    else setPromoError(d.error ?? 'Invalid code');
+                  }} style={{ padding:'0 16px', borderRadius:10, border:'none', background:promoCode.trim()?'#16a34a':'#9ca3af', color:'#fff', fontWeight:700, fontSize:13, cursor:'pointer', whiteSpace:'nowrap' }}>
+                    {promoValidating ? '…' : 'Apply'}
+                  </button>
+                ) : (
+                  <button onClick={() => { setPromoData(null); setPromoCode(''); }} style={{ padding:'0 12px', borderRadius:10, border:'1px solid #e5e7eb', background:'transparent', color:'#6b7280', fontWeight:600, fontSize:13, cursor:'pointer' }}>
+                    ✕
+                  </button>
+                )}
+              </div>
+              {promoError && <div style={{ color:'#ef4444', fontSize:12, marginTop:6 }}>{promoError}</div>}
+              {promoData && (
+                <div style={{ marginTop:8, padding:'8px 12px', borderRadius:8, background:'rgba(22,163,74,0.08)', border:'1px solid rgba(22,163,74,0.25)', fontSize:13 }}>
+                  <span style={{ color:'#16a34a', fontWeight:700 }}>✓ {promoData.code}</span>
+                  {promoData.description && <span style={{ color:'var(--text-muted)', marginLeft:6 }}>— {promoData.description}</span>}
+                  <span style={{ float:'right', color:'#16a34a', fontWeight:700 }}>−₱{promoData.discountAmount.toFixed(2)}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

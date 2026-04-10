@@ -230,7 +230,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
     } catch { alert('Network error'); } finally { setOrLoading(null); }
   };
 
-  const markCashPaid = async (orderId: string, total: number) => {
+  const markCashPaid = async (orderId: string, total: number, currentStatus?: string) => {
     if (!confirm(`Mark this order as paid in cash (₱${total.toLocaleString('en-PH', { minimumFractionDigits: 2 })})?`)) return;
     setCashLoading(orderId);
     try {
@@ -240,6 +240,14 @@ export default function AdminOrdersBoard({ branchId }: Props) {
       });
       const json = await res.json() as { data?: { alreadyPaid?: boolean }; error?: string };
       if (res.ok) {
+        // Auto-complete: payment verified + order is READY → mark COMPLETED
+        if (['READY','CONFIRMED','PREPARING'].includes(currentStatus ?? '')) {
+          await fetch(`/api/orders/${orderId}/status`, {
+            method: 'PATCH', credentials: 'include',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ status: 'COMPLETED' }),
+          });
+        }
         await fetchOrders(tenantSlug);
       } else {
         alert(json.error ?? 'Failed to record payment');
@@ -437,11 +445,25 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                         disabled={prepToggling === item.id}
                         onClick={async () => {
                           setPrepToggling(item.id);
+                          const newPrepared = !item.prepared;
                           await fetch(`/api/orders/${order.id}/items`, {
                             method: 'PUT', credentials: 'include',
                             headers: {'Content-Type':'application/json'},
-                            body: JSON.stringify({ itemId: item.id, prepared: !item.prepared }),
+                            body: JSON.stringify({ itemId: item.id, prepared: newPrepared }),
                           });
+
+                          // Auto-advance: if this was the last item being checked → READY
+                          if (newPrepared) {
+                            const remaining = items.filter(i => i.id !== item.id && !i.prepared).length;
+                            if (remaining === 0 && ['CONFIRMED','PREPARING'].includes(order.status)) {
+                              await fetch(`/api/orders/${order.id}/status`, {
+                                method: 'PATCH', credentials: 'include',
+                                headers: {'Content-Type':'application/json'},
+                                body: JSON.stringify({ status: 'READY' }),
+                              });
+                            }
+                          }
+
                           await fetchOrders(tenantSlug);
                           setPrepToggling(null);
                         }}
@@ -508,16 +530,31 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
             {/* Actions */}
             <div style={s.actions}>
-              {nextAct && !(order.status === 'READY' && (order as unknown as Record<string,unknown>)['order_type'] === 'DELIVERY') && (
-                <button disabled={isBumping} onClick={() => void bumpStatus(order.id, nextAct.next, undefined, order.payment_status)}
-                  style={{ padding: '8px 18px', borderRadius: 8, background: nextAct.color, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: isBumping ? 'not-allowed' : 'pointer', opacity: isBumping ? 0.7 : 1 }}>
-                  {isBumping ? '…' : nextAct.label}
-                </button>
-              )}
+              {nextAct && !(order.status === 'READY' && (order as unknown as Record<string,unknown>)['order_type'] === 'DELIVERY') && (() => {
+                // Hide "Start Cooking" / "Mark Ready" when items are all prepped
+                // (auto-advance already fired; button would be a no-op)
+                const itms = order.items ?? [];
+                const allDone = itms.length > 0 && itms.every(i => i.prepared);
+                const hideAdvance = allDone && ['CONFIRMED','PREPARING'].includes(order.status);
+                if (hideAdvance) return null;
+                return (
+                  <button disabled={isBumping} onClick={() => void bumpStatus(order.id, nextAct.next, undefined, order.payment_status)}
+                    style={{ padding: '8px 18px', borderRadius: 8, background: nextAct.color, color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: isBumping ? 'not-allowed' : 'pointer', opacity: isBumping ? 0.7 : 1 }}>
+                    {isBumping ? '…' : nextAct.label}
+                  </button>
+                );
+              })()}
               {order.status === 'READY' && (order as unknown as Record<string,unknown>)['order_type'] === 'DELIVERY' && (
                 <button disabled={isBumping} onClick={() => void bumpStatus(order.id, 'OUT_FOR_DELIVERY', undefined, order.payment_status)}
                   style={{ padding: '8px 18px', borderRadius: 8, background: '#0891b2', color: '#fff', border: 'none', fontWeight: 600, fontSize: 13, cursor: isBumping ? 'not-allowed' : 'pointer', opacity: isBumping ? 0.7 : 1 }}>
                   {isBumping ? '…' : '🛵 Dispatch Delivery'}
+                </button>
+              )}
+              {/* Mark Paid & Done — for READY orders not yet verified */}
+              {order.status === 'READY' && order.payment_status !== 'VERIFIED' && (
+                <button disabled={cashLoading===order.id} onClick={() => void markCashPaid(order.id, Number(order.total_amount), order.status)}
+                  style={{ padding:'8px 18px', borderRadius:8, background:'#16a34a', color:'#fff', border:'none', fontWeight:700, fontSize:13, cursor:'pointer' }}>
+                  {cashLoading===order.id ? '…' : '✅ Paid & Done'}
                 </button>
               )}
               {!['COMPLETED','CANCELLED'].includes(order.status) && (

@@ -57,6 +57,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       payment_status: 'PENDING_VERIFICATION',
     }).eq('id', orderId);
 
+    // Also insert into payments table so Payments page shows it
+    await db.from('payments').insert({
+      tenant_id: tenant.id,
+      order_id: orderId,
+      method: 'GCASH' as never, // payment_method enum
+      status: 'PENDING_VERIFICATION',
+      amount: 0, // will be updated when verified
+      proof_url: publicUrl,
+      notes: 'Customer uploaded payment screenshot',
+    });
+
     return NextResponse.json({ data: { url: publicUrl } });
   } catch (err) {
     console.error('[upload-proof]', err);

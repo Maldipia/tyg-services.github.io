@@ -45,6 +45,7 @@ const PAY_BADGE: Record<PaymentStatus, string> = {
 interface OrderItem {
   id: string; item_name: string; size_label?: string | null;
   qty: number; line_total: number; addon_total?: number; sugar_level?: string | null;
+  notes?: string | null; prepared?: boolean;
 }
 
 interface Props { tenantId: string; branchId: string | null; }
@@ -88,8 +89,9 @@ interface TenantInfo {
 
 interface ReceiptOrder {
   id: string; order_number: string; customer_name: string; table_name: string | null;
-  pax: number; status: string; payment_status: string;
-  total_amount: number; vat_amount: number;
+  pax: number; status?: string; payment_status: string;
+  total_amount: number; subtotal_override?: number; vat_amount: number;
+  discount_type?: string; discount_amount?: number;
   notes: string | null; created_at: string;
   items: OrderItem[];
 }
@@ -106,6 +108,12 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [orModal,     setOrModal]     = useState<ORData | null>(null);
   const [orLoading,   setOrLoading]   = useState<string | null>(null);
   const [cashLoading, setCashLoading] = useState<string | null>(null);
+  const [discountModal, setDiscountModal] = useState<{orderId:string;orderNumber:string;subtotal:number;pax:number;serviceCharge:number}|null>(null);
+  const [discountType, setDiscountType] = useState<'PWD'|'SENIOR'>('PWD');
+  const [pwdCount, setPwdCount] = useState(1);
+  const [seniorCount, setSeniorCount] = useState(0);
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [prepToggling, setPrepToggling] = useState<string|null>(null);
   const [cancelModal, setCancelModal] = useState<{orderId:string;orderNumber:string}|null>(null);
   const [cancelReason, setCancelReason] = useState('Customer changed mind');
   const [receiptOrder,setReceiptOrder]= useState<ReceiptOrder | null>(null);
@@ -361,6 +369,10 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         const st = STATUS_STYLE[order.status] ?? STATUS_STYLE.CANCELLED;
         const nextAct = NEXT_STATUS[order.status];
         const isBumping = bumping === order.id;
+        const paymentMethod = String((order as unknown as Record<string,unknown>)['payment_method'] ?? '');
+        const serviceCharge = Number((order as unknown as Record<string,unknown>)['service_charge'] ?? 0);
+        const discountAmount = Number((order as unknown as Record<string,unknown>)['discount_amount'] ?? 0);
+        const discountType = String((order as unknown as Record<string,unknown>)['discount_type'] ?? '');
         const items = (order.items ?? []) as OrderItem[];
         const minsAgo = Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000);
         const isOverdue = minsAgo > 20 && ['PENDING', 'CONFIRMED'].includes(order.status);
@@ -395,28 +407,82 @@ export default function AdminOrdersBoard({ branchId }: Props) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p style={s.amount}>₱{Number(order.total_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                {serviceCharge > 0 && <p style={{ fontSize:11, color:'var(--text-muted)', margin:'1px 0' }}>incl. ₱{serviceCharge.toFixed(1)} svc</p>}
                 <span style={s.payBadge}>{PAY_BADGE[order.payment_status]}</span>
               </div>
             </div>
 
-            {/* Items */}
-            {items.length > 0 && (
-              <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
-                {items.map(item => (
-                  <div key={item.id} style={s.itemRow}>
-                    <span>×{item.qty} {item.item_name}{item.size_label ? ` (${item.size_label})` : ''}
-                      {item.sugar_level && <span style={{ marginLeft:6, fontSize:11, background:'rgba(3,105,161,0.15)', color:'#7dd3fc', borderRadius:4, padding:'1px 5px', fontWeight:600 }}>
-                        {item.sugar_level==='GROUNDED'?'25%':item.sugar_level==='YANI'?'50%':item.sugar_level==='COMFORT'?'75%':'100%'}
-                      </span>}
-                    </span>
-                    <span style={{ color: 'var(--text-muted)' }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+            {/* Items with prepared checkboxes */}
+            {items.length > 0 && (() => {
+              const preparedCount = items.filter(i => i.prepared).length;
+              const allPrepped = preparedCount === items.length;
+              return (
+                <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
+                  {items.map(item => (
+                    <div key={item.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0', borderBottom:'1px dashed rgba(255,255,255,0.04)' }}>
+                      {/* Prepared checkbox — kitchen toggle */}
+                      <button
+                        title={item.prepared ? 'Tap to unmark' : 'Mark as prepared'}
+                        disabled={prepToggling === item.id}
+                        onClick={async () => {
+                          setPrepToggling(item.id);
+                          await fetch(`/api/orders/${order.id}/items`, {
+                            method: 'PUT', credentials: 'include',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({ itemId: item.id, prepared: !item.prepared }),
+                          });
+                          await fetchOrders(tenantSlug);
+                          setPrepToggling(null);
+                        }}
+                        style={{ flexShrink:0, width:26, height:26, borderRadius:6, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', background: item.prepared ? '#16a34a' : 'rgba(255,255,255,0.08)', transition:'background 0.15s' }}>
+                        {prepToggling === item.id ? <span style={{ fontSize:10 }}>…</span> : item.prepared ? <span style={{ color:'#fff', fontSize:14, fontWeight:900 }}>✓</span> : <span style={{ color:'rgba(255,255,255,0.3)', fontSize:12 }}>○</span>}
+                      </button>
+                      <span style={{ flex:1, textDecoration: item.prepared ? 'line-through' : 'none', color: item.prepared ? 'var(--text-muted)' : 'var(--text)', fontSize:13 }}>
+                        ×{item.qty} {item.item_name}{item.size_label ? ` (${item.size_label})` : ''}
+                        {item.sugar_level && <span style={{ marginLeft:6, fontSize:11, background:'rgba(3,105,161,0.15)', color:'#7dd3fc', borderRadius:4, padding:'1px 5px', fontWeight:600 }}>
+                          {item.sugar_level==='GROUNDED'?'25%':item.sugar_level==='YANI'?'50%':item.sugar_level==='COMFORT'?'75%':'100%'}
+                        </span>}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontSize:12 }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  ))}
+                  {/* Prepared progress bar */}
+                  <div style={{ marginTop:8 }}>
+                    <div style={{ background:'rgba(255,255,255,0.07)', borderRadius:4, height:4, overflow:'hidden' }}>
+                      <div style={{ height:'100%', borderRadius:4, background: allPrepped ? '#16a34a' : '#f59e0b', width:`${(preparedCount/items.length)*100}%`, transition:'width 0.3s' }}/>
+                    </div>
+                    <div style={{ textAlign:'right', fontSize:11, color: allPrepped ? '#16a34a' : '#f59e0b', marginTop:3, fontWeight:700 }}>
+                      {preparedCount}/{items.length} prepped
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              );
+            })()}
 
             {/* Notes */}
             {order.notes && <p style={s.notes}>📝 {order.notes}</p>}
+
+            {/* Payment method + MOP badge */}
+            {paymentMethod && (
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                <div style={{ flex:1, padding:'8px 12px', borderRadius:8, background: order.payment_status==='VERIFIED' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)', border:`1px solid ${order.payment_status==='VERIFIED'?'rgba(34,197,94,0.3)':'rgba(255,255,255,0.08)'}`, fontSize:13, fontWeight:700, color: order.payment_status==='VERIFIED' ? '#16a34a' : 'var(--text)' }}>
+                  {paymentMethod==='CASH'?'💵':paymentMethod==='CARD'?'💳':'📲'} {paymentMethod}{order.payment_status==='VERIFIED' ? ' · Paid ✅' : ''}
+                </div>
+                {!['CANCELLED'].includes(order.status) && order.payment_status!=='VERIFIED' && (
+                  <button onClick={() => {
+                    const methods = ['CASH','CARD','GCASH'];
+                    const next = methods[(methods.indexOf(paymentMethod)+1)%methods.length];
+                    void fetch(`/api/orders/${order.id}/status`, {
+                      method:'PATCH', credentials:'include',
+                      headers:{'Content-Type':'application/json'},
+                      body:JSON.stringify({ paymentMethod: next }),
+                    }).then(() => fetchOrders(tenantSlug));
+                  }} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', background:'transparent', color:'var(--text)', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' }}>
+                    Change
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Actions */}
             <div style={s.actions}>
@@ -441,43 +507,62 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   Cancel
                 </button>
               )}
-              {order.payment_status === 'PENDING_VERIFICATION' && (
-                <button onClick={() => alert('Go to Payments page to view proof and verify.')}
-                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.12)', color: '#d97706', border: '1px solid rgba(245,158,11,0.3)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
-                  🧾 Verify Payment
+            </div>
+
+            {/* Secondary actions row — Apply Discount, Print, Email, Delete */}
+            <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:8 }}>
+              {/* Apply Discount */}
+              {!['CANCELLED'].includes(order.status) && (
+                <button onClick={() => {
+                  setPwdCount(0); setSeniorCount(0); setDiscountType('PWD');
+                  setDiscountModal({
+                    orderId: order.id,
+                    orderNumber: order.order_number,
+                    subtotal: Number(order.total_amount) + (discountAmount || 0),
+                    pax: order.pax,
+                    serviceCharge,
+                  });
+                }} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(245,158,11,0.35)', background:'rgba(245,158,11,0.07)', color:'#d97706', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                  🏷️ {discountAmount > 0 ? `Discount Applied (₱${discountAmount.toFixed(2)}) — Change` : 'Apply Discount'}
                 </button>
               )}
-              {!['CANCELLED'].includes(order.status) && order.payment_status !== 'VERIFIED' && order.payment_status !== 'PENDING_VERIFICATION' && (
-                <button
-                  disabled={cashLoading === order.id}
-                  onClick={() => void markCashPaid(order.id, Number(order.total_amount))}
-                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.3)', fontWeight: 600, fontSize: 13, cursor: cashLoading === order.id ? 'not-allowed' : 'pointer', opacity: cashLoading === order.id ? 0.6 : 1 }}>
-                  {cashLoading === order.id ? '…' : '💵 Cash Paid'}
-                </button>
-              )}
-              {order.status === 'COMPLETED' && order.payment_status === 'VERIFIED' && (
-                <button
-                  disabled={orLoading === order.id}
-                  onClick={() => void issueOR(order.id)}
-                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.08)', color: '#b45309', border: '1px solid rgba(245,158,11,0.25)', fontWeight: 600, fontSize: 13, cursor: orLoading === order.id ? 'not-allowed' : 'pointer', opacity: orLoading === order.id ? 0.6 : 1 }}
-                >
-                  {orLoading === order.id ? '…' : '🧾 BIR OR'}
-                </button>
-              )}
-              {['COMPLETED', 'READY'].includes(order.status) && (
-                <button
-                  onClick={() => setReceiptOrder({
-                    id: order.id, order_number: order.order_number,
-                    customer_name: order.customer_name, table_name: (order as unknown as Record<string, unknown>)['table_name'] as string | null,
-                    pax: order.pax, status: order.status, payment_status: order.payment_status,
-                    total_amount: Number(order.total_amount), vat_amount: Number((order as unknown as Record<string, unknown>)['vat_amount'] ?? Number(order.total_amount) * 12 / 112),
-                    notes: (order as unknown as Record<string, unknown>)['notes'] as string | null,
-                    created_at: order.created_at,
-                    items: (order.items ?? []) as OrderItem[],
-                  })}
-                  style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(100,116,139,0.08)', color: '#475569', border: '1px solid rgba(100,116,139,0.2)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
-                >
-                  🖨️ Receipt
+              {/* Print Receipt */}
+              <button onClick={() => {
+                setReceiptOrder({
+                  id: order.id, order_number: order.order_number,
+                  customer_name: order.customer_name, pax: order.pax,
+                  table_name: String((order as unknown as Record<string,unknown>)['table_name'] ?? ''),
+                  notes: order.notes,
+                  created_at: order.created_at,
+                  payment_status: order.payment_status,
+                  total_amount: Number(order.total_amount),
+                  subtotal_override: Number(order.subtotal_override ?? order.total_amount),
+                  vat_amount: Number(order.vat_amount ?? 0),
+                  discount_type: String((order as unknown as Record<string,unknown>)['discount_type'] ?? ''),
+                  discount_amount: Number((order as unknown as Record<string,unknown>)['discount_amount'] ?? 0),
+                  items: (order.items ?? []) as OrderItem[],
+                });
+                setTimeout(() => window.print(), 300);
+              }} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.04)', color:'var(--text)', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                🖨️ Print Receipt
+              </button>
+              {/* Email Receipt (show if customer phone available) */}
+              <button onClick={() => alert('Email receipt: Customer phone — ' + (order.customer_phone ?? 'not provided'))}
+                style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(59,130,246,0.25)', background:'rgba(59,130,246,0.06)', color:'#60a5fa', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                📧 Email Receipt
+              </button>
+              {/* Delete (soft-cancel completed/cancelled orders) */}
+              {['COMPLETED','CANCELLED'].includes(order.status) && (
+                <button onClick={async () => {
+                  if (!confirm(`Delete order #${order.order_number}? This marks it as a test order.`)) return;
+                  await fetch(`/api/orders/${order.id}/status`, {
+                    method:'PATCH', credentials:'include',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({ status:'CANCELLED', cancelReason:'Test order / migration cleanup' }),
+                  });
+                  await fetchOrders(tenantSlug);
+                }} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(239,68,68,0.3)', background:'rgba(239,68,68,0.08)', color:'#f87171', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                  🗑️ Delete
                 </button>
               )}
             </div>
@@ -656,6 +741,78 @@ export default function AdminOrdersBoard({ branchId }: Props) {
       );
     })()}
 
+      {/* ── Apply Discount Modal ─────────────────────────── */}
+      {discountModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)' }}
+          onClick={() => setDiscountModal(null)}>
+          <div style={{ background:'#1a1f2e', border:'1px solid rgba(245,158,11,0.3)', borderRadius:16, padding:24, width:'100%', maxWidth:380, margin:16 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight:700, fontSize:16, color:'#e8eaf0', marginBottom:4 }}>Apply Discount</div>
+            <div style={{ color:'#6b7280', fontSize:13, marginBottom:16 }}>#{discountModal.orderNumber} · {discountModal.pax} pax</div>
+
+            <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+              {(['PWD','SENIOR'] as const).map(t => (
+                <button key={t} onClick={() => setDiscountType(t)}
+                  style={{ flex:1, padding:'10px', borderRadius:8, border:`1px solid ${discountType===t?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`, background: discountType===t?'rgba(245,158,11,0.12)':'transparent', color: discountType===t?'#d97706':'#6b7280', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                  {t === 'PWD' ? '♿ PWD' : '👴 Senior'}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+              <div>
+                <label style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:6 }}>
+                  {discountType === 'PWD' ? 'PWD Count' : 'Senior Count'}
+                </label>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.max(0,pwdCount-1)) : setSeniorCount(Math.max(0,seniorCount-1))}
+                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>−</button>
+                  <span style={{ color:'#e8eaf0', fontWeight:800, fontSize:18, minWidth:24, textAlign:'center' }}>
+                    {discountType==='PWD' ? pwdCount : seniorCount}
+                  </span>
+                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.min(discountModal.pax,pwdCount+1)) : setSeniorCount(Math.min(discountModal.pax,seniorCount+1))}
+                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>+</button>
+                </div>
+              </div>
+              <div style={{ background:'rgba(245,158,11,0.06)', borderRadius:10, padding:'10px 12px' }}>
+                <div style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', marginBottom:4 }}>Discount (20%)</div>
+                {(() => {
+                  const q = Math.min((discountType==='PWD'?pwdCount:seniorCount), discountModal.pax);
+                  const perPerson = discountModal.subtotal / discountModal.pax;
+                  const disc = Math.round(perPerson * q * 0.20 * 100)/100;
+                  const newTotal = Math.max(0, discountModal.subtotal + discountModal.serviceCharge - disc);
+                  return (<>
+                    <div style={{ color:'#d97706', fontWeight:800, fontSize:18 }}>−₱{disc.toFixed(2)}</div>
+                    <div style={{ color:'#6b7280', fontSize:11 }}>New total: ₱{newTotal.toFixed(2)}</div>
+                  </>);
+                })()}
+              </div>
+            </div>
+
+            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+              <button onClick={() => setDiscountModal(null)}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontWeight:600, fontSize:14, cursor:'pointer' }}>
+                Cancel
+              </button>
+              <button disabled={discountLoading} onClick={async () => {
+                setDiscountLoading(true);
+                await fetch(`/api/orders/${discountModal.orderId}/discount`, {
+                  method:'POST', credentials:'include',
+                  headers:{'Content-Type':'application/json'},
+                  body:JSON.stringify({ discountType, pwdCount: discountType==='PWD'?pwdCount:0, seniorCount: discountType==='SENIOR'?seniorCount:0, pax: discountModal.pax }),
+                });
+                await fetchOrders(tenantSlug);
+                setDiscountLoading(false);
+                setDiscountModal(null);
+              }}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#d97706', fontWeight:700, fontSize:14, cursor:'pointer', opacity: discountLoading?0.6:1 }}>
+                {discountLoading ? 'Applying…' : 'Apply Discount'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {cancelModal && (
         <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}
           onClick={() => setCancelModal(null)}>
@@ -678,6 +835,78 @@ export default function AdminOrdersBoard({ branchId }: Props) {
               <button onClick={() => { void bumpStatus(cancelModal.orderId, 'CANCELLED', cancelReason); setCancelModal(null); }}
                 style={{ padding:'9px 18px', borderRadius:8, background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.4)', color:'#f87171', fontWeight:700, fontSize:14, cursor:'pointer' }}>
                 Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Apply Discount Modal ─────────────────────────── */}
+      {discountModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)' }}
+          onClick={() => setDiscountModal(null)}>
+          <div style={{ background:'#1a1f2e', border:'1px solid rgba(245,158,11,0.3)', borderRadius:16, padding:24, width:'100%', maxWidth:380, margin:16 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight:700, fontSize:16, color:'#e8eaf0', marginBottom:4 }}>Apply Discount</div>
+            <div style={{ color:'#6b7280', fontSize:13, marginBottom:16 }}>#{discountModal.orderNumber} · {discountModal.pax} pax</div>
+
+            <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+              {(['PWD','SENIOR'] as const).map(t => (
+                <button key={t} onClick={() => setDiscountType(t)}
+                  style={{ flex:1, padding:'10px', borderRadius:8, border:`1px solid ${discountType===t?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`, background: discountType===t?'rgba(245,158,11,0.12)':'transparent', color: discountType===t?'#d97706':'#6b7280', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                  {t === 'PWD' ? '♿ PWD' : '👴 Senior'}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+              <div>
+                <label style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:6 }}>
+                  {discountType === 'PWD' ? 'PWD Count' : 'Senior Count'}
+                </label>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.max(0,pwdCount-1)) : setSeniorCount(Math.max(0,seniorCount-1))}
+                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>−</button>
+                  <span style={{ color:'#e8eaf0', fontWeight:800, fontSize:18, minWidth:24, textAlign:'center' }}>
+                    {discountType==='PWD' ? pwdCount : seniorCount}
+                  </span>
+                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.min(discountModal.pax,pwdCount+1)) : setSeniorCount(Math.min(discountModal.pax,seniorCount+1))}
+                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>+</button>
+                </div>
+              </div>
+              <div style={{ background:'rgba(245,158,11,0.06)', borderRadius:10, padding:'10px 12px' }}>
+                <div style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', marginBottom:4 }}>Discount (20%)</div>
+                {(() => {
+                  const q = Math.min((discountType==='PWD'?pwdCount:seniorCount), discountModal.pax);
+                  const perPerson = discountModal.subtotal / discountModal.pax;
+                  const disc = Math.round(perPerson * q * 0.20 * 100)/100;
+                  const newTotal = Math.max(0, discountModal.subtotal + discountModal.serviceCharge - disc);
+                  return (<>
+                    <div style={{ color:'#d97706', fontWeight:800, fontSize:18 }}>−₱{disc.toFixed(2)}</div>
+                    <div style={{ color:'#6b7280', fontSize:11 }}>New total: ₱{newTotal.toFixed(2)}</div>
+                  </>);
+                })()}
+              </div>
+            </div>
+
+            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+              <button onClick={() => setDiscountModal(null)}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontWeight:600, fontSize:14, cursor:'pointer' }}>
+                Cancel
+              </button>
+              <button disabled={discountLoading} onClick={async () => {
+                setDiscountLoading(true);
+                await fetch(`/api/orders/${discountModal.orderId}/discount`, {
+                  method:'POST', credentials:'include',
+                  headers:{'Content-Type':'application/json'},
+                  body:JSON.stringify({ discountType, pwdCount: discountType==='PWD'?pwdCount:0, seniorCount: discountType==='SENIOR'?seniorCount:0, pax: discountModal.pax }),
+                });
+                await fetchOrders(tenantSlug);
+                setDiscountLoading(false);
+                setDiscountModal(null);
+              }}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#d97706', fontWeight:700, fontSize:14, cursor:'pointer', opacity: discountLoading?0.6:1 }}>
+                {discountLoading ? 'Applying…' : 'Apply Discount'}
               </button>
             </div>
           </div>

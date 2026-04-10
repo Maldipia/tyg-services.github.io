@@ -22,7 +22,7 @@ const CartItemSchema = z.object({
   addonIds:   z.array(z.string().uuid()).max(10).optional().default([]),
   qty:        z.number().int().min(1).max(20),
   notes:      z.string().max(200).nullable().optional().default(''),
-  sugarLevel: z.enum(['GROUNDED','YANI','COMFORT','FULL_SWEET']).optional(),
+  sugarLevel: z.enum(['GROUNDED','YANI','COMFORT','FULL_SWEET']).nullable().optional(),
 });
 
 const CreateOrderSchema = z.object({

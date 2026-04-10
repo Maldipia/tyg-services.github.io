@@ -44,7 +44,6 @@ export async function POST(req: NextRequest, { params }: Params): Promise<NextRe
       // Clear discount
       const { error } = await db.from('orders').update({
         discount_type: null, discount_pct: 0, discount_amount: 0,
-        discounted_total: null,
         total_amount: subtotal + serviceCharge,
       }).eq('id', orderId).eq('tenant_id', ctx.tenantId);
       if (error) return apiError('Failed to clear discount', 500);
@@ -68,7 +67,6 @@ export async function POST(req: NextRequest, { params }: Params): Promise<NextRe
       pwd_count:        pwdCount || 0,
       senior_count:     seniorCount || 0,
       discount_amount:  discountAmount,
-      discounted_total: newTotal,
       total_amount:     newTotal,
     }).eq('id', orderId).eq('tenant_id', ctx.tenantId);
 

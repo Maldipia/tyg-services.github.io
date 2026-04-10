@@ -111,6 +111,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [discountModal, setDiscountModal] = useState<{orderId:string;orderNumber:string;subtotal:number;pax:number;serviceCharge:number}|null>(null);
   const [discountType, setDiscountType] = useState<'PWD'|'SENIOR'|'BOTH'|'PROMO'|'CUSTOM'>('PWD');
   const [discountPaxInput, setDiscountPaxInput] = useState(1);
+  const [discountTotalPax, setDiscountTotalPax] = useState(1);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [prepToggling, setPrepToggling] = useState<string|null>(null);
   const [cancelModal, setCancelModal] = useState<{orderId:string;orderNumber:string}|null>(null);
@@ -521,6 +522,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
               {!['CANCELLED'].includes(order.status) && (
                 <button onClick={() => {
                   setDiscountPaxInput(1);
+                  setDiscountTotalPax(order.pax);
                   setDiscountType('PWD');
                   setDiscountModal({
                     orderId: order.id,
@@ -752,7 +754,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
       {/* ── Apply Discount Modal ─────────────────────────── */}
       {discountModal && (() => {
-        const totalPax = discountModal.pax;
+        const totalPax = discountTotalPax;
         const qualifying = Math.min(discountPaxInput, totalPax);
         const subtotal = discountModal.subtotal;
         const sc = discountModal.serviceCharge;
@@ -812,12 +814,13 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                 <div>
                   <label style={{ fontSize:12, color:'#374151', fontWeight:600, display:'block', marginBottom:6 }}>Total people in party</label>
                   <div style={{ display:'flex', alignItems:'center', border:'1.5px solid #e5e7eb', borderRadius:8, overflow:'hidden' }}>
-                    <input type="number" min={1} max={50} value={totalPax} readOnly
-                      style={{ flex:1, border:'none', padding:'10px 12px', fontSize:15, fontWeight:700, color:'#111', outline:'none', background:'#f9fafb', textAlign:'center' }}/>
-                    <div style={{ display:'flex', flexDirection:'column', borderLeft:'1px solid #e5e7eb' }}>
-                      <button style={{ padding:'2px 10px', border:'none', background:'#f3f4f6', cursor:'default', color:'#9ca3af', fontSize:12 }}>▲</button>
-                      <button style={{ padding:'2px 10px', border:'none', background:'#f3f4f6', cursor:'default', color:'#9ca3af', fontSize:12 }}>▼</button>
-                    </div>
+                    <button onClick={() => { const n = Math.max(1, discountTotalPax-1); setDiscountTotalPax(n); setDiscountPaxInput(Math.min(discountPaxInput,n)); }}
+                      style={{ padding:'10px 14px', border:'none', background:'#f3f4f6', cursor:'pointer', fontSize:18, fontWeight:700, color:'#374151' }}>−</button>
+                    <input type="number" min={1} max={50} value={discountTotalPax}
+                      onChange={e => { const n=Math.max(1,parseInt(e.target.value)||1); setDiscountTotalPax(n); setDiscountPaxInput(Math.min(discountPaxInput,n)); }}
+                      style={{ flex:1, border:'none', padding:'10px 0', fontSize:15, fontWeight:700, color:'#111', outline:'none', textAlign:'center' }}/>
+                    <button onClick={() => setDiscountTotalPax(discountTotalPax+1)}
+                      style={{ padding:'10px 14px', border:'none', background:'#f3f4f6', cursor:'pointer', fontSize:18, fontWeight:700, color:'#374151' }}>+</button>
                   </div>
                 </div>
                 <div>

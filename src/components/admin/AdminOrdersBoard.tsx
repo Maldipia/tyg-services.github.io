@@ -419,7 +419,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
               return (
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
                   {items.map(item => (
-                    <div key={item.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0', borderBottom:'1px dashed rgba(255,255,255,0.04)' }}>
+                    <div key={item.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0', borderBottom:'1px dashed var(--border)' }}>
                       {/* Prepared checkbox — kitchen toggle */}
                       <button
                         title={item.prepared ? 'Tap to unmark' : 'Mark as prepared'}
@@ -434,10 +434,10 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                           await fetchOrders(tenantSlug);
                           setPrepToggling(null);
                         }}
-                        style={{ flexShrink:0, width:26, height:26, borderRadius:6, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', background: item.prepared ? '#16a34a' : 'rgba(255,255,255,0.08)', transition:'background 0.15s' }}>
-                        {prepToggling === item.id ? <span style={{ fontSize:10 }}>…</span> : item.prepared ? <span style={{ color:'#fff', fontSize:14, fontWeight:900 }}>✓</span> : <span style={{ color:'rgba(255,255,255,0.3)', fontSize:12 }}>○</span>}
+                        style={{ flexShrink:0, width:26, height:26, borderRadius:6, border: item.prepared ? 'none' : '2px solid #cbd5e1', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', background: item.prepared ? '#16a34a' : '#ffffff', transition:'all 0.15s', boxShadow: item.prepared ? 'none' : 'inset 0 1px 3px rgba(0,0,0,0.08)' }}>
+                        {prepToggling === item.id ? <span style={{ fontSize:10, color:'#94a3b8' }}>…</span> : item.prepared ? <span style={{ color:'#fff', fontSize:14, fontWeight:900 }}>✓</span> : null}
                       </button>
-                      <span style={{ flex:1, textDecoration: item.prepared ? 'line-through' : 'none', color: item.prepared ? 'var(--text-muted)' : 'var(--text)', fontSize:13 }}>
+                      <span style={{ flex:1, textDecoration: item.prepared ? 'line-through' : 'none', color: item.prepared ? 'var(--text-dim)' : 'var(--text)', fontSize:13, fontWeight: item.prepared ? 400 : 500 }}>
                         ×{item.qty} {item.item_name}{item.size_label ? ` (${item.size_label})` : ''}
                         {item.sugar_level && <span style={{ marginLeft:6, fontSize:11, background:'rgba(3,105,161,0.15)', color:'#7dd3fc', borderRadius:4, padding:'1px 5px', fontWeight:600 }}>
                           {item.sugar_level==='GROUNDED'?'25%':item.sugar_level==='YANI'?'50%':item.sugar_level==='COMFORT'?'75%':'100%'}
@@ -448,7 +448,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   ))}
                   {/* Prepared progress bar */}
                   <div style={{ marginTop:8 }}>
-                    <div style={{ background:'rgba(255,255,255,0.07)', borderRadius:4, height:4, overflow:'hidden' }}>
+                    <div style={{ background:'#e2e8f0', borderRadius:4, height:4, overflow:'hidden' }}>
                       <div style={{ height:'100%', borderRadius:4, background: allPrepped ? '#16a34a' : '#f59e0b', width:`${(preparedCount/items.length)*100}%`, transition:'width 0.3s' }}/>
                     </div>
                     <div style={{ textAlign:'right', fontSize:11, color: allPrepped ? '#16a34a' : '#f59e0b', marginTop:3, fontWeight:700 }}>
@@ -465,7 +465,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
             {/* Payment method + MOP badge */}
             {paymentMethod && (
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                <div style={{ flex:1, padding:'8px 12px', borderRadius:8, background: order.payment_status==='VERIFIED' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)', border:`1px solid ${order.payment_status==='VERIFIED'?'rgba(34,197,94,0.3)':'rgba(255,255,255,0.08)'}`, fontSize:13, fontWeight:700, color: order.payment_status==='VERIFIED' ? '#16a34a' : 'var(--text)' }}>
+                <div style={{ flex:1, padding:'8px 12px', borderRadius:8, background: order.payment_status==='VERIFIED' ? '#f0fdf4' : 'var(--surface-2)', border:`1px solid ${order.payment_status==='VERIFIED'?'#bbf7d0':'var(--border)'}`, fontSize:13, fontWeight:700, color: order.payment_status==='VERIFIED' ? '#16a34a' : 'var(--text)' }}>
                   {paymentMethod==='CASH'?'💵':paymentMethod==='CARD'?'💳':'📲'} {paymentMethod}{order.payment_status==='VERIFIED' ? ' · Paid ✅' : ''}
                 </div>
                 {!['CANCELLED'].includes(order.status) && order.payment_status!=='VERIFIED' && (
@@ -477,7 +477,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                       headers:{'Content-Type':'application/json'},
                       body:JSON.stringify({ paymentMethod: next }),
                     }).then(() => fetchOrders(tenantSlug));
-                  }} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', background:'transparent', color:'var(--text)', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' }}>
+                  }} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid var(--border)', background:'var(--surface-2)', color:'var(--text)', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' }}>
                     Change
                   </button>
                 )}
@@ -543,12 +543,12 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                   items: (order.items ?? []) as OrderItem[],
                 });
                 setTimeout(() => window.print(), 300);
-              }} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.04)', color:'var(--text)', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              }} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid var(--border)', background:'var(--surface-2)', color:'var(--text)', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 🖨️ Print Receipt
               </button>
               {/* Email Receipt (show if customer phone available) */}
               <button onClick={() => alert('Email receipt: Customer phone — ' + (order.customer_phone ?? 'not provided'))}
-                style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(59,130,246,0.25)', background:'rgba(59,130,246,0.06)', color:'#60a5fa', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(59,130,246,0.3)', background:'rgba(59,130,246,0.05)', color:'#2563eb', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 📧 Email Receipt
               </button>
               {/* Delete (soft-cancel completed/cancelled orders) */}

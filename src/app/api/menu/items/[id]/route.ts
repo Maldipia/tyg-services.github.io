@@ -7,12 +7,12 @@ import { logEvent } from '@/lib/logger';
 
 const UpdateItemSchema = z.object({
   name: z.string().min(1).max(120).trim().optional(),
-  description: z.string().max(500).optional(),
+  description: z.string().max(500).nullable().optional(),
   basePrice: z.number().min(0).max(99999).optional(),
   categoryId: z.string().uuid().optional(),
   status: z.enum(['AVAILABLE', 'SOLD_OUT', 'HIDDEN']).optional(),
   isFeatured: z.boolean().optional(),
-  imageUrl: z.string().url().nullable().optional(),
+  imageUrl: z.string().url().nullable().optional().or(z.literal('')).transform(v => v === '' ? null : v),
   sortOrder: z.number().int().optional(),
   stockCount: z.number().int().min(0).nullable().optional(),
   lowStockThreshold: z.number().int().min(0).optional(),

@@ -109,9 +109,8 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [orLoading,   setOrLoading]   = useState<string | null>(null);
   const [cashLoading, setCashLoading] = useState<string | null>(null);
   const [discountModal, setDiscountModal] = useState<{orderId:string;orderNumber:string;subtotal:number;pax:number;serviceCharge:number}|null>(null);
-  const [discountType, setDiscountType] = useState<'PWD'|'SENIOR'>('PWD');
-  const [pwdCount, setPwdCount] = useState(1);
-  const [seniorCount, setSeniorCount] = useState(0);
+  const [discountType, setDiscountType] = useState<'PWD'|'SENIOR'|'BOTH'|'PROMO'|'CUSTOM'>('PWD');
+  const [discountPaxInput, setDiscountPaxInput] = useState(1);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [prepToggling, setPrepToggling] = useState<string|null>(null);
   const [cancelModal, setCancelModal] = useState<{orderId:string;orderNumber:string}|null>(null);
@@ -514,7 +513,8 @@ export default function AdminOrdersBoard({ branchId }: Props) {
               {/* Apply Discount */}
               {!['CANCELLED'].includes(order.status) && (
                 <button onClick={() => {
-                  setPwdCount(0); setSeniorCount(0); setDiscountType('PWD');
+                  setDiscountPaxInput(1);
+                  setDiscountType('PWD');
                   setDiscountModal({
                     orderId: order.id,
                     orderNumber: order.order_number,
@@ -742,76 +742,135 @@ export default function AdminOrdersBoard({ branchId }: Props) {
     })()}
 
       {/* ── Apply Discount Modal ─────────────────────────── */}
-      {discountModal && (
-        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)' }}
-          onClick={() => setDiscountModal(null)}>
-          <div style={{ background:'#1a1f2e', border:'1px solid rgba(245,158,11,0.3)', borderRadius:16, padding:24, width:'100%', maxWidth:380, margin:16 }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight:700, fontSize:16, color:'#e8eaf0', marginBottom:4 }}>Apply Discount</div>
-            <div style={{ color:'#6b7280', fontSize:13, marginBottom:16 }}>#{discountModal.orderNumber} · {discountModal.pax} pax</div>
+      {discountModal && (() => {
+        const totalPax = discountModal.pax;
+        const qualifying = Math.min(discountPaxInput, totalPax);
+        const subtotal = discountModal.subtotal;
+        const sc = discountModal.serviceCharge;
+        const perPerson = subtotal / Math.max(totalPax, 1);
 
-            <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-              {(['PWD','SENIOR'] as const).map(t => (
-                <button key={t} onClick={() => setDiscountType(t)}
-                  style={{ flex:1, padding:'10px', borderRadius:8, border:`1px solid ${discountType===t?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`, background: discountType===t?'rgba(245,158,11,0.12)':'transparent', color: discountType===t?'#d97706':'#6b7280', fontWeight:700, fontSize:14, cursor:'pointer' }}>
-                  {t === 'PWD' ? '♿ PWD' : '👴 Senior'}
+        let discAmt = 0;
+        let discLabel = '';
+        if (discountType === 'PWD' || discountType === 'SENIOR') {
+          discAmt = Math.round(perPerson * qualifying * 0.20 * 100) / 100;
+          discLabel = `₱${subtotal.toFixed(2)} × 20% × ${qualifying} ${discountType} = `;
+        } else if (discountType === 'BOTH') {
+          discAmt = Math.round(perPerson * qualifying * 0.20 * 100) / 100;
+          discLabel = `₱${subtotal.toFixed(2)} × 20% × ${qualifying} qualifying = `;
+        }
+        const newTotal = Math.max(0, Math.round((subtotal + sc - discAmt) * 100) / 100);
+
+        return (
+          <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)' }}
+            onClick={() => setDiscountModal(null)}>
+            <div style={{ background:'#fff', borderRadius:'20px 20px 0 0', padding:'24px 20px 32px', width:'100%', maxWidth:480, maxHeight:'92vh', overflowY:'auto' }}
+              onClick={e => e.stopPropagation()}>
+
+              <div style={{ fontWeight:800, fontSize:16, color:'#111', marginBottom:16 }}>Apply Discount</div>
+
+              {/* Discount type grid */}
+              <div style={{ marginBottom:6, fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.05em' }}>DISCOUNT TYPE</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
+                {([
+                  { id:'PWD',    label:'♿ PWD (20%)'    },
+                  { id:'SENIOR', label:'😶 Senior (20%)' },
+                  { id:'BOTH',   label:'♿😶 Both (20%)'  },
+                  { id:'PROMO',  label:'🎉 Promo %'       },
+                  { id:'CUSTOM', label:'✍️ Custom ₱'      },
+                ] as const).map(opt => (
+                  <button key={opt.id} onClick={() => setDiscountType(opt.id as 'PWD'|'SENIOR')}
+                    style={{ padding:'12px 8px', borderRadius:10, border:`1.5px solid ${discountType===opt.id?'#16a34a':'#e5e7eb'}`, background: discountType===opt.id ? '#16a34a' : '#fff', color: discountType===opt.id ? '#fff' : '#374151', fontWeight:700, fontSize:14, cursor:'pointer', textAlign:'center' }}>
+                    {opt.label}
+                  </button>
+                ))}
+                {/* Remove discount button */}
+                <button onClick={async () => {
+                  setDiscountLoading(true);
+                  await fetch(`/api/orders/${discountModal.orderId}/discount`, {
+                    method:'POST', credentials:'include',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({ discountType: null, pwdCount:0, seniorCount:0, pax: totalPax }),
+                  });
+                  await fetchOrders(tenantSlug);
+                  setDiscountLoading(false); setDiscountModal(null);
+                }} style={{ padding:'12px 8px', borderRadius:10, border:'1.5px solid #fca5a5', background:'#fff', color:'#ef4444', fontWeight:700, fontSize:14, cursor:'pointer', textAlign:'center' }}>
+                  ✕ Remove
                 </button>
-              ))}
-            </div>
+              </div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
-              <div>
-                <label style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:6 }}>
-                  {discountType === 'PWD' ? 'PWD Count' : 'Senior Count'}
-                </label>
-                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.max(0,pwdCount-1)) : setSeniorCount(Math.max(0,seniorCount-1))}
-                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>−</button>
-                  <span style={{ color:'#e8eaf0', fontWeight:800, fontSize:18, minWidth:24, textAlign:'center' }}>
-                    {discountType==='PWD' ? pwdCount : seniorCount}
-                  </span>
-                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.min(discountModal.pax,pwdCount+1)) : setSeniorCount(Math.min(discountModal.pax,seniorCount+1))}
-                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>+</button>
+              {/* Pax inputs */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+                <div>
+                  <label style={{ fontSize:12, color:'#374151', fontWeight:600, display:'block', marginBottom:6 }}>Total people in party</label>
+                  <div style={{ display:'flex', alignItems:'center', border:'1.5px solid #e5e7eb', borderRadius:8, overflow:'hidden' }}>
+                    <input type="number" min={1} max={50} value={totalPax} readOnly
+                      style={{ flex:1, border:'none', padding:'10px 12px', fontSize:15, fontWeight:700, color:'#111', outline:'none', background:'#f9fafb', textAlign:'center' }}/>
+                    <div style={{ display:'flex', flexDirection:'column', borderLeft:'1px solid #e5e7eb' }}>
+                      <button style={{ padding:'2px 10px', border:'none', background:'#f3f4f6', cursor:'default', color:'#9ca3af', fontSize:12 }}>▲</button>
+                      <button style={{ padding:'2px 10px', border:'none', background:'#f3f4f6', cursor:'default', color:'#9ca3af', fontSize:12 }}>▼</button>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize:12, color:'#374151', fontWeight:600, display:'block', marginBottom:6 }}>Qualifying (PWD/Senior)</label>
+                  <div style={{ display:'flex', alignItems:'center', border:'1.5px solid #e5e7eb', borderRadius:8, overflow:'hidden' }}>
+                    <button onClick={() => setDiscountPaxInput(Math.max(0, discountPaxInput-1))}
+                      style={{ padding:'10px 14px', border:'none', background:'#f3f4f6', cursor:'pointer', fontSize:18, fontWeight:700, color:'#374151' }}>−</button>
+                    <input type="number" min={0} max={totalPax} value={discountPaxInput}
+                      onChange={e => setDiscountPaxInput(Math.min(totalPax, Math.max(0, parseInt(e.target.value)||0)))}
+                      style={{ flex:1, border:'none', padding:'10px 0', fontSize:15, fontWeight:700, color:'#111', outline:'none', textAlign:'center' }}/>
+                    <button onClick={() => setDiscountPaxInput(Math.min(totalPax, discountPaxInput+1))}
+                      style={{ padding:'10px 14px', border:'none', background:'#f3f4f6', cursor:'pointer', fontSize:18, fontWeight:700, color:'#374151' }}>+</button>
+                  </div>
                 </div>
               </div>
-              <div style={{ background:'rgba(245,158,11,0.06)', borderRadius:10, padding:'10px 12px' }}>
-                <div style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', marginBottom:4 }}>Discount (20%)</div>
-                {(() => {
-                  const q = Math.min((discountType==='PWD'?pwdCount:seniorCount), discountModal.pax);
-                  const perPerson = discountModal.subtotal / discountModal.pax;
-                  const disc = Math.round(perPerson * q * 0.20 * 100)/100;
-                  const newTotal = Math.max(0, discountModal.subtotal + discountModal.serviceCharge - disc);
-                  return (<>
-                    <div style={{ color:'#d97706', fontWeight:800, fontSize:18 }}>−₱{disc.toFixed(2)}</div>
-                    <div style={{ color:'#6b7280', fontSize:11 }}>New total: ₱{newTotal.toFixed(2)}</div>
-                  </>);
-                })()}
-              </div>
-            </div>
 
-            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
-              <button onClick={() => setDiscountModal(null)}
-                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontWeight:600, fontSize:14, cursor:'pointer' }}>
-                Cancel
-              </button>
-              <button disabled={discountLoading} onClick={async () => {
+              {/* Note */}
+              <div style={{ marginBottom:16 }}>
+                <label style={{ fontSize:12, color:'#374151', fontWeight:600, display:'block', marginBottom:6 }}>Note (optional)</label>
+                <input placeholder="e.g. Promo code: SAVE10" style={{ width:'100%', boxSizing:'border-box', border:'1.5px solid #e5e7eb', borderRadius:8, padding:'10px 12px', fontSize:14, color:'#111', outline:'none' }}/>
+              </div>
+
+              {/* Discount preview */}
+              {qualifying > 0 && (discountType === 'PWD' || discountType === 'SENIOR' || discountType === 'BOTH') && (
+                <div style={{ background:'rgba(22,163,74,0.07)', border:'1.5px solid rgba(22,163,74,0.25)', borderRadius:12, padding:'14px 16px', marginBottom:16 }}>
+                  <div style={{ fontWeight:800, color:'#15803d', marginBottom:8, fontSize:13 }}>DISCOUNT PREVIEW</div>
+                  <div style={{ fontSize:13, color:'#166534', marginBottom:4 }}>
+                    ₱{subtotal.toFixed(2)} ÷ {totalPax} pax = <strong>₱{perPerson.toFixed(2)}/person</strong>
+                  </div>
+                  <div style={{ fontSize:13, color:'#166534', marginBottom:8 }}>
+                    ₱{perPerson.toFixed(2)} × 20% × {qualifying} {discountType === 'BOTH' ? 'qualifying' : discountType} = <strong style={{ color:'#dc2626' }}>−₱{discAmt.toFixed(2)}</strong>
+                  </div>
+                  <div style={{ borderTop:'1.5px dashed rgba(22,163,74,0.3)', paddingTop:8, fontSize:15, color:'#15803d' }}>
+                    New total: <strong style={{ fontSize:18 }}>₱{newTotal.toFixed(2)}</strong>
+                  </div>
+                </div>
+              )}
+
+              {/* Apply button */}
+              <button disabled={discountLoading || qualifying === 0} onClick={async () => {
                 setDiscountLoading(true);
+                const dt = discountType === 'BOTH' ? 'PWD' : discountType as 'PWD'|'SENIOR';
+                const pwd = discountType === 'BOTH' || discountType === 'PWD' ? qualifying : 0;
+                const senior = discountType === 'SENIOR' ? qualifying : 0;
                 await fetch(`/api/orders/${discountModal.orderId}/discount`, {
                   method:'POST', credentials:'include',
                   headers:{'Content-Type':'application/json'},
-                  body:JSON.stringify({ discountType, pwdCount: discountType==='PWD'?pwdCount:0, seniorCount: discountType==='SENIOR'?seniorCount:0, pax: discountModal.pax }),
+                  body:JSON.stringify({ discountType: dt, pwdCount: pwd, seniorCount: senior, pax: totalPax }),
                 });
                 await fetchOrders(tenantSlug);
-                setDiscountLoading(false);
-                setDiscountModal(null);
-              }}
-                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#d97706', fontWeight:700, fontSize:14, cursor:'pointer', opacity: discountLoading?0.6:1 }}>
-                {discountLoading ? 'Applying…' : 'Apply Discount'}
+                setDiscountLoading(false); setDiscountModal(null);
+              }} style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background: discountLoading||qualifying===0 ? '#9ca3af' : '#16a34a', color:'#fff', fontWeight:800, fontSize:16, cursor: discountLoading||qualifying===0 ? 'not-allowed':'pointer', marginBottom:10 }}>
+                {discountLoading ? 'Applying…' : '✅ Apply Discount'}
+              </button>
+              <button onClick={() => setDiscountModal(null)}
+                style={{ width:'100%', padding:'10px', borderRadius:12, border:'none', background:'transparent', color:'#6b7280', fontWeight:600, fontSize:15, cursor:'pointer' }}>
+                Cancel
               </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {cancelModal && (
         <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}
@@ -841,77 +900,6 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         </div>
       )}
 
-      {/* ── Apply Discount Modal ─────────────────────────── */}
-      {discountModal && (
-        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)' }}
-          onClick={() => setDiscountModal(null)}>
-          <div style={{ background:'#1a1f2e', border:'1px solid rgba(245,158,11,0.3)', borderRadius:16, padding:24, width:'100%', maxWidth:380, margin:16 }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight:700, fontSize:16, color:'#e8eaf0', marginBottom:4 }}>Apply Discount</div>
-            <div style={{ color:'#6b7280', fontSize:13, marginBottom:16 }}>#{discountModal.orderNumber} · {discountModal.pax} pax</div>
-
-            <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-              {(['PWD','SENIOR'] as const).map(t => (
-                <button key={t} onClick={() => setDiscountType(t)}
-                  style={{ flex:1, padding:'10px', borderRadius:8, border:`1px solid ${discountType===t?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`, background: discountType===t?'rgba(245,158,11,0.12)':'transparent', color: discountType===t?'#d97706':'#6b7280', fontWeight:700, fontSize:14, cursor:'pointer' }}>
-                  {t === 'PWD' ? '♿ PWD' : '👴 Senior'}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
-              <div>
-                <label style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:6 }}>
-                  {discountType === 'PWD' ? 'PWD Count' : 'Senior Count'}
-                </label>
-                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.max(0,pwdCount-1)) : setSeniorCount(Math.max(0,seniorCount-1))}
-                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>−</button>
-                  <span style={{ color:'#e8eaf0', fontWeight:800, fontSize:18, minWidth:24, textAlign:'center' }}>
-                    {discountType==='PWD' ? pwdCount : seniorCount}
-                  </span>
-                  <button onClick={() => discountType==='PWD' ? setPwdCount(Math.min(discountModal.pax,pwdCount+1)) : setSeniorCount(Math.min(discountModal.pax,seniorCount+1))}
-                    style={{ width:32, height:32, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.06)', color:'#e8eaf0', fontSize:18, cursor:'pointer', fontWeight:700 }}>+</button>
-                </div>
-              </div>
-              <div style={{ background:'rgba(245,158,11,0.06)', borderRadius:10, padding:'10px 12px' }}>
-                <div style={{ color:'#9ca3af', fontSize:11, fontWeight:700, textTransform:'uppercase', marginBottom:4 }}>Discount (20%)</div>
-                {(() => {
-                  const q = Math.min((discountType==='PWD'?pwdCount:seniorCount), discountModal.pax);
-                  const perPerson = discountModal.subtotal / discountModal.pax;
-                  const disc = Math.round(perPerson * q * 0.20 * 100)/100;
-                  const newTotal = Math.max(0, discountModal.subtotal + discountModal.serviceCharge - disc);
-                  return (<>
-                    <div style={{ color:'#d97706', fontWeight:800, fontSize:18 }}>−₱{disc.toFixed(2)}</div>
-                    <div style={{ color:'#6b7280', fontSize:11 }}>New total: ₱{newTotal.toFixed(2)}</div>
-                  </>);
-                })()}
-              </div>
-            </div>
-
-            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
-              <button onClick={() => setDiscountModal(null)}
-                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontWeight:600, fontSize:14, cursor:'pointer' }}>
-                Cancel
-              </button>
-              <button disabled={discountLoading} onClick={async () => {
-                setDiscountLoading(true);
-                await fetch(`/api/orders/${discountModal.orderId}/discount`, {
-                  method:'POST', credentials:'include',
-                  headers:{'Content-Type':'application/json'},
-                  body:JSON.stringify({ discountType, pwdCount: discountType==='PWD'?pwdCount:0, seniorCount: discountType==='SENIOR'?seniorCount:0, pax: discountModal.pax }),
-                });
-                await fetchOrders(tenantSlug);
-                setDiscountLoading(false);
-                setDiscountModal(null);
-              }}
-                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#d97706', fontWeight:700, fontSize:14, cursor:'pointer', opacity: discountLoading?0.6:1 }}>
-                {discountLoading ? 'Applying…' : 'Apply Discount'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {cancelModal && (
         <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}

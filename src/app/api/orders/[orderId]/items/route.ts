@@ -136,6 +136,32 @@ export async function PUT(req: NextRequest, { params }: Params): Promise<NextRes
       .eq('order_id', orderId);
 
     if (error) return apiError('Failed to update item', 500);
+
+    // Auto-advance: if marking prepared, check if ALL items are now prepared
+    if (b.prepared) {
+      const { data: order } = await db
+        .from('orders')
+        .select('status')
+        .eq('id', orderId)
+        .single();
+
+      if (order && ['CONFIRMED', 'PREPARING'].includes(order.status)) {
+        // Check remaining unprepared items
+        const { count } = await db
+          .from('order_items')
+          .select('*', { count: 'exact', head: true })
+          .eq('order_id', orderId)
+          .eq('prepared', false);
+
+        if (count === 0) {
+          // All items prepped — advance to READY
+          await db.from('orders')
+            .update({ status: 'READY' })
+            .eq('id', orderId);
+        }
+      }
+    }
+
     return apiSuccess({ updated: true, prepared: b.prepared });
   }, ['OWNER','ADMIN','MANAGER','CASHIER','KITCHEN']);
 }

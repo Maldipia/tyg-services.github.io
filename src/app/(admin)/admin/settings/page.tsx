@@ -79,6 +79,7 @@ function SettingsPageInner() {
   const [vatEnabled, setVatEnabled] = useState(true);
   const [vatRate, setVatRate] = useState('12');
   const [serviceChargeRate, setServiceChargeRate] = useState('0');
+  const [serviceChargeEnabled, setServiceChargeEnabled] = useState(false);
   const [avgPrepMins, setAvgPrepMins] = useState('8');
   const [logoUrl, setLogoUrl] = useState('');
   const [paymentQrUrl, setPaymentQrUrl] = useState<string|null>(null);
@@ -126,6 +127,8 @@ function SettingsPageInner() {
         if (typeof s['vatEnabled'] === 'boolean') setVatEnabled(s['vatEnabled']);
         if (typeof s['vatRate'] === 'number') setVatRate(String(s['vatRate']));
         if (typeof s['serviceChargeRate'] === 'number') setServiceChargeRate(String((s['serviceChargeRate'] as number) * 100));
+        if (typeof s['serviceChargeEnabled'] === 'boolean') setServiceChargeEnabled(s['serviceChargeEnabled']);
+        else if (typeof s['serviceChargeRate'] === 'number') setServiceChargeEnabled((s['serviceChargeRate'] as number) > 0);
         if (typeof s['avgPrepMins'] === 'number') setAvgPrepMins(String(s['avgPrepMins']));
         if (typeof s['pwdSeniorDiscountEnabled'] === 'boolean') setPwdDiscount(s['pwdSeniorDiscountEnabled']);
         if (typeof s['smsEnabled'] === 'boolean') setSmsEnabled(s['smsEnabled']);
@@ -150,7 +153,8 @@ function SettingsPageInner() {
             orderingEnabled, requireCustomerName: requireName,
             requireCustomerPhone: requirePhone, vatEnabled,
             vatRate: parseFloat(vatRate) || 12,
-            serviceChargeRate: (parseFloat(serviceChargeRate) || 0) / 100,
+            serviceChargeEnabled,
+            serviceChargeRate: serviceChargeEnabled ? (parseFloat(serviceChargeRate) || 0) / 100 : 0,
             avgPrepMins: parseInt(avgPrepMins) || 8,
             pwdSeniorDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
           },
@@ -454,66 +458,94 @@ function SettingsPageInner() {
 
           {/* Tax */}
           <div style={sectionStyle}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Tax & Discounts</h3>
-            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>📋 Tax Settings</h3>
+            <p style={{ color:'var(--text-muted)', fontSize:13, marginBottom:20 }}>Configure VAT and service charge for your orders.</p>
+
+            {/* VAT Toggle */}
+            <div style={{ borderBottom:'1px solid var(--border)', paddingBottom:20, marginBottom:20 }}>
               <ToggleRow
-                label="VAT Enabled"
-                desc="Automatically add VAT to all orders"
+                label="VAT Computation (12%)"
+                desc={vatEnabled ? 'VAT included on all orders' : 'Currently: Non-VAT Registered'}
                 value={vatEnabled}
                 onChange={setVatEnabled}
               />
-              {vatEnabled && (
-                <div>
-                  <label style={labelStyle}>VAT Rate (%)</label>
-                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                    <input
-                      type="number" min="0" max="100" step="0.01"
-                      style={{ ...inputStyle, maxWidth: 120 }}
-                      value={vatRate}
-                      onChange={e => setVatRate(e.target.value)}
-                    />
-                    <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-                      Standard PH VAT is 12%
-                    </span>
+              {/* Receipt Preview */}
+              {(() => {
+                const sample = 479;
+                const sc = serviceChargeEnabled ? sample * (parseFloat(serviceChargeRate)||10)/100 : 0;
+                const vat = vatEnabled ? (sample + sc) * (parseFloat(vatRate)||12)/100 : 0;
+                const total = sample + sc + vat;
+                return (
+                  <div style={{ marginTop:14, background:'var(--surface-2)', borderRadius:10, padding:'14px 16px', fontFamily:'monospace', fontSize:13, color:'var(--text)', border:'1px solid var(--border)' }}>
+                    <div style={{ color:'var(--text-muted)', fontSize:12, marginBottom:10 }}>Receipt preview (sample order ₱{(total).toFixed(2)}):</div>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                      <span>Subtotal:</span><span>₱ {sample.toFixed(2)}</span>
+                    </div>
+                    {serviceChargeEnabled && sc > 0 && (
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                        <span>Service Charge ({serviceChargeRate}%):</span><span>₱ {sc.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {vatEnabled && (
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                        <span>VAT ({vatRate}%):</span><span>₱ {vat.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div style={{ borderTop:'1px solid var(--border)', marginTop:6, paddingTop:6, display:'flex', justifyContent:'space-between', fontWeight:700 }}>
+                      <span>TOTAL:</span><span>₱ {total.toFixed(2)}</span>
+                    </div>
+                    <div style={{ marginTop:8, color:'var(--text-muted)', fontSize:11 }}>
+                      {vatEnabled ? `VAT Registered (${vatRate}%)` : 'Non-VAT Registered'}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
+            </div>
+
+            {/* Service Charge Toggle */}
+            <div style={{ marginBottom:16 }}>
               <ToggleRow
-                label="PWD / Senior Citizen Discount"
-                desc="Enable 20% discount (RA 9994 / RA 7277) — staff verifies ID"
-                value={pwdDiscount}
-                onChange={setPwdDiscount}
+                label="Service Charge"
+                desc={serviceChargeEnabled ? `${serviceChargeRate}% applied on Dine-In orders` : 'No service charge'}
+                value={serviceChargeEnabled}
+                onChange={setServiceChargeEnabled}
               />
-              <div>
-                <label style={labelStyle}>Service Charge (%)</label>
-                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              {serviceChargeEnabled && (
+                <div style={{ marginTop:12, display:'flex', alignItems:'center', gap:12 }}>
                   <input
                     type="number" min="0" max="50" step="0.5"
-                    style={{ ...inputStyle, maxWidth: 120 }}
+                    style={{ ...inputStyle, maxWidth: 100 }}
                     value={serviceChargeRate}
                     onChange={e => setServiceChargeRate(e.target.value)}
-                    placeholder="0"
+                    placeholder="10"
                   />
-                  <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-                    % added to dine-in orders (not applied on PWD/Senior)
-                  </span>
+                  <span style={{ color:'var(--text-muted)', fontSize:13 }}>% on Dine-In orders only</span>
                 </div>
-              </div>
-              <div>
-                <label style={labelStyle}>Average Prep Time (minutes)</label>
-                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                  <input
-                    type="number" min="1" max="60"
-                    style={{ ...inputStyle, maxWidth: 120 }}
-                    value={avgPrepMins}
-                    onChange={e => setAvgPrepMins(e.target.value)}
-                    placeholder="8"
-                  />
-                  <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-                    Used to estimate wait time on order tracking page
-                  </span>
-                </div>
-              </div>
+              )}
+            </div>
+
+            {/* PWD/Senior */}
+            <ToggleRow
+              label="PWD / Senior Citizen Discount"
+              desc="Enable 20% discount (RA 9994 / RA 7277) — staff verifies ID at counter"
+              value={pwdDiscount}
+              onChange={setPwdDiscount}
+            />
+          </div>
+
+          {/* Prep Time */}
+          <div style={sectionStyle}>
+            <h3 style={{ fontWeight:700, fontSize:15, marginBottom:16 }}>⏱️ Prep Time</h3>
+            <label style={labelStyle}>Average Prep Time (minutes)</label>
+            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+              <input
+                type="number" min="1" max="60"
+                style={{ ...inputStyle, maxWidth: 120 }}
+                value={avgPrepMins}
+                onChange={e => setAvgPrepMins(e.target.value)}
+                placeholder="8"
+              />
+              <span style={{ color:'var(--text-muted)', fontSize:13 }}>Used to estimate wait time on order tracking page</span>
             </div>
           </div>
 

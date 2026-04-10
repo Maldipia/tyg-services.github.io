@@ -470,36 +470,21 @@ export default function AdminOrdersBoard({ branchId }: Props) {
             {/* Notes */}
             {order.notes && <p style={s.notes}>📝 {order.notes}</p>}
 
-            {/* Payment proof thumbnail */}
-            {proofUrl && (
-              <div style={{ marginBottom: 10 }}>
-                <a href={proofUrl} target="_blank" rel="noreferrer"
-                  style={{ display:'block', position:'relative', borderRadius:10, overflow:'hidden', border:'2px solid rgba(34,197,94,0.35)', cursor:'pointer' }}>
-                  <img src={proofUrl} alt="Payment proof"
-                    style={{ width:'100%', maxHeight:120, objectFit:'cover', display:'block' }}/>
-                  <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0)', display:'flex', alignItems:'center', justifyContent:'center', transition:'background 0.2s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background='rgba(0,0,0,0.35)')}
-                    onMouseLeave={e => (e.currentTarget.style.background='rgba(0,0,0,0)')}>
-                    <span style={{ color:'#fff', fontSize:11, fontWeight:700, background:'rgba(0,0,0,0.5)', padding:'3px 10px', borderRadius:20, opacity:0.9 }}>🔍 Click to view full screenshot</span>
-                  </div>
-                </a>
-                <div style={{ fontSize:11, color:'#16a34a', marginTop:4, fontWeight:600 }}>📎 Payment proof uploaded</div>
-              </div>
-            )}
+
 
             {/* Payment method + MOP badge */}
             {paymentMethod && (
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
                 <div style={{ flex:1, padding:'8px 12px', borderRadius:8, background: order.payment_status==='VERIFIED' ? '#f0fdf4' : 'var(--surface-2)', border:`1px solid ${order.payment_status==='VERIFIED'?'#bbf7d0':'var(--border)'}`, fontSize:13, fontWeight:700, color: order.payment_status==='VERIFIED' ? '#16a34a' : 'var(--text)' }}>
                   {paymentMethod==='CASH'?'💵':paymentMethod==='CARD'?'💳':'📲'} {paymentMethod}{order.payment_status==='VERIFIED' ? ' · Paid ✅' : ''}
+                  {proofUrl && (
+                    <span onClick={() => window.open(proofUrl,'_blank','width=480,height=700,scrollbars=yes')}
+                      style={{ marginLeft:8, fontSize:11, color:'#38bdf8', fontWeight:600, cursor:'pointer', textDecoration:'underline' }}>
+                      📎 View proof
+                    </span>
+                  )}
                 </div>
-                {proofUrl && (
-                  <a href={proofUrl} target="_blank" rel="noreferrer"
-                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 8px 4px 4px', borderRadius:6, background:'rgba(56,189,248,0.08)', border:'1px solid rgba(56,189,248,0.2)', textDecoration:'none', fontSize:12, color:'#38bdf8', fontWeight:600, marginTop:4 }}>
-                    <img src={proofUrl} alt="proof" style={{ width:28, height:28, borderRadius:4, objectFit:'cover', flexShrink:0 }}/>
-                    📎 Payment proof ↗
-                  </a>
-                )}
+
                 {!['CANCELLED'].includes(order.status) && order.payment_status!=='VERIFIED' && (
                   <button onClick={() => {
                     const methods = ['CASH','CARD','GCASH'];

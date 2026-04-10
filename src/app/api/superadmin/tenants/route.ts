@@ -9,56 +9,46 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const db = createServiceClient();
 
-  // Aggregate all tenant stats in one query
-  const { data, error } = await db.rpc('superadmin_tenant_stats' as never) as {
-    data: Record<string, unknown>[] | null;
-    error: { message: string } | null;
-  };
+  // Use tenant_overview view — always current, includes all tenants
+  const { data: tenants, error } = await db
+    .from('tenant_overview')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   if (error) {
-    // Fallback: plain query if RPC doesn't exist yet
-    const { data: tenants, error: tErr } = await db
+    // Fallback: plain tenants table if view fails
+    const { data: plain, error: plainErr } = await db
       .from('tenants')
-      .select(`
-        id, name, slug, owner_email, phone, plan_tier, plan_status,
-        trial_ends_at, created_at, address
-      `)
+      .select('id, name, slug, owner_email, phone, plan_tier, plan_status, trial_ends_at, created_at, address, billing_notes')
       .order('created_at', { ascending: false });
 
-    if (tErr) return NextResponse.json({ error: tErr.message }, { status: 500 });
+    if (plainErr) return NextResponse.json({ error: plainErr.message }, { status: 500 });
 
-    // Fetch per-tenant counts separately (no RPC)
-    const enriched = await Promise.all((tenants ?? []).map(async (t) => {
-      const [orders, staff, menuItems] = await Promise.all([
-        db.from('orders').select('id, total_amount', { count: 'exact' }).eq('tenant_id', t.id),
-        db.from('staff').select('id', { count: 'exact' }).eq('tenant_id', t.id),
-        db.from('menu_items').select('id', { count: 'exact' }).eq('tenant_id', t.id),
+    const enriched = await Promise.all((plain ?? []).map(async (t) => {
+      const [oRes, sRes, mRes] = await Promise.all([
+        db.from('orders').select('id, total_amount, status').eq('tenant_id', t.id).eq('is_test', false),
+        db.from('staff').select('id', { count: 'exact', head: true }).eq('tenant_id', t.id),
+        db.from('menu_items').select('id', { count: 'exact', head: true }).eq('tenant_id', t.id),
       ]);
-
-      const revenue = (orders.data ?? []).reduce(
-        (sum: number, o: { total_amount?: number | null }) => sum + (Number(o.total_amount) || 0), 0
-      );
-
+      const revenue = (oRes.data ?? [])
+        .filter((o: Record<string,unknown>) => o.status === 'COMPLETED')
+        .reduce((s: number, o: Record<string,unknown>) => s + Number(o.total_amount || 0), 0);
+      const trialDaysLeft = t.plan_status === 'TRIAL' && t.trial_ends_at
+        ? Math.floor((new Date(t.trial_ends_at).getTime() - Date.now()) / 86400000)
+        : null;
       return {
         ...t,
-        order_count: orders.count ?? 0,
-        staff_count: staff.count ?? 0,
-        menu_item_count: menuItems.count ?? 0,
+        order_count: (oRes.data ?? []).length,
         total_revenue: revenue,
+        staff_count: sRes.count ?? 0,
+        menu_item_count: mRes.count ?? 0,
+        trial_days_left: trialDaysLeft,
+        last_order_at: null,
       };
     }));
 
-    // Platform totals
-    const totals = {
-      tenant_count: enriched.length,
-      total_orders: enriched.reduce((s, t) => s + (t.order_count as number), 0),
-      total_revenue: enriched.reduce((s, t) => s + (t.total_revenue as number), 0),
-      active_trials: enriched.filter(t => t.plan_status === 'TRIAL').length,
-      paying: enriched.filter(t => !['TRIAL', 'SUSPENDED'].includes(t.plan_status as string)).length,
-    };
-
-    return NextResponse.json({ data: enriched, totals });
+    return NextResponse.json({ data: enriched });
   }
 
-  return NextResponse.json({ data });
+  return NextResponse.json({ data: tenants ?? [] });
 }

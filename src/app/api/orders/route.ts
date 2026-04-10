@@ -46,6 +46,7 @@ const CreateOrderSchema = z.object({
   idempotencyKey:  z.string().min(1).max(100).optional(),
   isTest:          z.boolean().optional().default(false),
   source:          z.enum(['QR','POS','PLATFORM']).optional().default('QR'),
+  paymentMethod:   z.enum(['CASH','CARD','GCASH','INSTAPAY','BDO','BPI','UNIONBANK']).nullable().optional(),
 });
 
 export function OPTIONS() { return new Response(null, { status: 204 }); }
@@ -145,6 +146,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const o           = Array.isArray(result) ? result[0] : result;
   const orderId       = o?.order_id      as string;
+  // Store customer-selected payment method if provided
+  if (input.paymentMethod && orderId) {
+    const db2 = createServiceClient();
+    await db2.from('orders').update({ payment_method: input.paymentMethod }).eq('id', orderId);
+  }
   const orderNumber   = o?.order_number  as string;
   const totalAmount   = Number(o?.total_amount   ?? 0); // INCLUSIVE of delivery_fee + service_charge
   const subtotal      = Number(o?.subtotal       ?? 0);

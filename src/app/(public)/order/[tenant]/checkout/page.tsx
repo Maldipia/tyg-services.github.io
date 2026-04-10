@@ -1,15 +1,34 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight, Truck, ShoppingBag, UtensilsCrossed, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Truck, ShoppingBag, UtensilsCrossed, AlertCircle, QrCode, Banknote, CreditCard } from 'lucide-react';
 import { CartItem, cartTotal, loadCart, clearCart } from '@/lib/online-order/cart';
 
 const BG = '#0f1117'; const CARD = '#161b27'; const BORDER = 'rgba(255,255,255,0.07)';
 const TEXT = '#e8eaf0'; const MUTED = '#6b7280'; const GREEN = '#16a34a';
 
 type OrderType = 'DINE_IN' | 'TAKEOUT' | 'DELIVERY';
+type MOP = 'QR_BANK' | 'CASH' | 'CARD';
 
 interface Zone { id: string; name: string; fee: number; min_order: number; }
+interface TenantSettings {
+  acceptCash?: boolean;
+  acceptCard?: boolean;
+  acceptGcash?: boolean;
+  acceptMaya?: boolean;
+  acceptInstaPay?: boolean;
+  acceptBDO?: boolean;
+  acceptBPI?: boolean;
+  acceptUnionBank?: boolean;
+  gcashName?: string;
+  gcashNumber?: string;
+  mayaName?: string;
+  mayaNumber?: string;
+  bdoAccount?: string;
+  bpiAccount?: string;
+  unionbankAccount?: string;
+  paymentNote?: string;
+}
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)',
@@ -22,20 +41,21 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const { tenant: tenantSlug } = params;
   const router = useRouter();
 
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart]           = useState<CartItem[]>([]);
   const [orderType, setOrderType] = useState<OrderType>('DINE_IN');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [zone, setZone] = useState('');
-  const [zones, setZones] = useState<Zone[]>([]);
+  const [mop, setMop]             = useState<MOP | null>(null);
+  const [name, setName]           = useState('');
+  const [phone, setPhone]         = useState('');
+  const [address, setAddress]     = useState('');
+  const [zone, setZone]           = useState('');
+  const [zones, setZones]         = useState<Zone[]>([]);
   const [tableName, setTableName] = useState('');
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes]         = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]         = useState<string | null>(null);
   const [tableFromQR, setTableFromQR] = useState('');
+  const [settings, setSettings]   = useState<TenantSettings>({});
 
   useEffect(() => {
     const saved = loadCart(tenantSlug);
@@ -45,18 +65,48 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
     const t = sessionStorage.getItem('tyg_table') ?? '';
     if (t) { setTableFromQR(t); setTableName(t); setOrderType('DINE_IN'); }
 
-    void fetch(`/api/delivery-zones?tenant=${encodeURIComponent(tenantSlug)}`)
-      .then(r => r.json())
-      .then((d: { data: Zone[] }) => setZones(d.data ?? []));
+    // Load zones + tenant settings in parallel
+    void Promise.all([
+      fetch(`/api/delivery-zones?tenant=${encodeURIComponent(tenantSlug)}`)
+        .then(r => r.json()).then((d: { data: Zone[] }) => setZones(d.data ?? [])),
+      fetch(`/api/menu?tenant=${encodeURIComponent(tenantSlug)}`)
+        .then(r => r.json()).then((d: { data?: { settings?: TenantSettings } }) => {
+          if (d.data?.settings) setSettings(d.data.settings);
+        }),
+    ]);
   }, [tenantSlug, router]);
 
+  // Which payment methods does this tenant accept?
+  const hasQR   = settings.acceptGcash || settings.acceptMaya || settings.acceptInstaPay
+                || settings.acceptBDO  || settings.acceptBPI  || settings.acceptUnionBank;
+  const hasCash = settings.acceptCash !== false;   // default true
+  const hasCard = settings.acceptCard === true;
+
+  // Available MOP options for this tenant
+  type MopOption = { id: MOP; label: string; sub: string; icon: React.ReactNode; show: boolean };
+  const mopOptions: MopOption[] = ([
+    { id: 'QR_BANK' as MOP, label: 'QR / Bank Transfer', sub: 'GCash, Maya, BDO, BPI, UnionBank', icon: <QrCode size={22}/>, show: !!hasQR },
+    { id: 'CASH'    as MOP, label: 'Cash',               sub: 'Pay at the counter',                icon: <Banknote size={22}/>, show: hasCash },
+    { id: 'CARD'    as MOP, label: 'Card',               sub: 'Card terminal brought to you',       icon: <CreditCard size={22}/>, show: hasCard },
+  ] as MopOption[]).filter(o => o.show);
+
   const selectedZone = zones.find(z => z.name === zone);
-  const subtotal = cartTotal(cart);
-  const deliveryFee = orderType === 'DELIVERY' && selectedZone ? selectedZone.fee : 0;
-  const grandTotal = subtotal + deliveryFee;
+  const subtotal     = cartTotal(cart);
+  const deliveryFee  = orderType === 'DELIVERY' && selectedZone ? selectedZone.fee : 0;
+  const grandTotal   = subtotal + deliveryFee;
+
+  // Map MOP → payment_method string the API/DB stores
+  const mopToPaymentMethod = (m: MOP | null): string | null => {
+    if (!m) return null;
+    if (m === 'QR_BANK') return 'GCASH'; // generic — staff records exact method
+    if (m === 'CASH')    return 'CASH';
+    if (m === 'CARD')    return 'CARD';
+    return null;
+  };
 
   const validate = (): string | null => {
     if (!name.trim()) return 'Name is required';
+    if (!mop) return 'Please select a payment method';
     if (orderType === 'DELIVERY') {
       if (!phone.trim()) return 'Mobile number is required for delivery';
       if (!/^(09|\+639)\d{9}$/.test(phone.replace(/\s/g, ''))) return 'Invalid Philippine mobile number (e.g. 09xxxxxxxxx)';
@@ -91,13 +141,14 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           orderType,
           customerName: name.trim(),
           customerPhone: phone.trim() || null,
-          customerEmail: email.trim() || null,
+          customerEmail: null,
           pax: 1,
           tableName: orderType === 'DINE_IN' ? (tableName || tableFromQR || null) : null,
           deliveryAddress: orderType === 'DELIVERY' ? address.trim() : null,
           deliveryZone: orderType === 'DELIVERY' ? zone : null,
           notes: notes.trim() || null,
           promoCode: promoCode.trim() || null,
+          paymentMethod: mopToPaymentMethod(mop),
           idempotencyKey: idKey,
         }),
       });
@@ -111,7 +162,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
 
       clearCart(tenantSlug);
       sessionStorage.removeItem('tyg_idkey');
-      sessionStorage.setItem('tyg_last_order', JSON.stringify(d.data));
+      sessionStorage.setItem('tyg_last_order', JSON.stringify({ ...d.data, mop }));
       router.push(`/order/${tenantSlug}/success?order=${d.data.orderId}`);
     } catch {
       setError('Network error. Please check your connection and try again.');
@@ -133,6 +184,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
       </div>
 
       <div style={{ padding: '16px 16px 120px' }}>
+
         {/* Order type */}
         <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14 }}>
           <p style={{ ...labelStyle, marginBottom: 12 }}>How would you like your order?</p>
@@ -154,7 +206,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           </div>
         </div>
 
-        {/* Customer info — Delivery needs name+phone; Dine-In/Takeout needs name only */}
+        {/* Customer info */}
         <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14 }}>
           <p style={{ ...labelStyle, marginBottom: 14 }}>Your Details</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -171,7 +223,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           </div>
         </div>
 
-        {/* Dine-in fields */}
+        {/* Dine-in table */}
         {orderType === 'DINE_IN' && (
           <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14 }}>
             <p style={{ ...labelStyle, marginBottom: 14 }}>Table Information</p>
@@ -206,6 +258,81 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           </div>
         )}
 
+        {/* ── MODE OF PAYMENT ──────────────────────────────────── */}
+        <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${mop ? 'rgba(22,163,74,0.4)' : BORDER}`, padding: 16, marginBottom: 14 }}>
+          <p style={{ ...labelStyle, marginBottom: 14 }}>Mode of Payment *</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {mopOptions.map(opt => (
+              <button key={opt.id} onClick={() => setMop(opt.id)} style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
+                borderRadius: 12, border: 'none', cursor: 'pointer', textAlign: 'left',
+                background: mop === opt.id ? 'rgba(22,163,74,0.12)' : 'rgba(255,255,255,0.04)',
+                outline: mop === opt.id ? `2px solid ${GREEN}` : `1px solid ${BORDER}`,
+              }}>
+                {/* Radio dot */}
+                <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                  border: mop === opt.id ? `6px solid ${GREEN}` : `2px solid ${MUTED}`,
+                  background: 'transparent', transition: 'border 0.15s' }}/>
+                {/* Icon */}
+                <div style={{ color: mop === opt.id ? GREEN : MUTED, flexShrink: 0 }}>{opt.icon}</div>
+                {/* Label */}
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: mop === opt.id ? TEXT : '#9ca3af', fontWeight: 700, fontSize: 14 }}>{opt.label}</div>
+                  <div style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>{opt.sub}</div>
+                </div>
+              </button>
+            ))}
+
+            {/* QR bank info (shows when QR selected) */}
+            {mop === 'QR_BANK' && (
+              <div style={{ background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.15)', borderRadius: 10, padding: '12px 14px', fontSize: 13 }}>
+                <div style={{ color: GREEN, fontWeight: 700, marginBottom: 6 }}>📲 Payment instructions</div>
+                {settings.gcashName && (
+                  <div style={{ color: TEXT, marginBottom: 3 }}>
+                    <span style={{ color: MUTED }}>GCash / Maya: </span>
+                    <strong>{settings.gcashName}</strong> · {settings.gcashNumber ?? settings.mayaNumber}
+                  </div>
+                )}
+                {settings.bdoAccount && (
+                  <div style={{ color: TEXT, marginBottom: 3 }}>
+                    <span style={{ color: MUTED }}>BDO: </span>{settings.bdoAccount}
+                  </div>
+                )}
+                {settings.bpiAccount && (
+                  <div style={{ color: TEXT, marginBottom: 3 }}>
+                    <span style={{ color: MUTED }}>BPI: </span>{settings.bpiAccount}
+                  </div>
+                )}
+                {settings.unionbankAccount && (
+                  <div style={{ color: TEXT, marginBottom: 3 }}>
+                    <span style={{ color: MUTED }}>UnionBank: </span>{settings.unionbankAccount}
+                  </div>
+                )}
+                {settings.paymentNote && (
+                  <div style={{ color: MUTED, fontSize: 12, marginTop: 6, fontStyle: 'italic' }}>{settings.paymentNote}</div>
+                )}
+                <div style={{ color: '#fbbf24', fontSize: 12, marginTop: 6 }}>
+                  ⚠️ Screenshot your payment and show it to the staff.
+                </div>
+              </div>
+            )}
+
+            {mop === 'CASH' && (
+              <div style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 10, padding: '12px 14px', fontSize: 13 }}>
+                <div style={{ color: '#fbbf24', fontWeight: 700, marginBottom: 4 }}>💵 Pay at the counter</div>
+                <div style={{ color: MUTED }}>Staff will come to you or you can pay at the cashier.</div>
+              </div>
+            )}
+
+            {mop === 'CARD' && (
+              <div style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 10, padding: '12px 14px', fontSize: 13 }}>
+                <div style={{ color: '#818cf8', fontWeight: 700, marginBottom: 4 }}>💳 Card terminal</div>
+                <div style={{ color: MUTED }}>A card terminal will be brought to your table.</div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Notes & promo */}
         <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14 }}>
           <p style={{ ...labelStyle, marginBottom: 14 }}>Additional Details</p>
@@ -216,7 +343,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
             </div>
             <div>
               <label style={labelStyle}>Promo Code</label>
-              <input style={{ ...inputStyle, textTransform: 'uppercase' as const }} value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="YANIOPEN20"/>
+              <input style={{ ...inputStyle, textTransform: 'uppercase' as const }} value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="Enter promo code…"/>
             </div>
           </div>
         </div>
@@ -245,6 +372,14 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
                 <span style={{ color: TEXT, fontSize: 13 }}>₱{deliveryFee.toFixed(2)}</span>
               </div>
             )}
+            {mop && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: MUTED, fontSize: 13 }}>Payment</span>
+                <span style={{ color: GREEN, fontSize: 13, fontWeight: 600 }}>
+                  {mop === 'QR_BANK' ? '📲 QR / Bank' : mop === 'CASH' ? '💵 Cash' : '💳 Card'}
+                </span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, borderTop: `1px solid ${BORDER}` }}>
               <span style={{ color: TEXT, fontWeight: 800, fontSize: 15 }}>Total</span>
               <span style={{ color: GREEN, fontWeight: 800, fontSize: 16 }}>₱{grandTotal.toFixed(2)}</span>
@@ -262,15 +397,17 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
 
       {/* Submit */}
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '16px', background: BG, borderTop: `1px solid ${BORDER}` }}>
-        <button onClick={handleSubmit} disabled={submitting} style={{
-          width: '100%', padding: '15px 0', background: submitting ? 'rgba(22,163,74,0.5)' : GREEN,
-          border: 'none', borderRadius: 12, color: '#fff', fontWeight: 800, fontSize: 16, cursor: submitting ? 'wait' : 'pointer',
+        <button onClick={handleSubmit} disabled={submitting || !mop} style={{
+          width: '100%', padding: '15px 0',
+          background: !mop ? 'rgba(22,163,74,0.25)' : submitting ? 'rgba(22,163,74,0.5)' : GREEN,
+          border: 'none', borderRadius: 12, color: !mop ? 'rgba(255,255,255,0.4)' : '#fff',
+          fontWeight: 800, fontSize: 16, cursor: (!mop || submitting) ? 'not-allowed' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
-          {submitting ? 'Placing Order…' : `Place Order — ₱${grandTotal.toFixed(2)}`}
-          {!submitting && <ChevronRight size={18}/>}
+          {submitting ? 'Placing Order…' : !mop ? 'Select Payment Method' : `Place Order — ₱${grandTotal.toFixed(2)}`}
+          {!submitting && mop && <ChevronRight size={18}/>}
         </button>
-        <p style={{ color: MUTED, fontSize: 11, textAlign: 'center', marginTop: 8 }}>Payment at counter · Staff will confirm your order</p>
+        {!mop && <p style={{ color: '#ef4444', fontSize: 11, textAlign: 'center', marginTop: 6 }}>Please choose a payment method above</p>}
       </div>
     </div>
   );

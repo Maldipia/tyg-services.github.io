@@ -52,7 +52,7 @@ interface RawItem {
 }
 interface RawTenant {
   name: string; logo_url: string | null; primary_color: string | null;
-  accent_color: string | null; settings: Record<string, unknown> | null;
+  accent_color: string | null; settings: Record<string, unknown> | null; payment_qr_url: string | null;
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // ── 4. Tenant branding ──────────────────────────────────
-    const [tenantData] = await pgGet<RawTenant>(`tenants?id=eq.${tid}&select=name,logo_url,primary_color,accent_color,settings&limit=1`);
+    const [tenantData] = await pgGet<RawTenant>(`tenants?id=eq.${tid}&select=name,logo_url,payment_qr_url,primary_color,accent_color,settings&limit=1`);
 
     // ── 5. Build response ───────────────────────────────────
     const sizeMap  = new Map<string, RawSize[]>();
@@ -136,6 +136,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         logoUrl:       tenantData?.logo_url,
         primaryColor:  tenantData?.primary_color,
         accentColor:   tenantData?.accent_color,
+        paymentQrUrl:  tenantData?.payment_qr_url ?? null,
         receiptFooter: settings?.receiptFooter,
         payment: {
           acceptCash:       settings?.acceptCash      ?? true,

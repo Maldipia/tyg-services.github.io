@@ -56,6 +56,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const [error, setError]         = useState<string | null>(null);
   const [tableFromQR, setTableFromQR] = useState('');
   const [settings, setSettings]   = useState<TenantSettings>({});
+  const [paymentQrUrl, setPaymentQrUrl] = useState<string|null>(null);
 
   useEffect(() => {
     const saved = loadCart(tenantSlug);
@@ -72,6 +73,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
       fetch(`/api/menu?tenant=${encodeURIComponent(tenantSlug)}`)
         .then(r => r.json()).then((d: { data?: { tenant?: { payment?: TenantSettings } } }) => {
           if (d.data?.tenant?.payment) setSettings(d.data.tenant.payment);
+          const td = d.data?.tenant as Record<string,unknown>|undefined; if (td?.paymentQrUrl) setPaymentQrUrl(String(td.paymentQrUrl));
         }),
     ]);
   }, [tenantSlug, router]);
@@ -310,6 +312,13 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
                 )}
                 {settings.paymentNote && (
                   <div style={{ color: MUTED, fontSize: 12, marginTop: 6, fontStyle: 'italic' }}>{settings.paymentNote}</div>
+                )}
+                {paymentQrUrl && (
+                  <div style={{ textAlign:'center', margin:'12px 0 8px' }}>
+                    <p style={{ color:GREEN, fontSize:12, fontWeight:700, marginBottom:8 }}>Scan to pay:</p>
+                    <img src={paymentQrUrl} alt="Payment QR Code"
+                      style={{ width:'100%', maxWidth:220, height:'auto', borderRadius:12, border:'3px solid rgba(22,163,74,0.3)', display:'block', margin:'0 auto' }}/>
+                  </div>
                 )}
                 <div style={{ color: '#fbbf24', fontSize: 12, marginTop: 6 }}>
                   ⚠️ Screenshot your payment and show it to the staff.

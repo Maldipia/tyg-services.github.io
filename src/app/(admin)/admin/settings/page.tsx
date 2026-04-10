@@ -81,6 +81,9 @@ function SettingsPageInner() {
   const [serviceChargeRate, setServiceChargeRate] = useState('0');
   const [avgPrepMins, setAvgPrepMins] = useState('8');
   const [logoUrl, setLogoUrl] = useState('');
+  const [paymentQrUrl, setPaymentQrUrl] = useState<string|null>(null);
+  const [qrUploading, setQrUploading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [pwdDiscount, setPwdDiscount] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
 
@@ -113,6 +116,8 @@ function SettingsPageInner() {
         if (t.accent_color) setAccentColor(t.accent_color);
         if (t.plan_tier) setPlanTier(t.plan_tier);
         if (t.bir_tin) setBirTin(t.bir_tin);
+        if ((t as Record<string,unknown>)['logo_url']) setLogoUrl(String((t as Record<string,unknown>)['logo_url'] ?? ''));
+        if ((t as Record<string,unknown>)['payment_qr_url']) setPaymentQrUrl(String((t as Record<string,unknown>)['payment_qr_url'] ?? ''));
         if (t.bir_atp_series) setBirAtpSeries(t.bir_atp_series);
         const s = t.settings ?? {};
         if (typeof s['orderingEnabled'] === 'boolean') setOrderingEnabled(s['orderingEnabled']);
@@ -158,9 +163,27 @@ function SettingsPageInner() {
     } catch { setError('Network error'); }
   };
 
+  const handlePaymentQrUpload = async (file: File) => {
+    setQrUploading(true);
+    const fd = new FormData(); fd.append('file', file);
+    const r = await fetch('/api/tenant/upload?type=payment_qr', { method:'POST', credentials:'include', body: fd });
+    const d = await r.json() as { data?: { url: string } };
+    if (d.data?.url) setPaymentQrUrl(d.data.url);
+    setQrUploading(false);
+  };
+
+  const handleLogoUpload = async (file: File) => {
+    setLogoUploading(true);
+    const fd = new FormData(); fd.append('file', file);
+    const r = await fetch('/api/tenant/upload?type=logo', { method:'POST', credentials:'include', body: fd });
+    const d = await r.json() as { data?: { url: string } };
+    if (d.data?.url) setLogoUrl(d.data.url);
+    setLogoUploading(false);
+  };
+
   const handleQrUpload = (method: string, file: File) => {
-    const url = URL.createObjectURL(file);
-    setQrUploads(prev => ({ ...prev, [method]: url }));
+    void handlePaymentQrUpload(file);
+    void method;
   };
 
   return (
@@ -262,16 +285,49 @@ function SettingsPageInner() {
           </div>
 
           <div style={sectionStyle}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Payment QR Codes</h3>
-            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-              {PAYMENT_METHODS.map(method => (
-                <PaymentQRRow
-                  key={method.key}
-                  method={method}
-                  currentUrl={qrUploads[method.key] ?? null}
-                  onUpload={(file) => handleQrUpload(method.key, file)}
-                />
-              ))}
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Payment QR Code</h3>
+            <p style={{ color:'var(--text-muted)', fontSize:13, marginBottom:20, lineHeight:1.5 }}>
+              Upload your GCash / Maya / bank QR code. Customers will see this image when they choose <strong>QR / Bank Transfer</strong> at checkout.
+            </p>
+
+            <div style={{ display:'flex', gap:24, alignItems:'flex-start', flexWrap:'wrap' }}>
+              {/* Preview */}
+              <div style={{ flexShrink:0 }}>
+                {paymentQrUrl ? (
+                  <div style={{ position:'relative', width:160, height:160 }}>
+                    <img src={paymentQrUrl} alt="Payment QR"
+                      style={{ width:160, height:160, objectFit:'contain', borderRadius:12, border:'2px solid var(--border)', background:'white', padding:4 }}/>
+                    <button onClick={async () => {
+                      await fetch('/api/tenant/upload?type=payment_qr', { method:'DELETE', credentials:'include' });
+                      setPaymentQrUrl(null);
+                    }} style={{ position:'absolute', top:-8, right:-8, width:22, height:22, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>×</button>
+                  </div>
+                ) : (
+                  <div style={{ width:160, height:160, borderRadius:12, border:'2px dashed var(--border)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, color:'var(--text-muted)', background:'var(--surface-2)' }}>
+                    <span style={{ fontSize:36 }}>📲</span>
+                    <span style={{ fontSize:12 }}>No QR uploaded</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload button */}
+              <div style={{ flex:1, minWidth:200 }}>
+                <label style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:10, border:'1px solid rgba(34,197,94,0.4)', background:'rgba(34,197,94,0.08)', color:'#16a34a', fontWeight:700, fontSize:14, cursor: qrUploading ? 'wait':'pointer' }}>
+                  <Upload size={15}/>
+                  {qrUploading ? 'Uploading…' : paymentQrUrl ? 'Replace QR Code' : 'Upload QR Code'}
+                  <input type="file" accept="image/*" style={{ display:'none' }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) void handlePaymentQrUpload(f); }}/>
+                </label>
+                <p style={{ color:'var(--text-muted)', fontSize:12, marginTop:10, lineHeight:1.5 }}>
+                  JPG, PNG or WebP · Max 5MB<br/>
+                  Use a <strong>square</strong> QR image for best display.
+                </p>
+                {paymentQrUrl && (
+                  <div style={{ marginTop:10, padding:'8px 12px', borderRadius:8, background:'rgba(34,197,94,0.06)', border:'1px solid rgba(34,197,94,0.2)', fontSize:12, color:'#15803d' }}>
+                    ✅ QR code saved — customers can now scan this at checkout
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(req, async (_, ctx) => {
     const db = createServiceClient();
     const { data, error } = await db.from('tenants')
-      .select('id, name, slug, phone, address, primary_color, accent_color, settings, plan_tier, plan_status, trial_ends_at, owner_email, bir_tin, bir_atp_series')
+      .select('id, name, slug, phone, address, primary_color, accent_color, settings, plan_tier, plan_status, trial_ends_at, owner_email, bir_tin, bir_atp_series, logo_url, payment_qr_url')
       .eq('id', ctx.tenantId).single();
     if (error || !data) return apiError('Tenant not found', 404);
     return apiSuccess(data);

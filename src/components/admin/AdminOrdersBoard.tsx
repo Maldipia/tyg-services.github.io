@@ -276,7 +276,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   }, {} as Record<string, number>);
 
   const s = {
-    wrap:    { padding: '24px 24px', maxWidth: 680, margin: '0 auto' },
+    wrap:    { padding: '24px 28px' },
     hdr:     { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
     title:   { fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 },
     refresh: { fontSize: 13, color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 },
@@ -357,6 +357,11 @@ export default function AdminOrdersBoard({ branchId }: Props) {
       </div>
 
       {/* Orders */}
+      <style>{`
+        .orders-grid { display: grid; grid-template-columns: 1fr; gap: 0; }
+        @media (min-width: 900px) { .orders-grid { grid-template-columns: 1fr 1fr; gap: 0 20px; } }
+        @media (min-width: 1400px) { .orders-grid { grid-template-columns: 1fr 1fr 1fr; gap: 0 20px; } }
+      `}</style>
       {loading ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontSize: 14 }}>Loading orders…</div>
       ) : displayed.length === 0 ? (
@@ -364,7 +369,9 @@ export default function AdminOrdersBoard({ branchId }: Props) {
           <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>No orders found</p>
         </div>
-      ) : displayed.map(order => {
+      ) : (
+        <div className="orders-grid">
+          {displayed.map(order => {
         const st = STATUS_STYLE[order.status] ?? STATUS_STYLE.CANCELLED;
         const nextAct = NEXT_STATUS[order.status];
         const isBumping = bumping === order.id;
@@ -569,6 +576,8 @@ export default function AdminOrdersBoard({ branchId }: Props) {
           </div>
         );
       })}
+        </div>
+      )}
 
     {/* ── BIR OR Print Modal ─────────────────────────────── */}
     {orModal && (

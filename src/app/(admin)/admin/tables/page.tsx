@@ -113,7 +113,7 @@ export default function TablesPage() {
 
   const printSingle = (t: Table) => { setPrintAll(false); setPrintTable(t); setTimeout(() => window.print(), 500); };
   const printAllQR  = ()         => { setPrintAll(true);  setPrintTable(null); setTimeout(() => window.print(), 600); };
-  const orderUrl    = (t: Table) => `${APP_URL}/order?tenant=${tenantSlug}&t=${t.qr_token}`;
+  const orderUrl    = (t: Table) => `${APP_URL}/order/${tenantSlug}?table=${encodeURIComponent(t.name)}&token=${t.qr_token}`;
 
   const downloadQR = async (t: Table) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(orderUrl(t))}&color=000000&bgcolor=ffffff&qzone=3`;

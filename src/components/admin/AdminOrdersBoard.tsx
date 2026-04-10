@@ -379,6 +379,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         const serviceCharge = Number((order as unknown as Record<string,unknown>)['service_charge'] ?? 0);
         const discountAmount = Number((order as unknown as Record<string,unknown>)['discount_amount'] ?? 0);
         const discountType = String((order as unknown as Record<string,unknown>)['discount_type'] ?? '');
+        const proofUrl = (order as unknown as Record<string,unknown>)['payment_proof_url'] as string | null | undefined;
         const items = (order.items ?? []) as OrderItem[];
         const minsAgo = Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000);
         const isOverdue = minsAgo > 20 && ['PENDING', 'CONFIRMED'].includes(order.status);
@@ -467,6 +468,23 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
             {/* Notes */}
             {order.notes && <p style={s.notes}>📝 {order.notes}</p>}
+
+            {/* Payment proof thumbnail */}
+            {proofUrl && (
+              <div style={{ marginBottom: 10 }}>
+                <a href={proofUrl} target="_blank" rel="noreferrer"
+                  style={{ display:'block', position:'relative', borderRadius:10, overflow:'hidden', border:'2px solid rgba(34,197,94,0.35)', cursor:'pointer' }}>
+                  <img src={proofUrl} alt="Payment proof"
+                    style={{ width:'100%', maxHeight:120, objectFit:'cover', display:'block' }}/>
+                  <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0)', display:'flex', alignItems:'center', justifyContent:'center', transition:'background 0.2s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background='rgba(0,0,0,0.35)')}
+                    onMouseLeave={e => (e.currentTarget.style.background='rgba(0,0,0,0)')}>
+                    <span style={{ color:'#fff', fontSize:11, fontWeight:700, background:'rgba(0,0,0,0.5)', padding:'3px 10px', borderRadius:20, opacity:0.9 }}>🔍 Click to view full screenshot</span>
+                  </div>
+                </a>
+                <div style={{ fontSize:11, color:'#16a34a', marginTop:4, fontWeight:600 }}>📎 Payment proof uploaded</div>
+              </div>
+            )}
 
             {/* Payment method + MOP badge */}
             {paymentMethod && (

@@ -209,7 +209,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const fromUTC  = new Date(`${fromDate}T00:00:00+08:00`).toISOString();
     const toUTC    = new Date(`${toDate}T23:59:59+08:00`).toISOString();
     let query = db.from('orders')
-      .select(`id, order_number, status, payment_status, payment_method, total_amount, subtotal_override, service_charge, vat_amount, discount_type, discount_amount, customer_name, customer_phone, created_at, pax, notes, table_id, branch_id, cancel_reason, rating, order_type, promo_code, delivery_address, delivery_fee, delivery_zone, table:restaurant_tables(name), items:order_items(id, item_name, size_label, qty, line_total, addon_total, sugar_level, notes, prepared)`)
+      .select(`id, order_number, status, payment_status, payment_method, payment_proof_url, total_amount, subtotal_override, service_charge, vat_amount, discount_type, discount_amount, customer_name, customer_phone, created_at, pax, notes, table_id, branch_id, cancel_reason, rating, order_type, promo_code, delivery_address, delivery_fee, delivery_zone, table:restaurant_tables(name), items:order_items(id, item_name, size_label, qty, line_total, addon_total, sugar_level, notes, prepared)`)
       .eq('tenant_id', ctx.tenantId).eq('is_test', false)
       .gte('created_at', fromUTC).lte('created_at', toUTC)
       .order('created_at', { ascending: false }).limit(limit);

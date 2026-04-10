@@ -53,6 +53,10 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const [notes, setNotes]         = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [proofFile, setProofFile]       = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [proofUploading, setProofUploading] = useState(false);
+  const [proofUrl, setProofUrl]         = useState<string | null>(null);
   const [error, setError]         = useState<string | null>(null);
   const [tableFromQR, setTableFromQR] = useState('');
   const [settings, setSettings]   = useState<TenantSettings>({});
@@ -160,6 +164,16 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
       if (!res.ok || d.error || !d.data) {
         setError(d.error ?? 'Order failed. Please try again.');
         return;
+      }
+
+      // Upload payment proof if provided (QR orders)
+      if (proofFile && d.data.orderId) {
+        setProofUploading(true);
+        const fd = new FormData();
+        fd.append('file', proofFile);
+        fd.append('orderId', d.data.orderId);
+        await fetch('/api/upload/payment-proof', { method: 'POST', body: fd });
+        setProofUploading(false);
       }
 
       clearCart(tenantSlug);
@@ -321,7 +335,38 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
                   </div>
                 )}
                 <div style={{ color: '#fbbf24', fontSize: 12, marginTop: 6 }}>
-                  ⚠️ Screenshot your payment and show it to the staff.
+                  ⚠️ Screenshot your payment and upload it below.
+                </div>
+
+                {/* Payment proof upload */}
+                <div style={{ marginTop: 12, borderTop: '1px solid rgba(34,197,94,0.15)', paddingTop: 12 }}>
+                  <div style={{ ...labelStyle, marginBottom: 8, color: GREEN }}>📎 Upload Payment Screenshot</div>
+                  {proofPreview ? (
+                    <div style={{ position: 'relative' }}>
+                      <img src={proofPreview} alt="Payment proof"
+                        style={{ width: '100%', borderRadius: 8, maxHeight: 200, objectFit: 'cover', border: '2px solid rgba(34,197,94,0.4)' }}/>
+                      <button onClick={() => { setProofFile(null); setProofPreview(null); setProofUrl(null); }}
+                        style={{ position:'absolute', top:6, right:6, width:28, height:28, borderRadius:'50%', border:'none', background:'rgba(0,0,0,0.6)', color:'#fff', cursor:'pointer', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>✕</button>
+                      <div style={{ color: GREEN, fontSize: 12, marginTop: 6, fontWeight: 600 }}>✅ Screenshot ready to submit</div>
+                    </div>
+                  ) : (
+                    <label style={{ display:'block', cursor:'pointer' }}>
+                      <input type="file" accept="image/*" style={{ display:'none' }}
+                        onChange={e => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          setProofFile(f);
+                          const reader = new FileReader();
+                          reader.onload = ev => setProofPreview(ev.target?.result as string);
+                          reader.readAsDataURL(f);
+                        }}/>
+                      <div style={{ border: '2px dashed rgba(34,197,94,0.4)', borderRadius: 10, padding: '20px', textAlign: 'center', background: 'rgba(34,197,94,0.04)' }}>
+                        <div style={{ fontSize: 28, marginBottom: 6 }}>📸</div>
+                        <div style={{ color: GREEN, fontWeight: 700, fontSize: 14 }}>Tap to upload screenshot</div>
+                        <div style={{ color: MUTED, fontSize: 12, marginTop: 4 }}>JPG, PNG, WebP · Max 5MB</div>
+                      </div>
+                    </label>
+                  )}
                 </div>
               </div>
             )}

@@ -124,7 +124,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const settings = tenantData?.settings as {
       receiptFooter?: string; acceptCash?: boolean; acceptGcash?: boolean; acceptMaya?: boolean;
+      acceptCard?: boolean; acceptInstaPay?: boolean; acceptBDO?: boolean; acceptBPI?: boolean; acceptUnionBank?: boolean;
       gcashNumber?: string; gcashName?: string; mayaNumber?: string; mayaName?: string;
+      bdoAccount?: string; bpiAccount?: string; unionbankAccount?: string;
       paymentNote?: string;
     } | null;
 
@@ -136,14 +138,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         accentColor:   tenantData?.accent_color,
         receiptFooter: settings?.receiptFooter,
         payment: {
-          acceptCash:   settings?.acceptCash  ?? true,
-          acceptGcash:  settings?.acceptGcash ?? false,
-          acceptMaya:   settings?.acceptMaya  ?? false,
-          gcashNumber:  settings?.gcashNumber ?? null,
-          gcashName:    settings?.gcashName   ?? null,
-          mayaNumber:   settings?.mayaNumber  ?? null,
-          mayaName:     settings?.mayaName    ?? null,
-          paymentNote:  settings?.paymentNote ?? null,
+          acceptCash:       settings?.acceptCash      ?? true,
+          acceptGcash:      settings?.acceptGcash     ?? true,
+          acceptMaya:       settings?.acceptMaya      ?? false,
+          acceptCard:       settings?.acceptCard      ?? true,
+          acceptInstaPay:   settings?.acceptInstaPay  ?? false,
+          acceptBDO:        settings?.acceptBDO       ?? false,
+          acceptBPI:        settings?.acceptBPI       ?? false,
+          acceptUnionBank:  settings?.acceptUnionBank ?? false,
+          gcashNumber:      settings?.gcashNumber     ?? null,
+          gcashName:        settings?.gcashName       ?? null,
+          mayaNumber:       settings?.mayaNumber      ?? null,
+          mayaName:         settings?.mayaName        ?? null,
+          bdoAccount:       settings?.bdoAccount      ?? null,
+          bpiAccount:       settings?.bpiAccount      ?? null,
+          unionbankAccount: settings?.unionbankAccount ?? null,
+          paymentNote:      settings?.paymentNote     ?? null,
         },
       },
       categories: categoriesWithItems,

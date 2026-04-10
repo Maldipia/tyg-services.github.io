@@ -70,8 +70,8 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
       fetch(`/api/delivery-zones?tenant=${encodeURIComponent(tenantSlug)}`)
         .then(r => r.json()).then((d: { data: Zone[] }) => setZones(d.data ?? [])),
       fetch(`/api/menu?tenant=${encodeURIComponent(tenantSlug)}`)
-        .then(r => r.json()).then((d: { data?: { settings?: TenantSettings } }) => {
-          if (d.data?.settings) setSettings(d.data.settings);
+        .then(r => r.json()).then((d: { data?: { tenant?: { payment?: TenantSettings } } }) => {
+          if (d.data?.tenant?.payment) setSettings(d.data.tenant.payment);
         }),
     ]);
   }, [tenantSlug, router]);

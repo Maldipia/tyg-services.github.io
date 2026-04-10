@@ -106,6 +106,8 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [orModal,     setOrModal]     = useState<ORData | null>(null);
   const [orLoading,   setOrLoading]   = useState<string | null>(null);
   const [cashLoading, setCashLoading] = useState<string | null>(null);
+  const [cancelModal, setCancelModal] = useState<{orderId:string;orderNumber:string}|null>(null);
+  const [cancelReason, setCancelReason] = useState('Customer changed mind');
   const [receiptOrder,setReceiptOrder]= useState<ReceiptOrder | null>(null);
   const [search,      setSearch]      = useState('');
   const [dateFrom,    setDateFrom]    = useState(() => new Date(Date.now() + 8*3600000).toISOString().slice(0,10));
@@ -432,8 +434,8 @@ export default function AdminOrdersBoard({ branchId }: Props) {
               )}
               {!['COMPLETED','CANCELLED'].includes(order.status) && (
                 <button disabled={isBumping} onClick={() => {
-                  const reason = prompt('Cancel reason:');
-                  if (reason?.trim()) void bumpStatus(order.id, 'CANCELLED', reason.trim());
+                  setCancelReason('Customer changed mind');
+                  setCancelModal({ orderId: order.id, orderNumber: order.order_number });
                 }}
                   style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.35)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
                   Cancel
@@ -653,6 +655,62 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         </div>
       );
     })()}
+
+      {cancelModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}
+          onClick={() => setCancelModal(null)}>
+          <div style={{ background:'#1a1f2e', border:'1px solid rgba(239,68,68,0.3)', borderRadius:16, padding:24, width:'100%', maxWidth:380, margin:16 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight:700, fontSize:16, color:'#e8eaf0', marginBottom:4 }}>Cancel Order</div>
+            <div style={{ color:'#6b7280', fontSize:13, marginBottom:20 }}>#{cancelModal.orderNumber}</div>
+            <label style={{ color:'#9ca3af', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em', display:'block', marginBottom:8 }}>Reason *</label>
+            <select value={cancelReason} onChange={e => setCancelReason(e.target.value)}
+              style={{ width:'100%', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:8, padding:'10px 12px', color:'#e8eaf0', fontSize:14, outline:'none', marginBottom:20 }}>
+              {['Customer changed mind','Item out of stock','Duplicate order','Payment not received','Test order / migration cleanup','Other'].map(r => (
+                <option key={r} value={r} style={{ background:'#1a1f2e' }}>{r}</option>
+              ))}
+            </select>
+            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+              <button onClick={() => setCancelModal(null)}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontWeight:600, fontSize:14, cursor:'pointer' }}>
+                Dismiss
+              </button>
+              <button onClick={() => { void bumpStatus(cancelModal.orderId, 'CANCELLED', cancelReason); setCancelModal(null); }}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.4)', color:'#f87171', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {cancelModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}
+          onClick={() => setCancelModal(null)}>
+          <div style={{ background:'#1a1f2e', border:'1px solid rgba(239,68,68,0.3)', borderRadius:16, padding:24, width:'100%', maxWidth:380, margin:16 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight:700, fontSize:16, color:'#e8eaf0', marginBottom:4 }}>Cancel Order</div>
+            <div style={{ color:'#6b7280', fontSize:13, marginBottom:20 }}>#{cancelModal.orderNumber}</div>
+            <label style={{ color:'#9ca3af', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em', display:'block', marginBottom:8 }}>Reason *</label>
+            <select value={cancelReason} onChange={e => setCancelReason(e.target.value)}
+              style={{ width:'100%', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:8, padding:'10px 12px', color:'#e8eaf0', fontSize:14, outline:'none', marginBottom:20 }}>
+              {['Customer changed mind','Item out of stock','Duplicate order','Payment not received','Test order / migration cleanup','Other'].map(r => (
+                <option key={r} value={r} style={{ background:'#1a1f2e' }}>{r}</option>
+              ))}
+            </select>
+            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+              <button onClick={() => setCancelModal(null)}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontWeight:600, fontSize:14, cursor:'pointer' }}>
+                Dismiss
+              </button>
+              <button onClick={() => { void bumpStatus(cancelModal.orderId, 'CANCELLED', cancelReason); setCancelModal(null); }}
+                style={{ padding:'9px 18px', borderRadius:8, background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.4)', color:'#f87171', fontWeight:700, fontSize:14, cursor:'pointer' }}>
+                Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

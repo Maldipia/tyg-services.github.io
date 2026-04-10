@@ -276,7 +276,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   }, {} as Record<string, number>);
 
   const s = {
-    wrap:    { padding: '24px 28px' },
+    wrap:    { padding: '24px 28px', maxWidth: 1200, margin: '0 auto' },
     hdr:     { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
     title:   { fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 },
     refresh: { fontSize: 13, color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 },

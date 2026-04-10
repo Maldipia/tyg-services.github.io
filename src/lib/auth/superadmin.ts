@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/client';
 
 const COOKIE_NAME = 'tyg_superadmin';
-const SESSION_HOURS = 8;
+const SESSION_HOURS = 24;
 
 // Derive a signed token from the secret + a daily salt (rotates daily)
 async function deriveToken(secret: string): Promise<string> {

@@ -97,7 +97,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 8 * 60 * 60, // 8 hours
+    maxAge: 24 * 60 * 60, // 24 hours — full business day
   });
 
   // Log successful login

@@ -10,7 +10,7 @@ import { createServiceClient } from '@/lib/supabase/client';
 import type { Staff, StaffSession, StaffRole } from '@/types';
 
 const BCRYPT_COST = 12;
-const SESSION_TTL_HOURS = 8; // staff sessions expire after an 8-hour shift
+const SESSION_TTL_HOURS = 24; // staff sessions valid for a full business day
 
 // ── Hash a PIN (use when creating/updating a staff member) ───
 export async function hashPin(pin: string): Promise<string> {

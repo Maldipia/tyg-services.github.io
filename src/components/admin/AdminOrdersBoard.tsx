@@ -359,9 +359,8 @@ export default function AdminOrdersBoard({ branchId }: Props) {
 
       {/* Orders */}
       <style>{`
-        .orders-grid { display: grid; grid-template-columns: 1fr; gap: 0; }
-        @media (min-width: 900px) { .orders-grid { grid-template-columns: 1fr 1fr; gap: 0 20px; } }
-        @media (min-width: 1400px) { .orders-grid { grid-template-columns: 1fr 1fr 1fr; gap: 0 20px; } }
+        .orders-grid { display: grid; grid-template-columns: 1fr; gap: 0; max-width: 960px; }
+        @media (min-width: 760px) { .orders-grid { grid-template-columns: 1fr 1fr; gap: 0 16px; } }
       `}</style>
       {loading ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontSize: 14 }}>Loading orders…</div>

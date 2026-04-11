@@ -84,7 +84,7 @@ function playNewOrderChime() {
 
 interface TenantInfo {
   name: string; address: string;
-  receiptFooter: string; primaryColor: string;
+  receiptFooter: string; primaryColor: string; logoUrl: string;
 }
 
 interface ReceiptOrder {
@@ -102,7 +102,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
   const [loading,     setLoading]     = useState(true);
   const [bumping,     setBumping]     = useState<string | null>(null);
   const [tenantSlug,  setTenantSlug]  = useState('');
-  const [tenantInfo,  setTenantInfo]  = useState<TenantInfo>({ name: '', address: '', receiptFooter: 'Thank you for dining with us! 🌿', primaryColor: '#16a34a' });
+  const [tenantInfo,  setTenantInfo]  = useState<TenantInfo>({ name: '', address: '', receiptFooter: 'Thank you for dining with us! 🌿', primaryColor: '#16a34a', logoUrl: '' });
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const [soundEnabled,setSoundEnabled]= useState(true);
   const [orModal,     setOrModal]     = useState<ORData | null>(null);
@@ -136,11 +136,12 @@ export default function AdminOrdersBoard({ branchId }: Props) {
     if (slug) {
       fetch('/api/settings', { credentials: 'include' })
         .then(r => r.json())
-        .then((d: { data?: { name?: string; address?: string; primary_color?: string; settings?: { receiptFooter?: string } } }) => {
+        .then((d: { data?: { name?: string; address?: string; primary_color?: string; logo_url?: string; settings?: { receiptFooter?: string } } }) => {
           if (d?.data) setTenantInfo({
             name:          d.data.name          ?? '',
             address:       d.data.address       ?? '',
             primaryColor:  d.data.primary_color ?? '#16a34a',
+            logoUrl:       d.data.logo_url      ?? '',
             receiptFooter: d.data.settings?.receiptFooter ?? 'Thank you for dining with us! 🌿',
           });
         })
@@ -729,74 +730,140 @@ export default function AdminOrdersBoard({ branchId }: Props) {
             </div>
 
             {/* Printable receipt */}
-            <div id="order-receipt" style={{ padding:'20px 24px', fontFamily:'monospace', fontSize:13, color:'#111827', background:'#fff', maxHeight:'70vh', overflowY:'auto' }}>
-              <style>{`@media print { body * { visibility:hidden } #order-receipt, #order-receipt * { visibility:visible } #order-receipt { position:fixed; top:0; left:0; width:100%; padding:24px; } }`}</style>
+            <div id="order-receipt" style={{ background:'#fff', maxHeight:'72vh', overflowY:'auto' }}>
+              <style>{`
+                @media print {
+                  body * { visibility: hidden !important; }
+                  #order-receipt, #order-receipt * { visibility: visible !important; }
+                  #order-receipt {
+                    position: fixed; top: 0; left: 0;
+                    width: 100%; padding: 0; margin: 0;
+                    box-shadow: none !important;
+                  }
+                }
+                .rcpt-row { display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; }
+                .rcpt-line { border: none; border-top: 1px solid #e5e7eb; margin: 8px 0; }
+                .rcpt-dash { border: none; border-top: 1px dashed #d1d5db; margin: 10px 0; }
+              `}</style>
 
-              {/* Tenant header */}
-              <div style={{ textAlign:'center', marginBottom:14 }}>
-                <div style={{ fontWeight:900, fontSize:17, textTransform:'uppercase', letterSpacing:'0.06em' }}>{tenantInfo.name || 'YANI Garden Café'}</div>
-                {tenantInfo.address && <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>{tenantInfo.address}</div>}
-                <div style={{ marginTop:6, fontSize:12, color:'#9ca3af' }}>——— ORDER RECEIPT ———</div>
-              </div>
+              <div style={{ fontFamily:"'Segoe UI', system-ui, sans-serif", color:'#111', padding:'28px 32px', maxWidth:480, margin:'0 auto' }}>
 
-              {/* Order meta */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'3px 8px', fontSize:12, paddingBottom:10, marginBottom:10, borderBottom:'1px dashed #d1d5db' }}>
-                <div><span style={{ color:'#6b7280' }}>Order: </span><strong>#{receiptOrder.order_number}</strong></div>
-                <div><span style={{ color:'#6b7280' }}>Date: </span>{date}</div>
-                <div><span style={{ color:'#6b7280' }}>Customer: </span>{receiptOrder.customer_name}</div>
-                <div><span style={{ color:'#6b7280' }}>Pax: </span>{receiptOrder.pax}</div>
-                {receiptOrder.table_name && <div style={{ gridColumn:'1/-1' }}><span style={{ color:'#6b7280' }}>Table: </span>{receiptOrder.table_name}</div>}
-              </div>
+                {/* ── Header ── */}
+                <div style={{ textAlign:'center', marginBottom:24 }}>
+                  {tenantInfo.logoUrl && (
+                    <img src={tenantInfo.logoUrl} alt="" style={{ width:56, height:56, borderRadius:12, objectFit:'cover', marginBottom:10, display:'block', margin:'0 auto 12px' }}/>
+                  )}
+                  <div style={{ fontSize:20, fontWeight:800, letterSpacing:'0.02em', color:'#111', textTransform:'uppercase' }}>
+                    {tenantInfo.name || 'Restaurant'}
+                  </div>
+                  {tenantInfo.address && (
+                    <div style={{ fontSize:11, color:'#6b7280', marginTop:4, lineHeight:1.5 }}>{tenantInfo.address}</div>
+                  )}
+                  <div style={{ marginTop:14, display:'inline-block', background:'#f1f5f9', borderRadius:20, padding:'4px 16px', fontSize:11, fontWeight:700, letterSpacing:'0.08em', color:'#475569', textTransform:'uppercase' }}>
+                    Official Receipt
+                  </div>
+                </div>
 
-              {/* Line items */}
-              <table style={{ width:'100%', borderCollapse:'collapse', marginBottom:10, fontSize:12 }}>
-                <thead>
-                  <tr style={{ borderBottom:'1px solid #e5e7eb' }}>
-                    <th style={{ textAlign:'left', paddingBottom:4, color:'#6b7280', fontWeight:600 }}>Item</th>
-                    <th style={{ textAlign:'center', paddingBottom:4, color:'#6b7280', fontWeight:600, width:36 }}>Qty</th>
-                    <th style={{ textAlign:'right', paddingBottom:4, color:'#6b7280', fontWeight:600 }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
+                <hr className="rcpt-dash"/>
+
+                {/* ── Order Info ── */}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px 0', fontSize:12, marginBottom:16 }}>
+                  <div style={{ color:'#6b7280' }}>Order No.</div>
+                  <div style={{ textAlign:'right', fontWeight:700, color:'#111' }}>#{receiptOrder.order_number}</div>
+
+                  <div style={{ color:'#6b7280' }}>Date</div>
+                  <div style={{ textAlign:'right', fontWeight:500 }}>{date}</div>
+
+                  <div style={{ color:'#6b7280' }}>Customer</div>
+                  <div style={{ textAlign:'right', fontWeight:500 }}>{receiptOrder.customer_name}</div>
+
+                  {receiptOrder.pax > 1 && <>
+                    <div style={{ color:'#6b7280' }}>Guests</div>
+                    <div style={{ textAlign:'right', fontWeight:500 }}>{receiptOrder.pax} pax</div>
+                  </>}
+
+                  {receiptOrder.table_name && <>
+                    <div style={{ color:'#6b7280' }}>Table</div>
+                    <div style={{ textAlign:'right', fontWeight:500 }}>{receiptOrder.table_name}</div>
+                  </>}
+                </div>
+
+                <hr className="rcpt-line"/>
+
+                {/* ── Items ── */}
+                <div style={{ marginBottom:4 }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 32px 90px', gap:4, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'0.06em', paddingBottom:6, borderBottom:'1px solid #f1f5f9' }}>
+                    <span>Item</span><span style={{ textAlign:'center' }}>Qty</span><span style={{ textAlign:'right' }}>Amount</span>
+                  </div>
                   {receiptOrder.items.map((item, i) => (
-                    <tr key={i}>
-                      <td style={{ padding:'3px 0' }}>{item.item_name}{item.size_label ? ` (${item.size_label})` : ''}</td>
-                      <td style={{ padding:'3px 0', textAlign:'center' }}>{item.qty}</td>
-                      <td style={{ padding:'3px 0', textAlign:'right' }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits:2 })}</td>
-                    </tr>
+                    <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 32px 90px', gap:4, padding:'7px 0', borderBottom:'1px solid #f9fafb', fontSize:13 }}>
+                      <div>
+                        <div style={{ fontWeight:500, color:'#111' }}>{item.item_name}{item.size_label ? <span style={{ color:'#9ca3af', fontSize:11 }}> ({item.size_label})</span> : ''}</div>
+                        {item.notes && <div style={{ fontSize:11, color:'#9ca3af', marginTop:1 }}>↳ {item.notes}</div>}
+                      </div>
+                      <div style={{ textAlign:'center', color:'#6b7280', fontWeight:600, alignSelf:'center' }}>{item.qty}</div>
+                      <div style={{ textAlign:'right', fontWeight:600, alignSelf:'center' }}>₱{Number(item.line_total).toLocaleString('en-PH', { minimumFractionDigits:2 })}</div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
 
-              {/* Totals */}
-              <div style={{ borderTop:'1px dashed #d1d5db', paddingTop:8, display:'flex', flexDirection:'column', gap:3, fontSize:13 }}>
-                <div style={{ display:'flex', justifyContent:'space-between' }}>
-                  <span style={{ color:'#6b7280' }}>Subtotal (ex. VAT)</span>
-                  <span>₱{net.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
+                <hr className="rcpt-dash"/>
+
+                {/* ── Totals ── */}
+                <div style={{ fontSize:13 }}>
+                  {vat > 0 && <>
+                    <div className="rcpt-row" style={{ color:'#6b7280' }}>
+                      <span>Subtotal (ex. VAT)</span>
+                      <span>₱{net.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
+                    </div>
+                    <div className="rcpt-row" style={{ color:'#6b7280' }}>
+                      <span>VAT (12%)</span>
+                      <span>₱{vat.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
+                    </div>
+                  </>}
+                  {(receiptOrder.discount_amount ?? 0) > 0 && (
+                    <div className="rcpt-row" style={{ color:'#dc2626' }}>
+                      <span>Discount ({receiptOrder.discount_type})</span>
+                      <span>−₱{(receiptOrder.discount_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
+                    </div>
+                  )}
                 </div>
-                <div style={{ display:'flex', justifyContent:'space-between' }}>
-                  <span style={{ color:'#6b7280' }}>VAT (12%)</span>
-                  <span>₱{vat.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
-                </div>
-                <div style={{ display:'flex', justifyContent:'space-between', fontWeight:800, fontSize:15, borderTop:'1px solid #e5e7eb', paddingTop:6, marginTop:3 }}>
-                  <span>TOTAL</span>
-                  <span>₱{receiptOrder.total_amount.toLocaleString('en-PH', { minimumFractionDigits:2 })}</span>
-                </div>
-                <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontSize:12 }}>
-                  <span style={{ color:'#6b7280' }}>Payment</span>
-                  <span style={{ color: receiptOrder.payment_status === 'VERIFIED' ? '#16a34a' : '#d97706', fontWeight:600 }}>
-                    {receiptOrder.payment_status === 'VERIFIED' ? '✓ Paid' : receiptOrder.payment_status === 'UNPAID' ? 'Unpaid / Cash' : receiptOrder.payment_status}
+
+                {/* Total box */}
+                <div style={{ background:'#f8fafc', borderRadius:10, padding:'12px 16px', margin:'10px 0', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:'#374151', textTransform:'uppercase', letterSpacing:'0.04em' }}>Total</span>
+                  <span style={{ fontSize:22, fontWeight:900, color:'#111' }}>
+                    ₱{receiptOrder.total_amount.toLocaleString('en-PH', { minimumFractionDigits:2 })}
                   </span>
                 </div>
-              </div>
 
-              {/* Notes */}
-              {receiptOrder.notes && <div style={{ marginTop:8, padding:'6px 10px', background:'#f9fafb', borderRadius:6, fontSize:12, color:'#4b5563' }}>📝 {receiptOrder.notes}</div>}
+                {/* Payment status */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12, padding:'6px 0' }}>
+                  <span style={{ color:'#9ca3af', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em' }}>Payment</span>
+                  <span style={{
+                    padding:'3px 10px', borderRadius:20, fontSize:11, fontWeight:700,
+                    background: receiptOrder.payment_status === 'VERIFIED' ? '#dcfce7' : '#fef3c7',
+                    color: receiptOrder.payment_status === 'VERIFIED' ? '#16a34a' : '#d97706',
+                  }}>
+                    {receiptOrder.payment_status === 'VERIFIED' ? '✓ PAID' : 'UNPAID / CASH'}
+                  </span>
+                </div>
 
-              {/* Footer */}
-              <div style={{ marginTop:14, textAlign:'center', fontSize:11, color:'#9ca3af', borderTop:'1px dashed #d1d5db', paddingTop:10 }}>
-                <div>{tenantInfo.receiptFooter}</div>
-                <div style={{ marginTop:2, color:'#d1d5db' }}>— Powered by TYG POS —</div>
+                {/* Notes */}
+                {receiptOrder.notes && (
+                  <div style={{ marginTop:10, padding:'8px 12px', background:'#fafafa', borderRadius:8, fontSize:12, color:'#6b7280', borderLeft:'3px solid #e5e7eb' }}>
+                    <strong>Note:</strong> {receiptOrder.notes}
+                  </div>
+                )}
+
+                <hr className="rcpt-dash"/>
+
+                {/* ── Footer ── */}
+                <div style={{ textAlign:'center', fontSize:11, color:'#9ca3af', lineHeight:1.7 }}>
+                  {tenantInfo.receiptFooter && <div style={{ color:'#6b7280', fontStyle:'italic', marginBottom:4 }}>{tenantInfo.receiptFooter}</div>}
+                  <div>Powered by <span style={{ color:'#16a34a', fontWeight:700 }}>TYG POS</span></div>
+                </div>
+
               </div>
             </div>
           </div>

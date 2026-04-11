@@ -7,7 +7,6 @@ import {
   Check, ChevronRight, ChevronLeft, Coffee, Loader2,
   AlertCircle, Eye, EyeOff, Lock
 } from 'lucide-react';
-import { createBrowserClient } from '@/lib/supabase/client';
 
 const STEPS = ['Your Cafe', 'Your Account', 'Set PIN', 'Location'];
 
@@ -60,7 +59,7 @@ function SignupForm() {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [done, setDone] = useState<{ slug: string; needsConfirmation?: boolean } | null>(null);
+  const [done, setDone] = useState<{ slug: string } | null>(null);
 
   const set = (key: keyof FormData, value: string) =>
     setForm(prev => {
@@ -80,99 +79,54 @@ function SignupForm() {
   const handleSubmit = async () => {
     setSubmitting(true);
     setError('');
-    const sb = createBrowserClient();
 
-    // Encode pending tenant data for the confirm callback
-    const pendingData = {
-      businessName: form.businessName,
-      slug: form.slug,
-      ownerPin: form.ownerPin,
-      phone: form.phone || undefined,
-      address: form.address,
-      timezone: form.timezone,
-    };
-    const pendingParam = encodeURIComponent(btoa(JSON.stringify(pendingData)));
-    const redirectTo = `${window.location.origin}/signup/confirm?pending=${pendingParam}`;
-
-    // Step 1: Create Supabase Auth account
-    const { data: authData, error: authErr } = await sb.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: { full_name: form.ownerName },
-        emailRedirectTo: redirectTo,
-      },
+    const r = await fetch('/api/signup-and-onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:        form.email,
+        password:     form.password,
+        businessName: form.businessName,
+        slug:         form.slug,
+        ownerPin:     form.ownerPin,
+        ownerName:    form.ownerName,
+        phone:        form.phone || undefined,
+        address:      form.address,
+        timezone:     form.timezone,
+      }),
     });
 
-    if (authErr) {
-      setError(authErr.message ?? 'Sign-up failed. Email may already be registered.');
-      setSubmitting(false);
-      return;
-    }
-
-    // If we got a session immediately (email confirmation disabled), create tenant now
-    if (authData.session) {
-      const token = authData.session.access_token;
-      const r = await fetch('/api/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(pendingData),
-      });
-      const json = await r.json() as { data?: { slug: string }; error?: string };
-      setSubmitting(false);
-      if (json.error) {
-        if (json.error.includes('already taken')) setStep(0);
-        setError(json.error);
-        return;
-      }
-      setDone({ slug: json.data?.slug ?? form.slug });
-      return;
-    }
-
-    // Email confirmation required — tenant will be created after email confirm
+    const json = await r.json() as { data?: { slug: string }; error?: string; code?: string };
     setSubmitting(false);
-    setDone({ slug: form.slug, needsConfirmation: true });
+
+    if (!r.ok || json.error) {
+      if (json.code === 'SLUG_TAKEN') setStep(0);
+      if (json.code === 'EMAIL_TAKEN') setStep(1);
+      setError(json.error ?? 'Sign-up failed. Please try again.');
+      return;
+    }
+
+    setDone({ slug: json.data?.slug ?? form.slug });
   };
 
   if (done) {
     return (
       <div style={{ textAlign:"center", display:"flex", flexDirection:"column", gap:24 }}>
         <div style={{ position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:8 }}>
-          <div style={{ position:"absolute", width:112, height:112, borderRadius:"50%", opacity:0.1, background: done.needsConfirmation ? '#6366f1' : '#22c55e' }} />
-          <div style={{ width:80, height:80, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", background: done.needsConfirmation ? 'rgba(99,102,241,0.15)' : 'rgba(34,197,94,0.15)', border: done.needsConfirmation ? '2px solid rgba(99,102,241,0.4)' : '2px solid rgba(34,197,94,0.4)' }}>
-            <Check size={36} style={{ color: done.needsConfirmation ? '#6366f1' : '#22c55e' }} />
+          <div style={{ position:"absolute", width:112, height:112, borderRadius:"50%", opacity:0.1, background: '#22c55e' }} />
+          <div style={{ width:80, height:80, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", background: 'rgba(34,197,94,0.15)', border: '2px solid rgba(34,197,94,0.4)' }}>
+            <Check size={36} style={{ color: '#22c55e' }} />
           </div>
         </div>
         <div>
           <h1 style={{ color: 'white', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>
-            {done.needsConfirmation ? 'Check your email! 📬' : "You're all set! 🎉"}
+            You&apos;re all set! 🎉
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.6 }}>
-            {done.needsConfirmation
-              ? `We sent a confirmation link to ${form.email}. Click it to activate, then log in.`
-              : 'Your 14-day free trial has started. Welcome to TYG POS!'}
+            Your 14-day free trial has started. Welcome to TYG POS!
           </p>
         </div>
-        {done.needsConfirmation ? (
-          <div style={{ borderRadius:20, padding:20, textAlign:"left", display:"flex", flexDirection:"column", gap:12, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
-            <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 8 }}>After confirming your email:</p>
-            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-              <div style={{ width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2, fontSize:11, fontWeight:700, background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>1</div>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Click the confirmation link in your inbox</span>
-            </div>
-            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-              <div style={{ width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2, fontSize:11, fontWeight:700, background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>2</div>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Return here and log in at the PIN screen</span>
-            </div>
-            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-              <div style={{ width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2, fontSize:11, fontWeight:700, background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>3</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
-                Login at: <strong style={{ color: '#22c55e' }}>tyg-services.com/login/{form.slug}</strong><br/>
-                Display name: <strong style={{ color: 'white' }}>Owner</strong> · PIN: <strong style={{ color: 'white' }}>{form.ownerPin}</strong>
-              </div>
-            </div>
-          </div>
-        ) : (
+        {true && (
           <div style={{ borderRadius:16, padding:18, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display:'flex', flexDirection:'column', gap:10 }}>
             <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 4 }}>Your login details:</p>
             <div style={{ background:'rgba(34,197,94,0.08)', border:'1px solid rgba(34,197,94,0.2)', borderRadius:12, padding:'12px 16px', fontSize:13, color:'rgba(255,255,255,0.8)' }}>

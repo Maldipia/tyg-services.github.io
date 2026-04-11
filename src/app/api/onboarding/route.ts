@@ -209,7 +209,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     branchId,
     trialEndsAt,
     orderUrl: `/order/${slug}`,
-    loginUrl: `/login`,
+    loginUrl: `/login/${slug}`,
     dashboardUrl: `/admin/dashboard`,
     seeded: {
       staff: staffCount,

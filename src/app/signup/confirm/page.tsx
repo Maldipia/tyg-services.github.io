@@ -63,9 +63,10 @@ function ConfirmContent() {
         setError(json.error); setState('error'); return;
       }
 
-      setSlug(json.data?.slug ?? pending.slug ?? '');
+      const tenantSlug = json.data?.slug ?? pending.slug ?? '';
+      setSlug(tenantSlug);
       setState('done');
-      setTimeout(() => router.push('/login'), 3000);
+      setTimeout(() => router.push(`/login/${tenantSlug}`), 3000);
     };
     void run();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,9 +117,9 @@ function ConfirmContent() {
         Your café <strong style={{ color:'white' }}>{slug}</strong> is ready.<br />
         Redirecting to login in 3 seconds...
       </p>
-      <button onClick={() => router.push('/login')}
+      <button onClick={() => router.push(`/login/${slug}`)}
         style={{ width:'100%', padding:'12px 0', borderRadius:12, fontSize:13, fontWeight:700, cursor:'pointer', border:'none', background:'linear-gradient(135deg,#22c55e,#16a34a)', color:'white' }}>
-        Go to Login Now
+        Go to Login →
       </button>
     </div>
   );

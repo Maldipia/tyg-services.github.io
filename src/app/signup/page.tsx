@@ -166,30 +166,36 @@ function SignupForm() {
             </div>
             <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
               <div style={{ width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2, fontSize:11, fontWeight:700, background: 'rgba(99,102,241,0.2)', color: '#6366f1' }}>3</div>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
-                Display name: <strong style={{ color: 'white' }}>Owner</strong> &mdash; PIN: <strong style={{ color: 'white' }}>{form.ownerPin}</strong>
-              </span>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
+                Login at: <strong style={{ color: '#22c55e' }}>tyg-services.com/login/{form.slug}</strong><br/>
+                Display name: <strong style={{ color: 'white' }}>Owner</strong> · PIN: <strong style={{ color: 'white' }}>{form.ownerPin}</strong>
+              </div>
             </div>
           </div>
         ) : (
-          <div style={{ borderRadius:20, padding:20, textAlign:"left", display:"flex", flexDirection:"column", gap:10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 10 }}>Your quick links:</p>
+          <div style={{ borderRadius:16, padding:18, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display:'flex', flexDirection:'column', gap:10 }}>
+            <p style={{ fontWeight: 700, color: 'white', fontSize: 13, marginBottom: 4 }}>Your login details:</p>
+            <div style={{ background:'rgba(34,197,94,0.08)', border:'1px solid rgba(34,197,94,0.2)', borderRadius:12, padding:'12px 16px', fontSize:13, color:'rgba(255,255,255,0.8)' }}>
+              🔗 Login URL: <strong style={{ color:'#22c55e' }}>tyg-services.com/login/{done.slug}</strong>
+            </div>
+            <div style={{ background:'rgba(99,102,241,0.08)', border:'1px solid rgba(99,102,241,0.15)', borderRadius:12, padding:'12px 16px', fontSize:13, color:'rgba(255,255,255,0.8)' }}>
+              👤 Display name: <strong style={{ color:'white' }}>Owner</strong> · PIN: <strong style={{ color:'white' }}>{form.ownerPin}</strong>
+            </div>
             {[
-              { label: '📋 Customer Order Page', href: `/order?tenant=${done.slug}` },
-              { label: '👨‍💼 Admin Dashboard',  href: `/admin/dashboard` },
-              { label: '🍳 Kitchen Display',      href: `/kitchen?tenant=${done.slug}` },
+              { label: '📋 Customer Menu', href: `/order/${done.slug}` },
+              { label: '🖥️ Admin Dashboard', href: `/admin/dashboard` },
             ].map(l => (
               <a key={l.label} href={l.href} target="_blank" rel="noreferrer"
-                style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", borderRadius:12, textDecoration:"none", background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)' }}>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{l.label}</span>
-                <ChevronRight size={14} style={{ color: '#22c55e' }} />
+                style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", borderRadius:10, textDecoration:"none", background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{l.label}</span>
+                <ChevronRight size={13} style={{ color: '#6b7280' }} />
               </a>
             ))}
           </div>
         )}
-        <button onClick={() => router.push('/login')}
+        <button onClick={() => router.push(`/login/${done.slug}`)}
           style={{ width:"100%", padding:"12px 0", borderRadius:12, fontSize:13, fontWeight:700, cursor:"pointer", border:"none", background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: 'white' }}>
-          Go to Login
+          Go to Login →
         </button>
       </div>
     );
@@ -237,7 +243,7 @@ function SignupForm() {
           <div>
             <label style={labelStyle}>URL Slug *</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, whiteSpace: 'nowrap' }}>order?tenant=</span>
+              <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, whiteSpace: 'nowrap' }}>tyg-services.com/order/</span>
               <input style={{ ...inputStyle, flex: 1 }} value={form.slug}
                 onChange={e => set('slug', slugify(e.target.value))} placeholder="yani-garden" />
             </div>

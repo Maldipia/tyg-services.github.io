@@ -48,6 +48,8 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
   const [phone, setPhone]         = useState('');
   const [address, setAddress]     = useState('');
   const [zone, setZone]           = useState('');
+  const [courierType, setCourierType] = useState<'own'|'self'>('self'); // 'own' = tenant rider, 'self' = customer books own
+  const [ownRider, setOwnRider] = useState<{enabled:boolean;name:string|null;phone:string|null;fee:number}|null>(null);
   const [zones, setZones]         = useState<Zone[]>([]);
   const [tableName, setTableName] = useState('');
   const [notes, setNotes]         = useState('');
@@ -81,9 +83,15 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
       fetch(`/api/delivery-zones?tenant=${encodeURIComponent(tenantSlug)}`)
         .then(r => r.json()).then((d: { data: Zone[] }) => setZones(d.data ?? [])),
       fetch(`/api/menu?tenant=${encodeURIComponent(tenantSlug)}`)
-        .then(r => r.json()).then((d: { data?: { tenant?: { payment?: TenantSettings } } }) => {
+        .then(r => r.json()).then((d: { data?: { tenant?: { payment?: TenantSettings; delivery?: Record<string,unknown> } } }) => {
           if (d.data?.tenant?.payment) setSettings(d.data.tenant.payment);
           const td = d.data?.tenant as Record<string,unknown>|undefined; if (td?.paymentQrUrl) setPaymentQrUrl(String(td.paymentQrUrl));
+          if (d.data?.tenant?.delivery) {
+            const del = d.data.tenant.delivery;
+            const enabled = Boolean(del['ownRiderEnabled']);
+            setOwnRider({ enabled, name: del['ownRiderName'] as string|null ?? null, phone: del['ownRiderPhone'] as string|null ?? null, fee: Number(del['ownRiderFee'] ?? 0) });
+            if (enabled) setCourierType('own');
+          }
         }),
     ]);
   }, [tenantSlug, router]);
@@ -104,7 +112,8 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
 
   const selectedZone = zones.find(z => z.name === zone);
   const subtotal     = cartTotal(cart);
-  const deliveryFee  = orderType === 'DELIVERY' && selectedZone ? selectedZone.fee : 0;
+  const ownRiderDeliveryFee = orderType === 'DELIVERY' && courierType === 'own' && ownRider?.enabled ? (ownRider.fee ?? 0) : 0;
+  const deliveryFee  = orderType === 'DELIVERY' ? (courierType === 'own' ? ownRiderDeliveryFee : (selectedZone ? selectedZone.fee : 0)) : 0;
   const grandTotal   = subtotal + deliveryFee;
 
   // Map MOP → payment_method string the API/DB stores
@@ -124,7 +133,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
       if (!phone.trim()) return 'Mobile number is required for delivery';
       if (!/^(09|\+639)\d{9}$/.test(phone.replace(/\s/g, ''))) return 'Invalid Philippine mobile number (e.g. 09xxxxxxxxx)';
       if (!address.trim()) return 'Delivery address required';
-      if (!zone) return 'Please select a delivery zone';
+      if (courierType === 'self' && !zone) return 'Please select a delivery zone';
       if (selectedZone && subtotal < selectedZone.min_order) return `Minimum order ₱${selectedZone.min_order} for this zone`;
     }
     if (mop === 'QR_BANK' && !proofUploaded) return 'Please upload your payment screenshot before placing the order.';
@@ -159,6 +168,7 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           pax: 1,
           tableName: orderType === 'DINE_IN' ? (tableName || tableFromQR || null) : null,
           deliveryAddress: orderType === 'DELIVERY' ? address.trim() : null,
+          courierType: orderType === 'DELIVERY' ? courierType : null,
           deliveryZone: orderType === 'DELIVERY' ? zone : null,
           notes: notes.trim() || null,
           promoCode: promoData?.code ?? null,
@@ -277,20 +287,87 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
           <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14 }}>
             <p style={{ ...labelStyle, marginBottom: 14 }}>Delivery Details</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+              {/* Courier choice — only show when tenant has own rider */}
+              {ownRider?.enabled && (
+                <div>
+                  <label style={labelStyle}>Who will deliver? *</label>
+                  <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:4 }}>
+                    {/* Own rider option */}
+                    <button onClick={() => setCourierType('own')} style={{
+                      display:'flex', alignItems:'center', gap:12, padding:'12px 14px',
+                      borderRadius:10, border:'none', cursor:'pointer', textAlign:'left',
+                      background: courierType==='own' ? 'rgba(22,163,74,0.1)' : 'rgba(255,255,255,0.04)',
+                      outline: courierType==='own' ? `2px solid ${GREEN}` : `1px solid ${BORDER}`,
+                    }}>
+                      <div style={{ width:18, height:18, borderRadius:'50%', flexShrink:0,
+                        border: courierType==='own' ? `5px solid ${GREEN}` : `2px solid ${MUTED}` }}/>
+                      <div style={{ flex:1 }}>
+                        <div style={{ color: courierType==='own' ? TEXT : '#9ca3af', fontWeight:700, fontSize:13 }}>
+                          🛵 {ownRider.name ?? 'Restaurant Rider'}
+                        </div>
+                        <div style={{ color:MUTED, fontSize:11, marginTop:1 }}>
+                          {ownRider.fee > 0 ? `₱${ownRider.fee.toFixed(2)} delivery fee` : 'Free delivery'}
+                          {ownRider.phone ? ` · ${ownRider.phone}` : ''}
+                        </div>
+                      </div>
+                      {courierType==='own' && <span style={{ color:GREEN, fontSize:16 }}>✓</span>}
+                    </button>
+
+                    {/* Self courier option */}
+                    <button onClick={() => setCourierType('self')} style={{
+                      display:'flex', alignItems:'center', gap:12, padding:'12px 14px',
+                      borderRadius:10, border:'none', cursor:'pointer', textAlign:'left',
+                      background: courierType==='self' ? 'rgba(22,163,74,0.1)' : 'rgba(255,255,255,0.04)',
+                      outline: courierType==='self' ? `2px solid ${GREEN}` : `1px solid ${BORDER}`,
+                    }}>
+                      <div style={{ width:18, height:18, borderRadius:'50%', flexShrink:0,
+                        border: courierType==='self' ? `5px solid ${GREEN}` : `2px solid ${MUTED}` }}/>
+                      <div style={{ flex:1 }}>
+                        <div style={{ color: courierType==='self' ? TEXT : '#9ca3af', fontWeight:700, fontSize:13 }}>
+                          📦 I&apos;ll book my own courier
+                        </div>
+                        <div style={{ color:MUTED, fontSize:11, marginTop:1 }}>Grab Express, Lalamove, Transportify, etc.</div>
+                      </div>
+                      {courierType==='self' && <span style={{ color:GREEN, fontSize:16 }}>✓</span>}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Own rider selected — show contact info */}
+              {courierType === 'own' && ownRider?.enabled && (
+                <div style={{ background:'rgba(22,163,74,0.06)', border:'1px solid rgba(22,163,74,0.2)', borderRadius:8, padding:'10px 12px', fontSize:12, color:MUTED }}>
+                  🛵 <strong style={{ color:TEXT }}>{ownRider.name}</strong> will pick up your order.
+                  {ownRider.phone && <> Call <strong style={{ color:TEXT }}>{ownRider.phone}</strong> for updates.</>}
+                </div>
+              )}
+
+              {/* Self-booking — hint */}
+              {(!ownRider?.enabled || courierType === 'self') && (
+                <div style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:8, padding:'10px 12px', fontSize:12, color:MUTED }}>
+                  📦 Please book your courier (Grab Express, Lalamove, etc.) after placing your order.
+                </div>
+              )}
+
               <div>
                 <label style={labelStyle}>Delivery Address *</label>
                 <textarea style={{ ...inputStyle, minHeight: 80, resize: 'vertical' as const }} value={address} onChange={e => setAddress(e.target.value)} placeholder="House/Unit #, Street, Barangay, City"/>
               </div>
-              <div>
-                <label style={labelStyle}>Delivery Zone *</label>
-                <select style={{ ...inputStyle, appearance: 'none' }} value={zone} onChange={e => setZone(e.target.value)}>
-                  <option value="">Select zone…</option>
-                  {zones.map(z => <option key={z.id} value={z.name}>{z.name} — ₱{z.fee} fee (min ₱{z.min_order})</option>)}
-                </select>
-              </div>
-              {selectedZone && subtotal < selectedZone.min_order && (
-                <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '8px 12px', color: '#ef4444', fontSize: 13 }}>
-                  ⚠️ Min order ₱{selectedZone.min_order} for this zone (₱{(selectedZone.min_order - subtotal).toFixed(2)} more needed)
+
+              {/* Zone selector only for self-courier */}
+              {(!ownRider?.enabled || courierType === 'self') && (
+                <div>
+                  <label style={labelStyle}>Delivery Zone *</label>
+                  <select style={{ ...inputStyle, appearance: 'none' }} value={zone} onChange={e => setZone(e.target.value)}>
+                    <option value="">Select zone…</option>
+                    {zones.map(z => <option key={z.id} value={z.name}>{z.name} — ₱{z.fee} fee (min ₱{z.min_order})</option>)}
+                  </select>
+                  {selectedZone && subtotal < selectedZone.min_order && (
+                    <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '8px 12px', color: '#ef4444', fontSize: 13, marginTop:6 }}>
+                      ⚠️ Min order ₱{selectedZone.min_order} for this zone (₱{(selectedZone.min_order - subtotal).toFixed(2)} more needed)
+                    </div>
+                  )}
                 </div>
               )}
             </div>

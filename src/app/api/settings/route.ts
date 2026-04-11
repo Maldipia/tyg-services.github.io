@@ -22,6 +22,10 @@ const UpdateSettingsSchema = z.object({
     pwdSeniorDiscountEnabled: z.boolean().optional(),
     receiptFooter: z.string().max(300).optional(),
     smsEnabled: z.boolean().optional(),
+    ownRiderEnabled: z.boolean().optional(),
+    ownRiderName: z.string().max(60).optional(),
+    ownRiderPhone: z.string().max(20).optional(),
+    ownRiderFee: z.number().min(0).max(9999).optional(),
   }).optional(),
 }).strict();
 

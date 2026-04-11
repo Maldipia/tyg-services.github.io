@@ -81,6 +81,10 @@ function SettingsPageInner() {
   const [serviceChargeRate, setServiceChargeRate] = useState('0');
   const [serviceChargeEnabled, setServiceChargeEnabled] = useState(false);
   const [avgPrepMins, setAvgPrepMins] = useState('8');
+  const [ownRiderEnabled, setOwnRiderEnabled] = useState(false);
+  const [ownRiderName, setOwnRiderName] = useState('');
+  const [ownRiderPhone, setOwnRiderPhone] = useState('');
+  const [ownRiderFee, setOwnRiderFee] = useState('0');
   const [logoUrl, setLogoUrl] = useState('');
   const [paymentQrUrl, setPaymentQrUrl] = useState<string|null>(null);
   const [qrUploading, setQrUploading] = useState(false);
@@ -132,6 +136,10 @@ function SettingsPageInner() {
         if (typeof s['avgPrepMins'] === 'number') setAvgPrepMins(String(s['avgPrepMins']));
         if (typeof s['pwdSeniorDiscountEnabled'] === 'boolean') setPwdDiscount(s['pwdSeniorDiscountEnabled']);
         if (typeof s['smsEnabled'] === 'boolean') setSmsEnabled(s['smsEnabled']);
+        if (typeof s['ownRiderEnabled'] === 'boolean') setOwnRiderEnabled(s['ownRiderEnabled']);
+        if (s['ownRiderName']) setOwnRiderName(String(s['ownRiderName']));
+        if (s['ownRiderPhone']) setOwnRiderPhone(String(s['ownRiderPhone']));
+        if (s['ownRiderFee'] !== undefined) setOwnRiderFee(String(s['ownRiderFee']));
         if (typeof s['receiptFooter'] === 'string') setReceiptFooter(s['receiptFooter']);
       })
       .catch(() => {})
@@ -157,6 +165,8 @@ function SettingsPageInner() {
             serviceChargeRate: serviceChargeEnabled ? (parseFloat(serviceChargeRate) || 0) / 100 : 0,
             avgPrepMins: parseInt(avgPrepMins) || 8,
             pwdSeniorDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
+            ownRiderEnabled, ownRiderName, ownRiderPhone,
+            ownRiderFee: parseFloat(ownRiderFee) || 0,
           },
         }),
       });
@@ -547,6 +557,39 @@ function SettingsPageInner() {
               />
               <span style={{ color:'var(--text-muted)', fontSize:13 }}>Used to estimate wait time on order tracking page</span>
             </div>
+          </div>
+
+          {/* Delivery Rider */}
+          <div style={sectionStyle}>
+            <h3 style={{ fontWeight:700, fontSize:15, marginBottom:4 }}>🛵 Delivery Rider</h3>
+            <p style={{ color:'var(--text-muted)', fontSize:13, marginBottom:20 }}>
+              If you have your own rider, customers can choose between your rider or booking their own (Grab, Lalamove, etc.)
+            </p>
+            <ToggleRow
+              label="We have our own delivery rider"
+              desc={ownRiderEnabled ? 'Customers can choose your rider or book their own' : 'Customers must book their own courier (Grab, Lalamove, etc.)'}
+              value={ownRiderEnabled}
+              onChange={setOwnRiderEnabled}
+            />
+            {ownRiderEnabled && (
+              <div style={{ marginTop:16, display:'flex', flexDirection:'column', gap:12 }}>
+                <div>
+                  <label style={labelStyle}>Rider Name or Business Name</label>
+                  <input style={inputStyle} value={ownRiderName} onChange={e => setOwnRiderName(e.target.value)} placeholder="e.g. Kuya Ding Delivery"/>
+                </div>
+                <div>
+                  <label style={labelStyle}>Rider Contact Number</label>
+                  <input style={inputStyle} type="tel" value={ownRiderPhone} onChange={e => setOwnRiderPhone(e.target.value)} placeholder="09xxxxxxxxx"/>
+                </div>
+                <div>
+                  <label style={labelStyle}>Delivery Fee (₱)</label>
+                  <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                    <input style={{ ...inputStyle, maxWidth:120 }} type="number" min="0" max="9999" value={ownRiderFee} onChange={e => setOwnRiderFee(e.target.value)} placeholder="0"/>
+                    <span style={{ color:'var(--text-muted)', fontSize:13 }}>Set to 0 for free delivery</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Notifications */}

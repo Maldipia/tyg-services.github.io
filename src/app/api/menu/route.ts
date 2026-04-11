@@ -128,6 +128,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       gcashNumber?: string; gcashName?: string; mayaNumber?: string; mayaName?: string;
       bdoAccount?: string; bpiAccount?: string; unionbankAccount?: string;
       paymentNote?: string;
+      ownRiderEnabled?: boolean; ownRiderName?: string; ownRiderPhone?: string; ownRiderFee?: number;
     } | null;
 
     return apiSuccess({
@@ -155,6 +156,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           bpiAccount:       settings?.bpiAccount      ?? null,
           unionbankAccount: settings?.unionbankAccount ?? null,
           paymentNote:      settings?.paymentNote     ?? null,
+        },
+        delivery: {
+          ownRiderEnabled: settings?.ownRiderEnabled ?? false,
+          ownRiderName:    settings?.ownRiderName    ?? null,
+          ownRiderPhone:   settings?.ownRiderPhone   ?? null,
+          ownRiderFee:     settings?.ownRiderFee     ?? 0,
         },
       },
       categories: categoriesWithItems,

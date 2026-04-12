@@ -294,7 +294,7 @@ export default function AdminOrdersBoard({ branchId }: Props) {
     hdr:     { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
     title:   { fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 },
     refresh: { fontSize: 13, color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 },
-    tabs:    { display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' as const },
+    tabs:    { display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center' },
     card:    { background: 'var(--surface)', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--border)', marginBottom: 12 },
     cardHdr: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
     orderNo: { fontWeight: 700, fontSize: 16, color: 'var(--text)', marginRight: 10 },
@@ -351,23 +351,21 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         </button>
       </div>
 
-      {/* Filter tabs */}
+      {/* Filter dropdown */}
       <div style={s.tabs}>
-        {TABS.map(tab => {
-          const active = filter === tab;
-          const n = counts[tab] ?? 0;
-          return (
-            <button key={tab} onClick={() => setFilter(tab)} style={{
-              padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-              cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-              background: active ? 'var(--brand)' : 'var(--surface-2)',
-              color: active ? '#fff' : 'var(--text-muted)',
-            }}>
-              {tab === 'ALL' ? 'All' : STATUS_LABEL[tab as OrderStatus].split(' ')[1]}
-              {n > 0 && <span style={{ marginLeft: 6, background: active ? 'rgba(255,255,255,0.25)' : 'var(--border)', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>{n}</span>}
-            </button>
-          );
-        })}
+        <select value={filter} onChange={e => setFilter(e.target.value as typeof filter)}
+          style={{ padding:'7px 32px 7px 12px', borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', color:'var(--text)', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit', outline:'none', appearance:'none' as const,
+            backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+            backgroundRepeat:'no-repeat', backgroundPosition:'right 10px center' }}>
+          {TABS.map(tab => {
+            const n = counts[tab] ?? 0;
+            const label = tab === 'ALL' ? 'All' : STATUS_LABEL[tab as OrderStatus].split(' ').slice(1).join(' ');
+            return <option key={tab} value={tab}>{label}{n > 0 ? ` (${n})` : ''}</option>;
+          })}
+        </select>
+        <span style={{ fontSize:13, color:'var(--text-muted)' }}>
+          {counts['ALL'] ?? 0} total orders
+        </span>
       </div>
 
       {/* Orders */}
@@ -613,8 +611,8 @@ export default function AdminOrdersBoard({ branchId }: Props) {
                 style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid rgba(59,130,246,0.3)', background:'rgba(59,130,246,0.05)', color:'#2563eb', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 📧 Email Receipt
               </button>
-              {/* Delete (soft-cancel completed/cancelled orders) */}
-              {['COMPLETED','CANCELLED'].includes(order.status) && (
+              {/* Delete — only for test orders or test cancel reason */}
+              {['COMPLETED','CANCELLED'].includes(order.status) && (order.is_test || String((order as unknown as Record<string,unknown>)['cancel_reason'] ?? '').includes('Test order') || String((order as unknown as Record<string,unknown>)['cancel_reason'] ?? '').includes('migration cleanup')) && (
                 <button onClick={async () => {
                   if (!confirm(`Delete order #${order.order_number}? This marks it as a test order.`)) return;
                   await fetch(`/api/orders/${order.id}/status`, {

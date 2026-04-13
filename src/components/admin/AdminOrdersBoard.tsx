@@ -351,21 +351,23 @@ export default function AdminOrdersBoard({ branchId }: Props) {
         </button>
       </div>
 
-      {/* Filter dropdown */}
-      <div style={s.tabs}>
-        <select value={filter} onChange={e => setFilter(e.target.value as typeof filter)}
-          style={{ padding:'7px 32px 7px 12px', borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', color:'var(--text)', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit', outline:'none', appearance:'none' as const,
-            backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-            backgroundRepeat:'no-repeat', backgroundPosition:'right 10px center' }}>
-          {TABS.map(tab => {
-            const n = counts[tab] ?? 0;
-            const label = tab === 'ALL' ? 'All' : STATUS_LABEL[tab as OrderStatus].split(' ').slice(1).join(' ');
-            return <option key={tab} value={tab}>{label}{n > 0 ? ` (${n})` : ''}</option>;
-          })}
-        </select>
-        <span style={{ fontSize:13, color:'var(--text-muted)' }}>
-          {counts['ALL'] ?? 0} total orders
-        </span>
+      {/* Filter tabs */}
+      <div style={{ ...s.tabs, overflowX:'auto' as const, paddingBottom:4 }}>
+        {TABS.map(tab => {
+          const active = filter === tab;
+          const n = counts[tab] ?? 0;
+          return (
+            <button key={tab} onClick={() => setFilter(tab)} style={{
+              padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', border: 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' as const,
+              background: active ? 'var(--brand)' : 'var(--surface-2)',
+              color: active ? '#fff' : 'var(--text-muted)', flexShrink: 0,
+            }}>
+              {tab === 'ALL' ? 'All' : STATUS_LABEL[tab as OrderStatus].split(' ').slice(1).join(' ')}
+              {n > 0 && <span style={{ marginLeft: 6, background: active ? 'rgba(255,255,255,0.25)' : 'var(--border)', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>{n}</span>}
+            </button>
+          );
+        })}
       </div>
 
       {/* Orders */}

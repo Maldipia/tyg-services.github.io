@@ -403,27 +403,31 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
             {mop === 'QR_BANK' && (
               <div style={{ background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.15)', borderRadius: 10, padding: '12px 14px', fontSize: 13 }}>
                 <div style={{ color: GREEN, fontWeight: 700, marginBottom: 6 }}>📲 Payment instructions</div>
-                {settings.gcashName && (
-                  <div style={{ color: TEXT, marginBottom: 3 }}>
-                    <span style={{ color: MUTED }}>GCash / Maya: </span>
-                    <strong>{settings.gcashName}</strong> · {settings.gcashNumber ?? settings.mayaNumber}
-                  </div>
-                )}
-                {settings.bdoAccount && (
-                  <div style={{ color: TEXT, marginBottom: 3 }}>
-                    <span style={{ color: MUTED }}>BDO: </span>{settings.bdoAccount}
-                  </div>
-                )}
-                {settings.bpiAccount && (
-                  <div style={{ color: TEXT, marginBottom: 3 }}>
-                    <span style={{ color: MUTED }}>BPI: </span>{settings.bpiAccount}
-                  </div>
-                )}
-                {settings.unionbankAccount && (
-                  <div style={{ color: TEXT, marginBottom: 3 }}>
-                    <span style={{ color: MUTED }}>UnionBank: </span>{settings.unionbankAccount}
-                  </div>
-                )}
+                {/* Account numbers — tap to copy */}
+                {[
+                  settings.gcashNumber   && { label: '📱 GCash',     num: settings.gcashNumber,     name: settings.gcashName },
+                  settings.mayaNumber    && { label: '💚 Maya',      num: settings.mayaNumber,      name: settings.mayaName },
+                  settings.bdoAccount    && { label: '🏦 BDO',       num: settings.bdoAccount,      name: null },
+                  settings.bpiAccount    && { label: '🏦 BPI',       num: settings.bpiAccount,      name: null },
+                  settings.unionbankAccount && { label: '🏦 UnionBank', num: settings.unionbankAccount, name: null },
+                ].filter(Boolean).map((acct) => {
+                  const a = acct as { label: string; num: string; name?: string | null };
+                  return (
+                    <div key={a.label} style={{ marginBottom: 8 }}>
+                      <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, marginBottom: 4 }}>{a.label}{a.name ? ` · ${a.name}` : ''}</div>
+                      <button
+                        onClick={async () => {
+                          try { await navigator.clipboard.writeText(a.num); } catch {/**/}
+                          const el = document.getElementById(`copied-${a.label}`);
+                          if (el) { el.textContent = '✓ Copied!'; setTimeout(() => { if (el) el.textContent = 'Tap to copy'; }, 2000); }
+                        }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(34,197,94,0.25)', background: 'rgba(34,197,94,0.05)', cursor: 'pointer' }}>
+                        <span style={{ color: 'white', fontWeight: 700, fontSize: 16, letterSpacing: '0.05em', fontFamily: 'monospace' }}>{a.num}</span>
+                        <span id={`copied-${a.label}`} style={{ color: GREEN, fontSize: 11, fontWeight: 700 }}>Tap to copy</span>
+                      </button>
+                    </div>
+                  );
+                })}
                 {settings.paymentNote && (
                   <div style={{ color: MUTED, fontSize: 12, marginTop: 6, fontStyle: 'italic' }}>{settings.paymentNote}</div>
                 )}

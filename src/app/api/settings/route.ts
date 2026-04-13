@@ -13,12 +13,16 @@ const UpdateSettingsSchema = z.object({
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   birTin: z.string().max(20).nullable().optional(),
   birAtpSeries: z.string().max(30).nullable().optional(),
+  logo_url: z.string().max(500).nullable().optional(),
   settings: z.object({
     orderingEnabled: z.boolean().optional(),
     requireCustomerName: z.boolean().optional(),
     requireCustomerPhone: z.boolean().optional(),
     vatEnabled: z.boolean().optional(),
     vatRate: z.number().min(0).max(30).optional(),
+    serviceChargeEnabled: z.boolean().optional(),
+    serviceChargeRate: z.number().min(0).max(1).optional(),
+    avgPrepMins: z.number().min(1).max(120).optional(),
     pwdSeniorDiscountEnabled: z.boolean().optional(),
     receiptFooter: z.string().max(300).optional(),
     smsEnabled: z.boolean().optional(),
@@ -33,7 +37,7 @@ const UpdateSettingsSchema = z.object({
     bpiAccount: z.string().max(40).nullable().optional(),
     paymentNote: z.string().max(200).nullable().optional(),
   }).optional(),
-}).strict();
+});  // removed .strict() — was silently rejecting valid fields like logo_url
 
 export function OPTIONS() { return new Response(null,{status:204}); }
 

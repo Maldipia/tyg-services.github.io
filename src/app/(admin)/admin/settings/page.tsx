@@ -88,6 +88,12 @@ function SettingsPageInner() {
   const [logoUrl, setLogoUrl] = useState('');
   const [paymentQrUrl, setPaymentQrUrl] = useState<string|null>(null);
   const [qrUploading, setQrUploading] = useState(false);
+  const [gcashNumber, setGcashNumber] = useState('');
+  const [gcashName, setGcashName] = useState('');
+  const [mayaNumber, setMayaNumber] = useState('');
+  const [bdoAccount, setBdoAccount] = useState('');
+  const [bpiAccount, setBpiAccount] = useState('');
+  const [paymentNote, setPaymentNote] = useState('');
   const [logoUploading, setLogoUploading] = useState(false);
   const [pwdDiscount, setPwdDiscount] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
@@ -141,6 +147,12 @@ function SettingsPageInner() {
         if (s['ownRiderPhone']) setOwnRiderPhone(String(s['ownRiderPhone']));
         if (s['ownRiderFee'] !== undefined) setOwnRiderFee(String(s['ownRiderFee']));
         if (typeof s['receiptFooter'] === 'string') setReceiptFooter(s['receiptFooter']);
+        if (s['gcashNumber']) setGcashNumber(String(s['gcashNumber']));
+        if (s['gcashName']) setGcashName(String(s['gcashName']));
+        if (s['mayaNumber']) setMayaNumber(String(s['mayaNumber']));
+        if (s['bdoAccount']) setBdoAccount(String(s['bdoAccount']));
+        if (s['bpiAccount']) setBpiAccount(String(s['bpiAccount']));
+        if (s['paymentNote']) setPaymentNote(String(s['paymentNote']));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -167,6 +179,12 @@ function SettingsPageInner() {
             pwdSeniorDiscountEnabled: pwdDiscount, smsEnabled, receiptFooter,
             ownRiderEnabled, ownRiderName, ownRiderPhone,
             ownRiderFee: parseFloat(ownRiderFee) || 0,
+            gcashNumber: gcashNumber.trim() || null,
+            gcashName: gcashName.trim() || null,
+            mayaNumber: mayaNumber.trim() || null,
+            bdoAccount: bdoAccount.trim() || null,
+            bpiAccount: bpiAccount.trim() || null,
+            paymentNote: paymentNote.trim() || null,
           },
         }),
       });
@@ -341,6 +359,44 @@ function SettingsPageInner() {
                     ✅ QR code saved — customers can now scan this at checkout
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Account numbers */}
+          <div style={sectionStyle}>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Account Numbers</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}>
+              Customers will see these on checkout with a <strong>Tap to Copy</strong> button — so they can paste the number directly in GCash/Maya.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="settings-2col">
+                <div>
+                  <label style={labelStyle}>GCash Number</label>
+                  <input style={inputStyle} value={gcashNumber} onChange={e => setGcashNumber(e.target.value)} placeholder="09xxxxxxxxx" type="tel"/>
+                </div>
+                <div>
+                  <label style={labelStyle}>GCash Account Name</label>
+                  <input style={inputStyle} value={gcashName} onChange={e => setGcashName(e.target.value)} placeholder="Maria Santos"/>
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Maya Number</label>
+                <input style={inputStyle} value={mayaNumber} onChange={e => setMayaNumber(e.target.value)} placeholder="09xxxxxxxxx (if different from GCash)" type="tel"/>
+              </div>
+              <div className="settings-2col">
+                <div>
+                  <label style={labelStyle}>BDO Account</label>
+                  <input style={inputStyle} value={bdoAccount} onChange={e => setBdoAccount(e.target.value)} placeholder="Account number"/>
+                </div>
+                <div>
+                  <label style={labelStyle}>BPI Account</label>
+                  <input style={inputStyle} value={bpiAccount} onChange={e => setBpiAccount(e.target.value)} placeholder="Account number"/>
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Payment Note <span style={{ color:'var(--text-muted)', fontWeight:400, textTransform:'none', letterSpacing:0 }}>(optional)</span></label>
+                <input style={inputStyle} value={paymentNote} onChange={e => setPaymentNote(e.target.value)} placeholder="e.g. Use reference number as your order number"/>
               </div>
             </div>
           </div>

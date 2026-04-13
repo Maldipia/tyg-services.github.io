@@ -26,6 +26,12 @@ const UpdateSettingsSchema = z.object({
     ownRiderName: z.string().max(60).optional(),
     ownRiderPhone: z.string().max(20).optional(),
     ownRiderFee: z.number().min(0).max(9999).optional(),
+    gcashNumber: z.string().max(20).nullable().optional(),
+    gcashName: z.string().max(80).nullable().optional(),
+    mayaNumber: z.string().max(20).nullable().optional(),
+    bdoAccount: z.string().max(40).nullable().optional(),
+    bpiAccount: z.string().max(40).nullable().optional(),
+    paymentNote: z.string().max(200).nullable().optional(),
   }).optional(),
 }).strict();
 

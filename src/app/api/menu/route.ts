@@ -12,6 +12,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveTenant, apiSuccess, apiError } from '@/lib/auth/middleware';
 import { menuFetchRateLimit } from '@/lib/redis/ratelimit';
+import { createServiceClient } from '@/lib/supabase/client';
 
 function pgHeaders() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
@@ -103,6 +104,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // ── 4. Tenant branding ──────────────────────────────────
     const [tenantData] = await pgGet<RawTenant>(`tenants?id=eq.${tid}&select=name,logo_url,payment_qr_url,primary_color,accent_color,settings&limit=1`);
 
+    // Fetch active payment setting (overrides legacy payment_qr_url)
+    const db2 = createServiceClient();
+    const { data: paymentSetting } = await db2
+      .from('payment_settings')
+      .select('qr_image_url, label')
+      .eq('tenant_id', tid)
+      .eq('is_active', true)
+      .order('sort_order')
+      .limit(1)
+      .maybeSingle();
+
     // ── 5. Build response ───────────────────────────────────
     const sizeMap  = new Map<string, RawSize[]>();
     const addonMap = new Map<string, RawAddon[]>();
@@ -137,7 +149,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         logoUrl:       tenantData?.logo_url,
         primaryColor:  tenantData?.primary_color,
         accentColor:   tenantData?.accent_color,
-        paymentQrUrl:  tenantData?.payment_qr_url ?? null,
+        paymentQrUrl:  paymentSetting?.qr_image_url ?? tenantData?.payment_qr_url ?? null,
         receiptFooter: settings?.receiptFooter,
         payment: {
           acceptCash:       settings?.acceptCash      ?? true,

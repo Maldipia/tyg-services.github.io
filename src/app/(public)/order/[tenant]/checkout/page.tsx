@@ -393,44 +393,28 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
               </button>
             ))}
 
-            {/* QR bank info (shows when QR selected) */}
+            {/* Payment image — full width, no labels */}
             {mop === 'QR_BANK' && (
-              <div style={{ background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.15)', borderRadius: 10, padding: '12px 14px', fontSize: 13 }}>
-                <div style={{ color: GREEN, fontWeight: 700, marginBottom: 6 }}>📲 Payment instructions</div>
-                {/* Account numbers — tap to copy */}
-                {[
-                  settings.gcashNumber   && { label: '📱 GCash',     num: settings.gcashNumber,     name: settings.gcashName },
-                  settings.mayaNumber    && { label: '💚 Maya',      num: settings.mayaNumber,      name: settings.mayaName },
-                ].filter(Boolean).map((acct) => {
-                  const a = acct as { label: string; num: string; name?: string | null };
-                  return (
-                    <div key={a.label} style={{ marginBottom: 8 }}>
-                      <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, marginBottom: 4 }}>{a.label}{a.name ? ` · ${a.name}` : ''}</div>
-                      <button
-                        onClick={async () => {
-                          try { await navigator.clipboard.writeText(a.num); } catch {/**/}
-                          const el = document.getElementById(`copied-${a.label}`);
-                          if (el) { el.textContent = '✓ Copied!'; setTimeout(() => { if (el) el.textContent = 'Tap to copy'; }, 2000); }
-                        }}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(34,197,94,0.25)', background: 'rgba(34,197,94,0.05)', cursor: 'pointer' }}>
-                        <span style={{ color: 'white', fontWeight: 700, fontSize: 16, letterSpacing: '0.05em', fontFamily: 'monospace' }}>{a.num}</span>
-                        <span id={`copied-${a.label}`} style={{ color: GREEN, fontSize: 11, fontWeight: 700 }}>Tap to copy</span>
-                      </button>
-                    </div>
-                  );
-                })}
-                {settings.paymentNote && (
-                  <div style={{ color: MUTED, fontSize: 12, marginTop: 6, fontStyle: 'italic' }}>{settings.paymentNote}</div>
-                )}
-                {paymentQrUrl && (
-                  <div style={{ textAlign:'center', margin:'12px 0 8px' }}>
-                    <p style={{ color:GREEN, fontSize:12, fontWeight:700, marginBottom:8 }}>Scan to pay:</p>
-                    <img src={paymentQrUrl} alt="Payment QR Code"
-                      style={{ width:'100%', maxWidth:220, height:'auto', borderRadius:12, border:'3px solid rgba(22,163,74,0.3)', display:'block', margin:'0 auto' }}/>
+              <div style={{ fontSize: 13 }}>
+                {paymentQrUrl ? (
+                  <div style={{ marginBottom: 12 }}>
+                    <img src={paymentQrUrl} alt="Scan to pay"
+                      style={{ width: '100%', height: 'auto', borderRadius: 12, display: 'block' }}/>
+                  </div>
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center', color: MUTED, fontSize: 13, background: 'rgba(255,255,255,0.04)', borderRadius: 10, marginBottom: 12 }}>
+                    No payment image uploaded yet. Contact the restaurant.
                   </div>
                 )}
-                <div style={{ color: '#fbbf24', fontSize: 12, marginTop: 6 }}>
-                  ⚠️ Screenshot your payment and upload it below.
+
+                {/* Amount to pay */}
+                <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 10, padding: '12px 16px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: MUTED, fontSize: 13 }}>Amount to pay</span>
+                  <span style={{ color: GREEN, fontWeight: 800, fontSize: 20 }}>₱{grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                </div>
+
+                <div style={{ color: '#fbbf24', fontSize: 12, marginBottom: 8 }}>
+                  ⚠️ Screenshot your payment confirmation and upload it below.
                 </div>
 
                 {/* Payment proof upload */}

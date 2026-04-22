@@ -189,9 +189,10 @@ function SettingsPageInner() {
   const handlePaymentQrUpload = async (file: File) => {
     setQrUploading(true);
     const fd = new FormData(); fd.append('file', file);
-    const r = await fetch('/api/tenant/upload?type=payment_qr', { method:'POST', credentials:'include', body: fd });
-    const d = await r.json() as { data?: { url: string } };
+    const r = await fetch('/api/payment-settings', { method:'POST', credentials:'include', body: fd });
+    const d = await r.json() as { data?: { url: string }; error?: string };
     if (d.data?.url) setPaymentQrUrl(d.data.url);
+    else if (d.error) setError(d.error);
     setQrUploading(false);
   };
 
@@ -308,50 +309,53 @@ function SettingsPageInner() {
           </div>
 
           <div style={sectionStyle}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Payment QR Code</h3>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Payment Image</h3>
             <p style={{ color:'var(--text-muted)', fontSize:13, marginBottom:20, lineHeight:1.5 }}>
-              Upload your GCash / Maya / bank QR code. Customers will see this image when they choose <strong>QR / Bank Transfer</strong> at checkout.
+              Upload your GCash / Maya / bank QR code. Customers will see this <strong>full-width</strong> at checkout when they choose QR / Bank Transfer. <strong>Auto-saves on upload.</strong>
             </p>
 
-            <div style={{ display:'flex', gap:24, alignItems:'flex-start', flexWrap:'wrap' }}>
-              {/* Preview */}
-              <div style={{ flexShrink:0 }}>
-                {paymentQrUrl ? (
-                  <div style={{ position:'relative', width:160, height:160 }}>
-                    <img src={paymentQrUrl} alt="Payment QR"
-                      style={{ width:160, height:160, objectFit:'contain', borderRadius:12, border:'2px solid var(--border)', background:'white', padding:4 }}/>
-                    <button onClick={async () => {
-                      await fetch('/api/tenant/upload?type=payment_qr', { method:'DELETE', credentials:'include' });
-                      setPaymentQrUrl(null);
-                    }} style={{ position:'absolute', top:-8, right:-8, width:22, height:22, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>×</button>
-                  </div>
-                ) : (
-                  <div style={{ width:160, height:160, borderRadius:12, border:'2px dashed var(--border)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, color:'var(--text-muted)', background:'var(--surface-2)' }}>
-                    <span style={{ fontSize:36 }}>📲</span>
-                    <span style={{ fontSize:12 }}>No QR uploaded</span>
-                  </div>
-                )}
+            {/* Full-width preview */}
+            {paymentQrUrl ? (
+              <div style={{ position:'relative', marginBottom:16 }}>
+                <img src={paymentQrUrl} alt="Payment image"
+                  style={{ width:'100%', maxWidth:400, height:'auto', borderRadius:14, border:'2px solid var(--border)', display:'block' }}/>
+                <button onClick={async () => {
+                  const { error } = await (await fetch('/api/payment-settings', { method:'DELETE', credentials:'include' })).json() as { error?: string };
+                  if (!error) setPaymentQrUrl(null);
+                }} style={{ position:'absolute', top:10, right:10, padding:'5px 12px', borderRadius:20, background:'rgba(239,68,68,0.9)', border:'none', color:'#fff', fontSize:12, cursor:'pointer', fontWeight:700 }}>
+                  Remove
+                </button>
               </div>
+            ) : (
+              <label style={{ display:'block', cursor: qrUploading ? 'wait' : 'pointer', marginBottom:16 }}>
+                <input type="file" accept="image/*" style={{ display:'none' }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) void handlePaymentQrUpload(f); }}/>
+                <div style={{ border:'2px dashed var(--border)', borderRadius:14, padding:'40px 24px', textAlign:'center', background:'var(--surface-2)', transition:'border 0.2s' }}>
+                  {qrUploading ? (
+                    <><div style={{ fontSize:32, marginBottom:8 }}>⏳</div><div style={{ color:'#16a34a', fontWeight:700, fontSize:14 }}>Uploading…</div></>
+                  ) : (
+                    <><div style={{ fontSize:40, marginBottom:10 }}>📲</div>
+                    <div style={{ color:'var(--text)', fontWeight:700, fontSize:15, marginBottom:4 }}>Tap to upload payment image</div>
+                    <div style={{ color:'var(--text-muted)', fontSize:12 }}>JPG, PNG or WebP · Max 5MB · Auto-saves</div></>
+                  )}
+                </div>
+              </label>
+            )}
 
-              {/* Upload button */}
-              <div style={{ flex:1, minWidth:200 }}>
-                <label style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:10, border:'1px solid rgba(34,197,94,0.4)', background:'rgba(34,197,94,0.08)', color:'#16a34a', fontWeight:700, fontSize:14, cursor: qrUploading ? 'wait':'pointer' }}>
-                  <Upload size={15}/>
-                  {qrUploading ? 'Uploading…' : paymentQrUrl ? 'Replace QR Code' : 'Upload QR Code'}
-                  <input type="file" accept="image/*" style={{ display:'none' }}
-                    onChange={e => { const f = e.target.files?.[0]; if (f) void handlePaymentQrUpload(f); }}/>
-                </label>
-                <p style={{ color:'var(--text-muted)', fontSize:12, marginTop:10, lineHeight:1.5 }}>
-                  JPG, PNG or WebP · Max 5MB<br/>
-                  Use a <strong>square</strong> QR image for best display.
-                </p>
-                {paymentQrUrl && (
-                  <div style={{ marginTop:10, padding:'8px 12px', borderRadius:8, background:'rgba(34,197,94,0.06)', border:'1px solid rgba(34,197,94,0.2)', fontSize:12, color:'#15803d' }}>
-                    ✅ QR code saved — customers can now scan this at checkout
-                  </div>
-                )}
+            {paymentQrUrl && (
+              <label style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:10, border:'1px solid rgba(34,197,94,0.4)', background:'rgba(34,197,94,0.08)', color:'#16a34a', fontWeight:700, fontSize:14, cursor: qrUploading ? 'wait':'pointer' }}>
+                <Upload size={15}/>
+                {qrUploading ? 'Uploading…' : 'Replace Image'}
+                <input type="file" accept="image/*" style={{ display:'none' }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) void handlePaymentQrUpload(f); }}/>
+              </label>
+            )}
+
+            {paymentQrUrl && (
+              <div style={{ marginTop:12, padding:'8px 12px', borderRadius:8, background:'rgba(34,197,94,0.06)', border:'1px solid rgba(34,197,94,0.2)', fontSize:12, color:'#15803d' }}>
+                ✅ Payment image saved — shown full-width at checkout
               </div>
-            </div>
+            )}
           </div>
 
           {/* Account numbers */}

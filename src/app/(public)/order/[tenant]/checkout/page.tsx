@@ -17,16 +17,10 @@ interface TenantSettings {
   acceptGcash?: boolean;
   acceptMaya?: boolean;
   acceptInstaPay?: boolean;
-  acceptBDO?: boolean;
-  acceptBPI?: boolean;
-  acceptUnionBank?: boolean;
   gcashName?: string;
   gcashNumber?: string;
   mayaName?: string;
   mayaNumber?: string;
-  bdoAccount?: string;
-  bpiAccount?: string;
-  unionbankAccount?: string;
   paymentNote?: string;
 }
 
@@ -98,14 +92,14 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
 
   // Which payment methods does this tenant accept?
   const hasQR   = settings.acceptGcash || settings.acceptMaya || settings.acceptInstaPay
-                || settings.acceptBDO  || settings.acceptBPI  || settings.acceptUnionBank;
+                ;
   const hasCash = settings.acceptCash !== false;   // default true
   const hasCard = settings.acceptCard === true;
 
   // Available MOP options for this tenant
   type MopOption = { id: MOP; label: string; sub: string; icon: React.ReactNode; show: boolean };
   const mopOptions: MopOption[] = ([
-    { id: 'QR_BANK' as MOP, label: 'QR / Bank Transfer', sub: 'GCash, Maya, BDO, BPI, UnionBank', icon: <QrCode size={22}/>, show: !!hasQR },
+    { id: 'QR_BANK' as MOP, label: 'QR / Bank Transfer', sub: 'GCash, Maya, InstaPay', icon: <QrCode size={22}/>, show: !!hasQR },
     { id: 'CASH'    as MOP, label: 'Cash',               sub: 'Pay at the counter',                icon: <Banknote size={22}/>, show: hasCash },
     { id: 'CARD'    as MOP, label: 'Card',               sub: 'Card terminal brought to you',       icon: <CreditCard size={22}/>, show: hasCard },
   ] as MopOption[]).filter(o => o.show);
@@ -407,9 +401,6 @@ export default function CheckoutPage({ params }: { params: { tenant: string } })
                 {[
                   settings.gcashNumber   && { label: '📱 GCash',     num: settings.gcashNumber,     name: settings.gcashName },
                   settings.mayaNumber    && { label: '💚 Maya',      num: settings.mayaNumber,      name: settings.mayaName },
-                  settings.bdoAccount    && { label: '🏦 BDO',       num: settings.bdoAccount,      name: null },
-                  settings.bpiAccount    && { label: '🏦 BPI',       num: settings.bpiAccount,      name: null },
-                  settings.unionbankAccount && { label: '🏦 UnionBank', num: settings.unionbankAccount, name: null },
                 ].filter(Boolean).map((acct) => {
                   const a = acct as { label: string; num: string; name?: string | null };
                   return (

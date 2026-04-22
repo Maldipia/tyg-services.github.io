@@ -22,9 +22,6 @@ const TAB_CONFIG: Array<{ id: SettingsTab; label: string; icon: typeof Store; de
 const PAYMENT_METHODS = [
   { key: 'GCASH',    label: 'GCash',     color: '#007DFC', emoji: '💙' },
   { key: 'MAYA',     label: 'Maya',      color: '#38A169', emoji: '💚' },
-  { key: 'BPI',      label: 'BPI',       color: '#CC0000', emoji: '❤️' },
-  { key: 'BDO',      label: 'BDO',       color: '#003087', emoji: '🔵' },
-  { key: 'UNIONBANK',label: 'UnionBank', color: '#F6911E', emoji: '🟠' },
 ] as const;
 
 const inputStyle = {
@@ -91,8 +88,6 @@ function SettingsPageInner() {
   const [gcashNumber, setGcashNumber] = useState('');
   const [gcashName, setGcashName] = useState('');
   const [mayaNumber, setMayaNumber] = useState('');
-  const [bdoAccount, setBdoAccount] = useState('');
-  const [bpiAccount, setBpiAccount] = useState('');
   const [paymentNote, setPaymentNote] = useState('');
   const [logoUploading, setLogoUploading] = useState(false);
   const [pwdDiscount, setPwdDiscount] = useState(true);
@@ -109,7 +104,7 @@ function SettingsPageInner() {
 
   // Payment QR uploads (simulated)
   const [qrUploads, setQrUploads] = useState<Record<string, string | null>>({
-    GCASH: null, MAYA: null, BPI: null, BDO: null, UNIONBANK: null,
+    GCASH: null, MAYA: null,
   });
 
   // Load real settings from API on mount
@@ -150,8 +145,6 @@ function SettingsPageInner() {
         if (s['gcashNumber']) setGcashNumber(String(s['gcashNumber']));
         if (s['gcashName']) setGcashName(String(s['gcashName']));
         if (s['mayaNumber']) setMayaNumber(String(s['mayaNumber']));
-        if (s['bdoAccount']) setBdoAccount(String(s['bdoAccount']));
-        if (s['bpiAccount']) setBpiAccount(String(s['bpiAccount']));
         if (s['paymentNote']) setPaymentNote(String(s['paymentNote']));
       })
       .catch(() => {})
@@ -182,8 +175,6 @@ function SettingsPageInner() {
             gcashNumber: gcashNumber.trim() || null,
             gcashName: gcashName.trim() || null,
             mayaNumber: mayaNumber.trim() || null,
-            bdoAccount: bdoAccount.trim() || null,
-            bpiAccount: bpiAccount.trim() || null,
             paymentNote: paymentNote.trim() || null,
           },
         }),
@@ -384,16 +375,7 @@ function SettingsPageInner() {
                 <label style={labelStyle}>Maya Number</label>
                 <input style={inputStyle} value={mayaNumber} onChange={e => setMayaNumber(e.target.value)} placeholder="09xxxxxxxxx (if different from GCash)" type="tel"/>
               </div>
-              <div className="settings-2col">
-                <div>
-                  <label style={labelStyle}>BDO Account</label>
-                  <input style={inputStyle} value={bdoAccount} onChange={e => setBdoAccount(e.target.value)} placeholder="Account number"/>
-                </div>
-                <div>
-                  <label style={labelStyle}>BPI Account</label>
-                  <input style={inputStyle} value={bpiAccount} onChange={e => setBpiAccount(e.target.value)} placeholder="Account number"/>
-                </div>
-              </div>
+
               <div>
                 <label style={labelStyle}>Payment Note <span style={{ color:'var(--text-muted)', fontWeight:400, textTransform:'none', letterSpacing:0 }}>(optional)</span></label>
                 <input style={inputStyle} value={paymentNote} onChange={e => setPaymentNote(e.target.value)} placeholder="e.g. Use reference number as your order number"/>

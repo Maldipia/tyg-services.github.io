@@ -33,8 +33,6 @@ const UpdateSettingsSchema = z.object({
     gcashNumber: z.string().max(20).nullable().optional(),
     gcashName: z.string().max(80).nullable().optional(),
     mayaNumber: z.string().max(20).nullable().optional(),
-    bdoAccount: z.string().max(40).nullable().optional(),
-    bpiAccount: z.string().max(40).nullable().optional(),
     paymentNote: z.string().max(200).nullable().optional(),
   }).optional(),
 });  // removed .strict() — was silently rejecting valid fields like logo_url

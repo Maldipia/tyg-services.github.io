@@ -55,7 +55,7 @@ export default function LandingPage() {
           <span style={{ fontWeight: 800, fontSize: 18 }}>TYG<span style={{ color: BRAND }}> POS</span></span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/login" style={{ color: MUTED, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Sign In</Link>
+          <Link href="/login?fresh=1" style={{ color: MUTED, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Sign In</Link>
           <Link href="/signup" style={{ background: BRAND, color: '#000', borderRadius: 8, padding: '8px 20px', textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>
             Start Free Trial
           </Link>
@@ -199,7 +199,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{ borderTop: `1px solid ${BORDER}`, padding: '32px 24px', textAlign: 'center', color: MUTED, fontSize: 13 }}>
         <div style={{ marginBottom: 12 }}>
-          {([['Staff Login', '/login'], ['Sign Up', '/signup'], ['Live Demo', '/order?tenant=yani']] as [string, string][]).map(([label, href]) => (
+          {([['Staff Login', '/login?fresh=1'], ['Sign Up', '/signup'], ['Live Demo', '/order?tenant=yani']] as [string, string][]).map(([label, href]) => (
             <Link key={label} href={href} style={{ color: MUTED, textDecoration: 'none', margin: '0 16px' }}>{label}</Link>
           ))}
         </div>

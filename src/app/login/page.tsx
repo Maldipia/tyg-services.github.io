@@ -1,17 +1,20 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginRedirectPage() {
+function LoginRedirectForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const fresh = params.get('fresh') === '1';
   const [slug, setSlug] = useState('');
   const [checking, setChecking] = useState(false);
-  const [autoChecking, setAutoChecking] = useState(true);
+  const [autoChecking, setAutoChecking] = useState(!fresh); // skip auto-redirect if ?fresh=1
   const [error, setError] = useState('');
   const [savedName, setSavedName] = useState('');
 
-  // On load: check if we have a remembered café → go straight there
+  // Auto-redirect returning staff ONLY if not coming from the marketing homepage
   useEffect(() => {
+    if (fresh) { setAutoChecking(false); return; }
     try {
       const session = JSON.parse(localStorage.getItem('tyg_session') || '{}') as { tenantSlug?: string; tenantName?: string };
       const tenant  = JSON.parse(localStorage.getItem('tyg_tenant')  || '{}') as { slug?: string; name?: string };
@@ -19,13 +22,12 @@ export default function LoginRedirectPage() {
       const name  = session.tenantName || tenant.name || '';
       if (saved) {
         setSavedName(name || saved);
-        // Auto-redirect to saved slug
         router.replace(`/login/${saved}`);
         return;
       }
     } catch {/**/}
     setAutoChecking(false);
-  }, [router]);
+  }, [router, fresh]);
 
   const go = async () => {
     const s = slug.trim().toLowerCase();
@@ -73,6 +75,10 @@ export default function LoginRedirectPage() {
             <div style={{ width: 60, height: 60, borderRadius: 18, margin: '0 auto 14px', background: 'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow: '0 8px 32px rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>☕</div>
             <div style={{ color: '#e8eaf0', fontWeight: 800, fontSize: 21, marginBottom: 4 }}>Staff Login</div>
             <div style={{ color: '#6b7280', fontSize: 13 }}>Enter your café login code to continue</div>
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13 }}>
+              <span style={{ color: '#4b5563' }}>New to TYG POS?</span>
+              <a href="/signup" style={{ color: '#22c55e', fontWeight: 700, textDecoration: 'none' }}>Sign Up Free →</a>
+            </div>
           </div>
 
           {/* Input */}
@@ -112,5 +118,18 @@ export default function LoginRedirectPage() {
         </div>
       </div>
     </>
+  );
+}
+
+
+export default function LoginRedirectPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', background: '#0c0f16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(34,197,94,0.2)', borderTopColor: '#22c55e', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    }>
+      <LoginRedirectForm />
+    </Suspense>
   );
 }

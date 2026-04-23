@@ -51,6 +51,12 @@ export default function DashboardPage() {
   const [bumping, setBumping] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<{ id: string; msg: string }[]>([]);
   const [stockAlerts, setStockAlerts] = useState<{ name: string; count: number }[]>([]);
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
+  const [planStatus, setPlanStatus] = useState('');
+  const [onboarding, setOnboarding] = useState<{
+    hasMenu: boolean; hasTables: boolean; hasLogo: boolean;
+    hasQR: boolean; hasStaff: boolean; dismissed: boolean;
+  } | null>(null);
 
   useEffect(() => {
     let slug = '';
@@ -99,6 +105,44 @@ export default function DashboardPage() {
         setStockAlerts([...out, ...low]);
       }
     } catch {/**/} finally { setLoading(false); setRefreshing(false); }
+    // Trial status
+    try {
+      const r = await fetch('/api/settings', { credentials: 'include' });
+      if (r.ok) {
+        const d = await r.json() as { data?: { trial_ends_at?: string; plan_status?: string; plan_tier?: string } };
+        const trialEnd = d.data?.trial_ends_at;
+        const status = d.data?.plan_status ?? '';
+        setPlanStatus(status);
+        if (trialEnd && status === 'TRIAL') {
+          const days = Math.max(0, Math.ceil((new Date(trialEnd).getTime() - Date.now()) / 86400000));
+          setTrialDaysLeft(days);
+        }
+      }
+    } catch {/**/}
+    // Onboarding checklist — only check if not dismissed
+    try {
+      const dismissed = localStorage.getItem('tyg_onboarding_dismissed') === '1';
+      if (!dismissed) {
+        const [menuR, tableR, settingR] = await Promise.all([
+          fetch(`/api/menu/items?tenantSlug=${slug}&limit=1`, { credentials: 'include' }),
+          fetch(`/api/tables?tenant=${slug}`, { credentials: 'include' }),
+          fetch('/api/settings', { credentials: 'include' }),
+        ]);
+        const menuD  = menuR.ok  ? await menuR.json()  as { data?: unknown[] }                               : { data: [] };
+        const tableD = tableR.ok ? await tableR.json() as { data?: unknown[] }                               : { data: [] };
+        const settD  = settingR.ok ? await settingR.json() as { data?: { logo_url?: string; payment_qr_url?: string; settings?: { smsEnabled?: boolean } } } : { data: {} };
+        const staffR = await fetch('/api/staff', { credentials: 'include' });
+        const staffD = staffR.ok ? await staffR.json() as { data?: unknown[] } : { data: [] };
+        setOnboarding({
+          hasMenu:   (menuD.data?.length ?? 0) > 0,
+          hasTables: (tableD.data?.length ?? 0) > 0,
+          hasLogo:   !!(settD.data?.logo_url),
+          hasQR:     !!(settD.data?.payment_qr_url),
+          hasStaff:  (staffD.data?.length ?? 0) > 1,
+          dismissed: false,
+        });
+      }
+    } catch {/**/}
   }, []);
 
   useEffect(() => { if (tenantSlug) void loadOrders(tenantSlug); }, [tenantSlug, loadOrders]);
@@ -173,6 +217,103 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* ── Onboarding Checklist ─────────────────────────── */}
+      {onboarding && !onboarding.dismissed && (() => {
+        const steps = [
+          { done: onboarding.hasMenu,   icon: '🍽️', label: 'Add your menu items',       href: '/admin/menu',     cta: 'Add Menu' },
+          { done: onboarding.hasTables, icon: '🪑', label: 'Add your tables',            href: '/admin/tables',   cta: 'Add Tables' },
+          { done: onboarding.hasQR,     icon: '📲', label: 'Upload your GCash QR code',  href: '/admin/settings?tab=payments', cta: 'Upload QR' },
+          { done: onboarding.hasLogo,   icon: '🖼️', label: 'Add your logo',             href: '/admin/settings?tab=branding', cta: 'Add Logo' },
+          { done: onboarding.hasStaff,  icon: '👥', label: 'Add staff members',          href: '/admin/settings?tab=staff',    cta: 'Add Staff' },
+        ];
+        const completed = steps.filter(s => s.done).length;
+        const allDone = completed === steps.length;
+        if (allDone) return null;
+        const pctDone = Math.round((completed / steps.length) * 100);
+        return (
+          <div style={{ background: '#f0fdf4', border: '2px solid #bbf7d0', borderRadius: 14, padding: '18px 20px', marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#15803d' }}>
+                  🚀 Set up your store — {completed}/{steps.length} done
+                </div>
+                <div style={{ fontSize: 12, color: '#16a34a', marginTop: 2 }}>
+                  Complete these steps to go live and start receiving orders
+                </div>
+              </div>
+              <button
+                onClick={() => { localStorage.setItem('tyg_onboarding_dismissed', '1'); setOnboarding(o => o ? { ...o, dismissed: true } : null); }}
+                style={{ color: '#86efac', fontSize: 18, background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1, padding: '0 4px' }}>
+                ×
+              </button>
+            </div>
+
+            {/* Progress bar */}
+            <div style={{ background: '#dcfce7', borderRadius: 99, height: 6, marginBottom: 14, overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 99, background: '#16a34a', width: `${pctDone}%`, transition: 'width 0.4s' }} />
+            </div>
+
+            {/* Steps */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {steps.map(step => (
+                <div key={step.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10,
+                  background: step.done ? 'rgba(22,163,74,0.06)' : '#ffffff',
+                  border: `1px solid ${step.done ? 'rgba(22,163,74,0.2)' : '#e2e8f0'}`,
+                  opacity: step.done ? 0.7 : 1 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    background: step.done ? '#16a34a' : '#f1f5f9', fontSize: step.done ? 14 : 16 }}>
+                    {step.done ? '✓' : step.icon}
+                  </div>
+                  <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: step.done ? '#64748b' : '#0f172a',
+                    textDecoration: step.done ? 'line-through' : 'none' }}>
+                    {step.label}
+                  </span>
+                  {!step.done && (
+                    <a href={step.href} style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', background: 'rgba(22,163,74,0.1)',
+                      border: '1px solid rgba(22,163,74,0.3)', borderRadius: 20, padding: '4px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                      {step.cta} →
+                    </a>
+                  )}
+                  {step.done && (
+                    <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>Done</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Trial Banner ─────────────────────────────────── */}
+      {planStatus === 'TRIAL' && trialDaysLeft !== null && (
+        trialDaysLeft <= 0 ? (
+          <div style={{ marginBottom: 16, padding: '14px 18px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '2px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>🔴</span>
+              <div>
+                <span style={{ fontWeight: 700, color: '#ef4444', fontSize: 14 }}>Trial Expired</span>
+                <span style={{ color: '#9ca3af', fontSize: 13 }}> — upgrade to keep accepting orders.</span>
+              </div>
+            </div>
+            <a href="/admin/billing" style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>
+              Upgrade Now →
+            </a>
+          </div>
+        ) : trialDaysLeft <= 7 ? (
+          <div style={{ marginBottom: 16, padding: '12px 18px', borderRadius: 12, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 16 }}>⏳</span>
+              <span style={{ color: '#f59e0b', fontWeight: 600, fontSize: 13 }}>
+                {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} left on your free trial
+              </span>
+            </div>
+            <a href="/admin/billing" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', borderRadius: 10, padding: '7px 16px', textDecoration: 'none', fontWeight: 700, fontSize: 12, border: '1px solid rgba(245,158,11,0.3)', whiteSpace: 'nowrap' }}>
+              View Plans →
+            </a>
+          </div>
+        ) : null
+      )}
 
       {/* Order alerts */}
       {alerts.length > 0 && (

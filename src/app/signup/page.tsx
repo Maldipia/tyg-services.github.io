@@ -109,9 +109,9 @@ function SignupForm() {
         </div>
       </div>
 
-      <button onClick={() => router.push(`/login/${done.slug}`)}
+      <button onClick={() => router.push(`/login/${done.slug}?onboarding=1`)}
         style={{ width: '100%', padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none', background: `linear-gradient(135deg,${GREEN},#16a34a)`, color: 'white' }}>
-        Go to Login →
+        Continue Setup →
       </button>
 
       <a href={`/order/${done.slug}`} target="_blank" rel="noreferrer"

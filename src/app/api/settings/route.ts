@@ -14,6 +14,7 @@ const UpdateSettingsSchema = z.object({
   birTin: z.string().max(20).nullable().optional(),
   birAtpSeries: z.string().max(30).nullable().optional(),
   logo_url: z.string().max(500).nullable().optional(),
+  industry: z.enum(['cafe','restaurant','bar','retail','bakery','cloud_kitchen','other']).optional(),
   settings: z.object({
     orderingEnabled: z.boolean().optional(),
     requireCustomerName: z.boolean().optional(),
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   return withStaffAuth(req, async (_, ctx) => {
     const db = createServiceClient();
     const { data, error } = await db.from('tenants')
-      .select('id, name, slug, phone, address, primary_color, accent_color, settings, plan_tier, plan_status, trial_ends_at, owner_email, bir_tin, bir_atp_series, logo_url, payment_qr_url')
+      .select('id, name, slug, phone, address, primary_color, accent_color, settings, plan_tier, plan_status, trial_ends_at, owner_email, bir_tin, bir_atp_series, logo_url, payment_qr_url, industry, onboarding_completed_at')
       .eq('id', ctx.tenantId).single();
     if (error || !data) return apiError('Tenant not found', 404);
     return apiSuccess(data);
@@ -65,6 +66,8 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     if (parsed.data.accentColor !== undefined) updatePayload['accent_color'] = parsed.data.accentColor;
     if (parsed.data.birTin !== undefined) updatePayload['bir_tin'] = parsed.data.birTin;
     if (parsed.data.birAtpSeries !== undefined) updatePayload['bir_atp_series'] = parsed.data.birAtpSeries;
+    if (parsed.data.industry !== undefined) updatePayload['industry'] = parsed.data.industry;
+    if (parsed.data.logo_url !== undefined) updatePayload['logo_url'] = parsed.data.logo_url;
     if (parsed.data.settings !== undefined) {
       // Merge settings JSONB — don't overwrite existing keys
       const { data: existing } = await db.from('tenants').select('settings').eq('id', ctx.tenantId).single();

@@ -32,10 +32,16 @@ const PLANS = [
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [metrics, setMetrics] = useState({ tenants: 10, orders: 500, revenue: 500000, uptime: 99.9 });
+
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', h);
     return () => window.removeEventListener('scroll', h);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/metrics').then(r => r.json()).then((d: typeof metrics) => setMetrics(d)).catch(()=>{});
   }, []);
 
   return (
@@ -87,7 +93,12 @@ export default function LandingPage() {
       {/* Stats */}
       <section style={{ textAlign: 'center', padding: '0 24px 64px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 48, flexWrap: 'wrap' }}>
-          {[['10+', 'Active Tenants'], ['₱500K+', 'Orders Processed'], ['99.9%', 'Uptime'], ['4.9★', 'Rating']].map(([val, label]) => (
+          {[
+            [`${metrics.tenants}+`, 'Active Stores'],
+            [`₱${(metrics.revenue / 1000).toFixed(0)}K+`, 'Orders Processed'],
+            [`${metrics.uptime}%`, 'Uptime'],
+            ['4.9★', 'Rating'],
+          ].map(([val, label]) => (
             <div key={label}><div style={{ fontSize: 28, fontWeight: 900, color: BRAND }}>{val}</div><div style={{ fontSize: 12, color: MUTED }}>{label}</div></div>
           ))}
         </div>

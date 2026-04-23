@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Delete } from 'lucide-react';
 
 const KEYPAD = [['1','2','3'],['4','5','6'],['7','8','9'],['','0','⌫']];
@@ -8,7 +8,9 @@ const KEYPAD = [['1','2','3'],['4','5','6'],['7','8','9'],['','0','⌫']];
 function LoginForm() {
   const router  = useRouter();
   const params  = useParams();
+  const searchParams = useSearchParams();
   const tenantSlug = (params.tenant as string).toLowerCase();
+  const isOnboarding = searchParams.get('onboarding') === '1';
 
   const [step, setStep]             = useState<'name'|'pin'>('name');
   const [tenantName, setTenantName] = useState('');
@@ -69,7 +71,7 @@ function LoginForm() {
         localStorage.setItem('tyg_tenant', JSON.stringify({ id:d.tenantId, slug:d.tenantSlug, name:d.tenantName, address:d.tenantAddress, plan:d.planTier, trialEndsAt:d.trialEndsAt }));
         localStorage.setItem('tyg_session', JSON.stringify({ tenantId:d.tenantId, tenantSlug:d.tenantSlug, tenantName:d.tenantName, tenantAddress:d.tenantAddress, staffId:d.staffId, displayName:d.displayName, role:d.role, branchId:d.branchId }));
       }
-      router.push('/admin/dashboard');
+      router.push(isOnboarding ? '/admin/onboarding' : '/admin/dashboard');
     } catch {
       setError('Network error — try again'); setPin(''); triggerShake(); setLoading(false);
     }

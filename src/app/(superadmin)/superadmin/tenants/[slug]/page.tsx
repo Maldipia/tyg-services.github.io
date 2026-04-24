@@ -87,7 +87,7 @@ export default function TenantDetailPage() {
   const featureMap: Record<string,boolean> = {};
   features.forEach(f => { featureMap[f.key] = f.enabled; });
   const health = data.health_label ?? (tenant.health_label as string) ?? 'dead';
-  const hc = HEALTH_C[health] ?? HEALTH_C.dead;
+  const hc = HEALTH_C[health] ?? { color:'#ef4444', bg:'rgba(239,68,68,0.1)', border:'rgba(239,68,68,0.25)', emoji:'🔴' };
   const onboarding = data.onboarding_progress ?? 0;
   const posLocked = tenant.pos_locked === true;
 

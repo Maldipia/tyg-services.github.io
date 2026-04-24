@@ -2,8 +2,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/client';
-
-const CRON_SECRET = process.env.CRON_SECRET ?? '';
+import { verifySuperAdmin } from '@/lib/auth/superadmin';
 
 interface Tenant { id:string; name:string; owner_email:string; slug:string; trial_ends_at:string; created_at:string; menu_item_count:number; }
 
@@ -29,8 +28,13 @@ function makeEmail(type:string, t:Tenant):{subject:string;html:string} {
 }
 
 export async function GET(req:NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get('authorization')?.replace('Bearer ','') ?? new URL(req.url).searchParams.get('secret') ?? '';
-  if (CRON_SECRET && secret !== CRON_SECRET) return NextResponse.json({error:'Unauthorized'},{status:401});
+  // Auth: Vercel cron secret OR superadmin session
+  const cronSecret = process.env.CRON_SECRET ?? '';
+  const authHeader = req.headers.get('authorization')?.replace('Bearer ','') ?? '';
+  const querySecret = new URL(req.url).searchParams.get('secret') ?? '';
+  const isCronCall = cronSecret && (authHeader === cronSecret || querySecret === cronSecret);
+  const isSuperAdmin = !cronSecret || isCronCall || await verifySuperAdmin(req);
+  if (!isSuperAdmin) return NextResponse.json({error:'Unauthorized'},{status:401});
 
   const db = createServiceClient();
   let day3=0, day10=0, day14=0, skipped=0, errors=0;

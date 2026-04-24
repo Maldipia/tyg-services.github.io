@@ -88,3 +88,17 @@ export function logSecurityEvent(
     void db.from('security_events').insert({ event_type: eventType, ip, metadata });
   } catch { /* non-blocking */ }
 }
+
+export async function logSuperAdminAction(
+  action: string, tenantId: string, field: string,
+  oldValue: string, newValue: string, note: string
+): Promise<void> {
+  try {
+    const { createServiceClient } = await import('@/lib/supabase/client');
+    const db = createServiceClient();
+    await db.from('superadmin_audit').insert([{
+      action, tenant_id: tenantId, field,
+      old_value: oldValue, new_value: newValue, note, actor: 'superadmin',
+    }]);
+  } catch {/**/}
+}

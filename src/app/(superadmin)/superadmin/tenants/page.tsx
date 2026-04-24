@@ -1,16 +1,17 @@
 'use client';
-import React from 'react';
-
-import { useEffect, useState } from 'react';
+export const dynamic = 'force-dynamic';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Search, ChevronRight, Clock, Users, ShoppingBag } from 'lucide-react';
+import { Search, ChevronRight, Users, ShoppingBag, TrendingUp } from 'lucide-react';
 
 interface Tenant {
   id: string; name: string; slug: string; owner_email: string;
-  plan_tier: string; plan_status: string; trial_ends_at: string;
-  created_at: string; order_count: number; staff_count: number;
-  menu_item_count: number; total_revenue: number;
+  plan_tier: string; plan_status: string; trial_ends_at: string | null;
+  trial_days_left: number | null; created_at: string;
+  order_count: number; staff_count: number; menu_item_count: number;
+  total_revenue: number; last_order_at: string | null;
+  health_label?: string; onboarding_completed_at?: string | null;
 }
 
 const PLAN_C: Record<string, { bg: string; color: string }> = {
@@ -21,32 +22,30 @@ const PLAN_C: Record<string, { bg: string; color: string }> = {
   ENTERPRISE: { bg: 'rgba(251,191,36,0.12)',   color: '#fbbf24' },
   SUSPENDED:  { bg: 'rgba(239,68,68,0.12)',    color: '#f87171' },
 };
-
+const HEALTH_C: Record<string, { color: string; emoji: string }> = {
+  healthy: { color: '#22c55e', emoji: '🟢' },
+  at_risk: { color: '#f59e0b', emoji: '🟡' },
+  dead:    { color: '#64748b', emoji: '🔴' },
+};
+const fmt = (n: number) => '₱' + Math.round(n).toLocaleString();
 function daysUntil(d: string) { return Math.ceil((new Date(d).getTime() - Date.now()) / 86400000); }
-function fmtMoney(n: number) { return '₱' + n.toLocaleString('en-PH', { maximumFractionDigits: 0 }); }
 
 export default function TenantsListPage() {
   const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch]   = useState('');
   const [filterPlan, setFilterPlan] = useState('ALL');
 
   useEffect(() => {
     fetch('/api/superadmin/tenants')
-      .then(r => {
-        if (r.status === 401) { router.push('/superadmin/login'); return null; }
-        return r.json();
-      })
-      .then((d: { data?: Tenant[] } | null) => { if (d) setTenants(d.data ?? []); })
-      .finally(() => setLoading(false));
+      .then(r => { if (r.status === 401) { router.push('/superadmin/login'); return null; } return r.json(); })
+      .then((d: { data?: Tenant[] } | null) => { if (d?.data) setTenants(d.data); setLoading(false); })
+      .catch(() => setLoading(false));
   }, [router]);
 
   const filtered = tenants.filter(t => {
-    const matchSearch = !search ||
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.slug.toLowerCase().includes(search.toLowerCase()) ||
-      t.owner_email.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search || [t.name, t.slug, t.owner_email].some(v => v.toLowerCase().includes(search.toLowerCase()));
     const matchPlan = filterPlan === 'ALL' || t.plan_tier === filterPlan;
     return matchSearch && matchPlan;
   });
@@ -54,119 +53,93 @@ export default function TenantsListPage() {
   const plans = ['ALL', ...Array.from(new Set(tenants.map(t => t.plan_tier)))];
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:1152 }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+    <div style={{ color: '#e2e8f0', fontFamily: "'Inter',system-ui,sans-serif" }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ color: 'white', fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Tenants</h1>
-          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>{tenants.length} total businesses on the platform</p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: '#f8fafc', marginBottom: 4 }}>Tenants</h1>
+          <p style={{ fontSize: 13, color: '#64748b' }}>{tenants.length} total businesses on the platform</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div style={{ display:"flex", flexWrap:"wrap", gap:12 }}>
-        <div style={{ position: 'relative', flex: '1 1 260px' }}>
-          <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name, slug, or email..."
-            style={{
-              width: '100%', paddingLeft: 34, paddingRight: 14, paddingTop: 10, paddingBottom: 10,
-              background: '#0f1520', border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 10, color: 'white', fontSize: 13, outline: 'none',
-            }}
-          />
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 240 }}>
+          <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, slug, or email…"
+            style={{ width: '100%', paddingLeft: 34, paddingRight: 14, height: 38, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9, color: '#e2e8f0', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
         </div>
-        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+        <div style={{ display: 'flex', gap: 6 }}>
           {plans.map(p => (
             <button key={p} onClick={() => setFilterPlan(p)}
-              style={{
-                padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none',
-                background: filterPlan === p ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.04)',
-                color: filterPlan === p ? '#a78bfa' : 'rgba(255,255,255,0.4)',
-              }}>
+              style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1px solid', borderColor: filterPlan === p ? '#6366f1' : 'rgba(255,255,255,0.08)', background: filterPlan === p ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)', color: filterPlan === p ? '#818cf8' : '#64748b' }}>
               {p}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Grid */}
-      {loading ? (
-        <div style={{ display:"flex", justifyContent:"center", padding:"64px 0" }}>
-          <div style={{ width:32, height:32, borderRadius:"50%", borderWidth:2, borderStyle:"solid", animation:"spin 1s linear infinite" ,  borderColor: '#7c3aed', borderTopColor: 'transparent' }} />
-        </div>
-      ) : (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
+      {loading ? <div style={{ textAlign: 'center', padding: 60, color: '#475569' }}>Loading tenants…</div> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 14 }}>
           {filtered.map(t => {
-            const days = daysUntil(t.trial_ends_at);
-            const pc = PLAN_C[t.plan_tier] ?? { bg: 'rgba(255,255,255,0.05)', color: 'white' };
-            const isTrial = t.plan_status === 'TRIAL';
+            const pc = PLAN_C[t.plan_status] ?? PLAN_C.TRIAL;
+            const hc = HEALTH_C[t.health_label ?? 'dead'] ?? HEALTH_C.dead;
+            const trialDays = t.trial_ends_at ? daysUntil(t.trial_ends_at) : null;
+            const onboardingDone = !!t.onboarding_completed_at;
             return (
-              <div key={t.id} style={{ borderRadius:20, padding:20, display:"flex", flexDirection:"column", gap:16 ,  background: '#0f1520', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div key={t.id} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {/* Header */}
-                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8 }}>
-                  <div style={{ minWidth:0 }}>
-                    <div style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {t.name}
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>/{t.slug}</div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: '#f8fafc', marginBottom: 2 }}>{t.name}</div>
+                    <div style={{ fontSize: 11, color: '#475569' }}>/{t.slug}</div>
+                    <div style={{ fontSize: 11, color: '#475569', marginTop: 1 }}>{t.owner_email}</div>
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 99, background: pc.bg, color: pc.color, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
-                    {t.plan_tier}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: pc.bg, color: pc.color }}>{t.plan_tier}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: hc.color }}>{hc.emoji} {(t.health_label ?? 'unknown').replace('_', ' ')}</span>
+                  </div>
                 </div>
 
-                {/* Email */}
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {t.owner_email}
-                </div>
-
-                {/* Stats */}
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+                {/* Stats row */}
+                <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
                   {[
-                    { icon: ShoppingBag, val: t.order_count, label: 'Orders' },
-                    { icon: Users, val: t.staff_count, label: 'Staff' },
-                    { icon: Building2, val: t.menu_item_count, label: 'Items' },
+                    { icon: <ShoppingBag size={11} />, val: t.order_count, label: 'Orders' },
+                    { icon: <Users size={11} />, val: t.staff_count, label: 'Staff' },
+                    { icon: <TrendingUp size={11} />, val: t.menu_item_count, label: 'Items' },
                   ].map(s => (
-                    <div key={s.label} style={{ borderRadius:12, padding:10, textAlign:"center" ,  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ color: 'white', fontWeight: 700, fontSize: 15 }}>{s.val}</div>
-                      <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 10, marginTop: 1 }}>{s.label}</div>
+                    <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 10px', flex: 1, textAlign: 'center' }}>
+                      <div style={{ color: '#475569', marginBottom: 3 }}>{s.icon}</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: '#e2e8f0' }}>{s.val}</div>
+                      <div style={{ fontSize: 9, color: '#475569' }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Revenue + trial */}
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                  <div>
-                    <div style={{ color: '#22c55e', fontWeight: 700, fontSize: 16 }}>
-                      {fmtMoney(t.total_revenue)}
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 10 }}>total revenue</div>
-                  </div>
-                  {isTrial && (
-                    <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", borderRadius:12, background: days <= 3 ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)', border: `1px solid ${days <= 3 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}` }}>
-                      <Clock size={10} style={{ color: days <= 3 ? '#f87171' : '#f59e0b' }} />
-                      <span style={{ fontSize: 11, fontWeight: 600, color: days <= 3 ? '#f87171' : '#f59e0b' }}>
-                        {days <= 0 ? 'Expired' : `${days}d trial`}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: '#22c55e' }}>{fmt(t.total_revenue)}</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {t.plan_status === 'TRIAL' && trialDays !== null && (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: trialDays <= 3 ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.12)', color: trialDays <= 3 ? '#f87171' : '#f59e0b' }}>
+                        {trialDays <= 0 ? 'Expired' : `${trialDays}d trial`}
                       </span>
-                    </div>
-                  )}
+                    )}
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: onboardingDone ? 'rgba(34,197,94,0.1)' : 'rgba(99,102,241,0.1)', color: onboardingDone ? '#22c55e' : '#6366f1' }}>
+                      {onboardingDone ? '✅ Onboarded' : '⏳ Setup pending'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Manage button */}
-                <Link href={`/superadmin/tenants/${t.slug}`}
-                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"10px 0", borderRadius:12, fontSize:13, fontWeight:600 ,  background: 'rgba(124,58,237,0.12)', color: '#a78bfa', textDecoration: 'none', border: '1px solid rgba(124,58,237,0.2)' }}>
-                  Manage Tenant <ChevronRight size={13} />
+                <Link href={`/superadmin/tenants/${t.id}`}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 10, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: '#818cf8', textDecoration: 'none', fontSize: 13, fontWeight: 700, transition: 'all 0.12s' }}>
+                  Tenant 360 View <ChevronRight size={13} />
                 </Link>
               </div>
             );
           })}
-
           {filtered.length === 0 && (
-            <div style={{ gridColumn:"span 3", textAlign:"center", padding:"64px 0" ,  color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
-              No tenants match your search.
-            </div>
+            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 60, color: '#475569' }}>No tenants match your filter.</div>
           )}
         </div>
       )}

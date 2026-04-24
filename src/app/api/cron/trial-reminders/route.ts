@@ -29,7 +29,7 @@ export async function GET(req:NextRequest): Promise<NextResponse> {
   if (CRON_SECRET && secret !== CRON_SECRET) return NextResponse.json({error:'Unauthorized'},{status:401});
 
   const db = createServiceClient();
-  const results: Record<string,number> = {day3:0,day10:0,day14:0,skipped:0,errors:0};
+  const results = {day3:0,day10:0,day14:0,skipped:0,errors:0} as {[k:string]:number};
 
   const {data:tenants} = await db.from('tenant_overview')
     .select('id,name,owner_email,slug,trial_ends_at,created_at,menu_item_count')

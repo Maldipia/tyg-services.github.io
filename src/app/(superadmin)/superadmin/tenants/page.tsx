@@ -131,7 +131,7 @@ export default function TenantsListPage() {
                 </div>
 
                 {/* Manage button */}
-                <Link href={`/superadmin/tenants/${t.id}`}
+                <Link href={`/superadmin/tenants/${t.slug}`}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 10, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: '#818cf8', textDecoration: 'none', fontSize: 13, fontWeight: 700, transition: 'all 0.12s' }}>
                   Tenant 360 View <ChevronRight size={13} />
                 </Link>

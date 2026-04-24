@@ -109,7 +109,7 @@ export default function SuperAdminDashboard() {
             <div style={{ fontSize:11, fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:10 }}>⚠️ Needs Attention</div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {expiring.map(t=>(
-                <Link key={t.id} href={`/superadmin/tenants/${t.id}`} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', borderRadius:10, background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.2)', textDecoration:'none', color:'inherit' }}>
+                <Link key={t.id} href={`/superadmin/tenants/${t.slug}`} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', borderRadius:10, background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.2)', textDecoration:'none', color:'inherit' }}>
                   <AlertTriangle size={13} style={{ color:'#ef4444', flexShrink:0 }} />
                   <span style={{ flex:1, fontWeight:600, fontSize:13, color:'#f8fafc' }}>{t.name}</span>
                   <span style={{ fontSize:11, color:'#94a3b8' }}>trial ends in {t.trial_days_left}d</span>
@@ -117,7 +117,7 @@ export default function SuperAdminDashboard() {
                 </Link>
               ))}
               {dead.slice(0,3).map(t=>(
-                <Link key={t.id} href={`/superadmin/tenants/${t.id}`} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', borderRadius:10, background:'rgba(100,116,139,0.04)', border:'1px solid rgba(100,116,139,0.12)', textDecoration:'none', color:'inherit' }}>
+                <Link key={t.id} href={`/superadmin/tenants/${t.slug}`} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', borderRadius:10, background:'rgba(100,116,139,0.04)', border:'1px solid rgba(100,116,139,0.12)', textDecoration:'none', color:'inherit' }}>
                   <div style={{ width:7, height:7, borderRadius:'50%', background:'#475569', flexShrink:0 }} />
                   <span style={{ flex:1, fontWeight:600, fontSize:13, color:'#94a3b8' }}>{t.name}</span>
                   <span style={{ fontSize:11, color:'#475569' }}>🔴 dead — no activity</span>

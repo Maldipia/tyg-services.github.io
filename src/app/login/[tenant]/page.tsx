@@ -154,40 +154,32 @@ function LoginForm() {
                 <button className="tyg-back" onClick={() => { setStep('name'); setPin(''); setError(''); }}>← {displayName}</button>
                 <div style={{ color:'#9ca3af', fontSize:15 }}>Enter your PIN</div>
               </div>
-              {/* Hidden input for keyboard PIN entry */}
-              <div style={{ position:'relative', marginBottom:32 }}>
+              <div className={shake ? 'tyg-shake' : ''} style={{ marginBottom: 16 }}>
                 <input
-                  type="tel"
+                  type="password"
                   inputMode="numeric"
-                  value={pin}
                   autoFocus
+                  value={pin}
                   onChange={e => {
                     const val = e.target.value.replace(/[^0-9]/g,'').slice(0,8);
                     setPin(val); setError('');
-                    if (val.length >= 4) setTimeout(() => handleLogin(val), 80);
                   }}
-                  style={{ position:'absolute', opacity:0, width:'100%', height:'100%', top:0, left:0, zIndex:10, fontSize:16 }}
-                  aria-label="Enter PIN"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && pin.length >= 4) void handleLogin(pin);
+                  }}
+                  placeholder="Enter PIN"
+                  style={{ width:'100%', boxSizing:'border-box' as const, background:'rgba(255,255,255,0.06)', border:`1px solid ${error ? '#ef4444' : 'rgba(255,255,255,0.12)'}`, borderRadius:14, padding:'16px 20px', color:'#e8eaf0', fontSize:28, letterSpacing:'0.4em', textAlign:'center', outline:'none', fontFamily:'inherit' }}
                 />
-                <div className={shake ? 'tyg-shake' : ''} style={{ display:'flex', justifyContent:'center', gap:16 }}>
-                  {Array.from({ length: Math.max(4, pin.length) }, (_,i) => (
-                    <div key={i} className={pin.length===i+1 ? 'tyg-pop' : ''} style={{ width:14, height:14, borderRadius:'50%', background: pin.length>i ? (error ? '#ef4444' : '#22c55e') : 'rgba(255,255,255,0.12)', transition:'background 0.15s' }} />
-                  ))}
-                </div>
               </div>
-              {error && <div style={{ textAlign:'center', color:'#f87171', fontSize:14, marginBottom:20 }}>{error}</div>}
-              <div className="tyg-key-grid">
-                {KEYPAD.map((row,ri) => (
-                  <div key={ri} className="tyg-key-row">
-                    {row.map((key,ki) =>
-                      key==='' ? <div key={ki} style={{ width:76, height:76 }} /> :
-                      key==='⌫' ? <button key={ki} className="tyg-key" onClick={() => handleKeyPress('⌫')}><Delete size={22}/></button> :
-                      <button key={ki} className="tyg-key" onClick={() => handleKeyPress(key)}>{key}</button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {loading && <div style={{ textAlign:'center', color:'#6b7280', fontSize:14, marginTop:20 }}>Verifying…</div>}
+              {error && <div style={{ textAlign:'center', color:'#f87171', fontSize:14, marginBottom:16 }}>{error}</div>}
+              <button
+                onClick={() => pin.length >= 4 && void handleLogin(pin)}
+                disabled={pin.length < 4 || loading}
+                className={pin.length >= 4 && !loading ? 'tyg-btn tyg-btn-primary' : 'tyg-btn tyg-btn-disabled'}
+                style={{ width:'100%', marginTop: 4 }}
+              >
+                {loading ? 'Verifying…' : 'Login →'}
+              </button>
             </div>
           )}
         </div>

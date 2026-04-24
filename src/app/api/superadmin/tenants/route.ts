@@ -20,7 +20,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Fallback: plain tenants table if view fails
     const { data: plain, error: plainErr } = await db
       .from('tenants')
-      .select('id, name, slug, owner_email, phone, plan_tier, plan_status, trial_ends_at, created_at, address, billing_notes')
+      .select('id, name, slug, owner_email, phone, plan_tier, plan_status, trial_ends_at, created_at, address, billing_notes, health_label, onboarding_completed_at, max_products, max_staff, max_branches, pos_locked')
       .order('created_at', { ascending: false });
 
     if (plainErr) return NextResponse.json({ error: plainErr.message }, { status: 500 });

@@ -9,7 +9,6 @@ export const config = {
     '/admin/:path*',
     '/kitchen/:path*',
     '/superadmin/:path*',
-    '/api/cron/:path*',
   ],
 };
 
@@ -34,19 +33,6 @@ export function middleware(req: NextRequest): NextResponse {
     const saCookie = req.cookies.get('tyg_superadmin');
     if (!saCookie?.value || saCookie.value.length < 10) {
       return NextResponse.redirect(new URL('/superadmin/login', req.url));
-    }
-  }
-
-  // ── CRON routes: require CRON_SECRET ─────────────────────
-  if (pathname.startsWith('/api/cron')) {
-    const cronSecret = process.env.CRON_SECRET;
-    if (!cronSecret) {
-      // If CRON_SECRET is not set, block all cron access
-      return NextResponse.json({ error: 'Cron not configured' }, { status: 503 });
-    }
-    const authHeader = req.headers.get('Authorization');
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }
 

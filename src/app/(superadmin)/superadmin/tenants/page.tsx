@@ -81,8 +81,8 @@ export default function TenantsListPage() {
       {loading ? <div style={{ textAlign: 'center', padding: 60, color: '#475569' }}>Loading tenants…</div> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 14 }}>
           {filtered.map(t => {
-            const pc = PLAN_C[t.plan_status] ?? PLAN_C.TRIAL;
-            const hc = HEALTH_C[t.health_label ?? 'dead'] ?? HEALTH_C.dead;
+            const pc = PLAN_C[t.plan_status] ?? { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' };
+            const hc = HEALTH_C[t.health_label ?? 'dead'] ?? { color: '#64748b', emoji: '🔴' };
             const trialDays = t.trial_ends_at ? daysUntil(t.trial_ends_at) : null;
             const onboardingDone = !!t.onboarding_completed_at;
             return (

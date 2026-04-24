@@ -16,7 +16,7 @@ const INDUSTRIES = [
 
 const STEPS = ['Business Type', 'Basic Setup', 'Your Menu', 'You\'re Live!'];
 
-interface Session { tenantSlug?: string; tenantId?: string; tenantName?: string; displayName?: string; }
+interface Session { tenantSlug?: string | undefined; tenantId?: string | undefined; tenantName?: string | undefined; displayName?: string | undefined; }
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function OnboardingPage() {
     try {
       const s = JSON.parse(localStorage.getItem('tyg_session') || '{}') as Session;
       const t = JSON.parse(localStorage.getItem('tyg_tenant')  || '{}') as { name?: string; slug?: string };
-      setSession({ ...s, tenantName: s.tenantName || t.name, tenantSlug: s.tenantSlug || t.slug });
+      setSession({ ...s, tenantName: s.tenantName || t.name || undefined, tenantSlug: s.tenantSlug || t.slug || undefined } as Session);
       setBusinessName(s.tenantName || t.name || '');
     } catch {/**/}
   }, []);

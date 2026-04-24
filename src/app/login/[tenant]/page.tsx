@@ -154,10 +154,26 @@ function LoginForm() {
                 <button className="tyg-back" onClick={() => { setStep('name'); setPin(''); setError(''); }}>← {displayName}</button>
                 <div style={{ color:'#9ca3af', fontSize:15 }}>Enter your PIN</div>
               </div>
-              <div className={shake ? 'tyg-shake' : ''} style={{ display:'flex', justifyContent:'center', gap:16, marginBottom:32 }}>
-                {Array.from({ length: Math.max(4, pin.length) }, (_,i) => (
-                  <div key={i} className={pin.length===i+1 ? 'tyg-pop' : ''} style={{ width:14, height:14, borderRadius:'50%', background: pin.length>i ? (error ? '#ef4444' : '#22c55e') : 'rgba(255,255,255,0.12)', transition:'background 0.15s' }} />
-                ))}
+              {/* Hidden input for keyboard PIN entry */}
+              <div style={{ position:'relative', marginBottom:32 }}>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={pin}
+                  autoFocus
+                  onChange={e => {
+                    const val = e.target.value.replace(/[^0-9]/g,'').slice(0,8);
+                    setPin(val); setError('');
+                    if (val.length >= 4) setTimeout(() => handleLogin(val), 80);
+                  }}
+                  style={{ position:'absolute', opacity:0, width:'100%', height:'100%', top:0, left:0, zIndex:10, fontSize:16 }}
+                  aria-label="Enter PIN"
+                />
+                <div className={shake ? 'tyg-shake' : ''} style={{ display:'flex', justifyContent:'center', gap:16 }}>
+                  {Array.from({ length: Math.max(4, pin.length) }, (_,i) => (
+                    <div key={i} className={pin.length===i+1 ? 'tyg-pop' : ''} style={{ width:14, height:14, borderRadius:'50%', background: pin.length>i ? (error ? '#ef4444' : '#22c55e') : 'rgba(255,255,255,0.12)', transition:'background 0.15s' }} />
+                  ))}
+                </div>
               </div>
               {error && <div style={{ textAlign:'center', color:'#f87171', fontSize:14, marginBottom:20 }}>{error}</div>}
               <div className="tyg-key-grid">

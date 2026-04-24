@@ -214,10 +214,10 @@ export default function OnboardingPage() {
                 {menuItems.map((item, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10 }}>
                     <input style={{ ...inp, flex: 2 }} value={item.name} onChange={e => {
-                      const n = [...menuItems]; n[i] = { ...n[i], name: e.target.value }; setMenuItems(n);
+                      const n = [...menuItems]; n[i] = { name: e.target.value, price: n[i].price }; setMenuItems(n);
                     }} placeholder={`Item ${i + 1} name (e.g. Bulalo)`} />
                     <input style={{ ...inp, flex: 1 }} value={item.price} onChange={e => {
-                      const n = [...menuItems]; n[i] = { ...n[i], price: e.target.value }; setMenuItems(n);
+                      const n = [...menuItems]; n[i] = { name: n[i].name, price: e.target.value }; setMenuItems(n);
                     }} placeholder="Price" type="number" min="0" />
                   </div>
                 ))}

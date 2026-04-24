@@ -354,7 +354,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                 }
                 return (
                   <Link key={href} href={href} className={`ni${active ? ' on' : ''}`} style={{ marginBottom: 1 }}>
-                    <Icon size={14} style={{ flexShrink: 0 }} />
+                    <Icon size={14} />
                     <span style={{ flex: 1 }}>{label}</span>
                     {badge && activeOrders > 0 && (
                       <span style={{ fontSize: 10, fontWeight: 800, minWidth: 20, textAlign: 'center', padding: '2px 5px', borderRadius: 99, background: '#ef4444', color: '#fff' }}>

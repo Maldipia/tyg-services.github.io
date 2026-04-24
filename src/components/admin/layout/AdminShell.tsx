@@ -150,7 +150,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     PRO:        { color: '#581c87', bg: '#f3e8ff' },
     ENTERPRISE: { color: '#78350f', bg: '#fffbeb' },
   };
-  const ps = planBadge[planTier] ?? planBadge.TRIAL;
+  const ps = planBadge[planTier] ?? { color: '#92400e', bg: '#fef3c7' };
 
   const W = collapsed ? 64 : 240;
 

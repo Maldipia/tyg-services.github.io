@@ -30,7 +30,7 @@ export default function OnboardingPage() {
   const [businessName, setBusinessName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [menuItems, setMenuItems] = useState([
+  const [menuItems, setMenuItems] = useState<{ name: string; price: string }[]>([
     { name: '', price: '' },
     { name: '', price: '' },
     { name: '', price: '' },
@@ -40,7 +40,12 @@ export default function OnboardingPage() {
     try {
       const s = JSON.parse(localStorage.getItem('tyg_session') || '{}') as Session;
       const t = JSON.parse(localStorage.getItem('tyg_tenant')  || '{}') as { name?: string; slug?: string };
-      setSession({ ...s, tenantName: s.tenantName || t.name || undefined, tenantSlug: s.tenantSlug || t.slug || undefined } as Session);
+      const merged: Session = {};
+      if (s.tenantSlug || t.slug) merged.tenantSlug = s.tenantSlug || t.slug;
+      if (s.tenantName || t.name) merged.tenantName = s.tenantName || t.name;
+      if (s.tenantId) merged.tenantId = s.tenantId;
+      if (s.displayName) merged.displayName = s.displayName;
+      setSession(merged);
       setBusinessName(s.tenantName || t.name || '');
     } catch {/**/}
   }, []);

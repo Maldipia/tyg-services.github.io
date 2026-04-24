@@ -293,7 +293,7 @@ export default function TenantDetailPage() {
                 <span style={{ color:'#475569', whiteSpace:'nowrap' }}>{new Date(a.created_at as string).toLocaleDateString()}</span>
                 <span style={{ fontWeight:700, color:'#94a3b8' }}>{a.action as string}</span>
                 <span style={{ color:'#475569', flex:1 }}>{a.note as string}</span>
-                {a.new_value && <span style={{ color:'#22c55e', fontWeight:600, whiteSpace:'nowrap' }}>→ {String(a.new_value).slice(0, 30)}</span>}
+                {a.new_value ? <span style={{ color:'#22c55e', fontWeight:600, whiteSpace:'nowrap' }}>→ {String(a.new_value as string).slice(0, 30)}</span> : null}
               </div>
             ))
           }

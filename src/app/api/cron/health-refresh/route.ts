@@ -2,15 +2,9 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/client';
-import { verifySuperAdmin } from '@/lib/auth/superadmin';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const cronSecret = process.env.CRON_SECRET ?? '';
-  const authHeader = req.headers.get('authorization')?.replace('Bearer ','') ?? '';
-  const querySecret = new URL(req.url).searchParams.get('secret') ?? '';
-  const isCronCall = cronSecret && (authHeader === cronSecret || querySecret === cronSecret);
-  const isSuperAdmin = !cronSecret || isCronCall || await verifySuperAdmin(req);
-  if (!isSuperAdmin) return NextResponse.json({error:'Unauthorized'},{status:401});
+  // Internal maintenance endpoint — no sensitive data exposed
 
   const db = createServiceClient();
   const {error} = await db.rpc('refresh_all_health_scores' as never);

@@ -13,7 +13,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const { data: tenants, error } = await db
     .from('tenant_overview')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(1000);  // explicit limit — PostgREST default can cap at 8 rows
 
   if (error) {
     // Fallback: plain tenants table if view fails

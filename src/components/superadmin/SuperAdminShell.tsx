@@ -85,7 +85,7 @@ export default function SuperAdminShell({ children }: { children: React.ReactNod
   };
 
   const isActive = (href: string, exact: boolean) =>
-    exact ? pathname === href : pathname.startsWith(href.split('?')[0]);
+    exact ? pathname === href : pathname.startsWith((href.split('?')[0]) ?? href);
 
   const W = collapsed ? 64 : 220;
 

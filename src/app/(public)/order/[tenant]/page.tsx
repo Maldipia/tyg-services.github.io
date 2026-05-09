@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ShoppingCart, Plus, Minus, X, ChevronRight, Star } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, X, ChevronRight, Star, Bike } from 'lucide-react';
 import { CartItem, cartTotal, cartCount, saveCart, loadCart, generateIdempotencyKey } from '@/lib/online-order/cart';
 
 const BG = '#0f1117'; const CARD = '#161b27'; const BORDER = 'rgba(255,255,255,0.07)';
@@ -17,7 +17,8 @@ const SUGAR_OPTS = [
   { v:'FULL_SWEET', l:'Full Sweet', d:'100% — Max' },
 ];
 
-interface MenuItem { id:string; name:string; description?:string; base_price:number; image_url?:string; status:string; tags:string[]; has_sugar_level:boolean; is_featured:boolean; stock_count:number|null; }
+interface MenuSize { id:string; label:string; price:number; is_default:boolean; sort_order:number; }
+interface MenuItem { id:string; name:string; description?:string; base_price:number; image_url?:string; status:string; tags:string[]; has_sugar_level:boolean; is_featured:boolean; stock_count:number|null; sizes?:MenuSize[]; }
 interface Category { id:string; name:string; emoji?:string; items:MenuItem[]; }
 interface Tenant { slug:string; name:string; primaryColor:string; logoUrl?:string; settings:Record<string,unknown>; }
 
@@ -25,7 +26,10 @@ function ItemModal({ item, onClose, onAdd }: { item:MenuItem; onClose:()=>void; 
   const [qty, setQty] = useState(1);
   const [sugar, setSugar] = useState<string>('YANI');
   const [notes, setNotes] = useState('');
-  const price = item.base_price * qty;
+  const defaultSize = item.sizes?.find(s => s.is_default) ?? item.sizes?.[0] ?? null;
+  const [selectedSize, setSelectedSize] = useState<MenuSize|null>(defaultSize);
+  const unitPrice = selectedSize ? selectedSize.price : item.base_price;
+  const price = unitPrice * qty;
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'flex-end', justifyContent:'center' }}
@@ -49,6 +53,24 @@ function ItemModal({ item, onClose, onAdd }: { item:MenuItem; onClose:()=>void; 
         {item.stock_count !== null && item.stock_count <= 5 && item.stock_count > 0 && (
           <div style={{ background:'rgba(249,115,22,0.1)', border:'1px solid rgba(249,115,22,0.3)', borderRadius:8, padding:'6px 12px', marginBottom:16, color:'#f97316', fontSize:13, fontWeight:600 }}>
             ⚠️ Only {item.stock_count} left
+          </div>
+        )}
+        {item.sizes && item.sizes.length > 1 && (
+          <div style={{ marginBottom:16 }}>
+            <p style={{ color:MUTED, fontSize:12, fontWeight:600, textTransform:'uppercase' as const, letterSpacing:'0.04em', marginBottom:10 }}>Size</p>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' as const }}>
+              {item.sizes.map(size => (
+                <button key={size.id} onClick={() => setSelectedSize(size)} style={{
+                  padding:'9px 16px', borderRadius:10, cursor:'pointer',
+                  border: selectedSize?.id===size.id ? '1.5px solid #16a34a' : `1px solid ${BORDER}`,
+                  background: selectedSize?.id===size.id ? 'rgba(22,163,74,0.1)' : 'rgba(255,255,255,0.03)',
+                  display:'flex', flexDirection:'column' as const, alignItems:'flex-start',
+                }}>
+                  <span style={{ fontSize:13, fontWeight:700, color: selectedSize?.id===size.id ? '#4ade80' : TEXT }}>{size.label}</span>
+                  <span style={{ fontSize:12, color:GREEN, fontWeight:600 }}>₱{size.price.toFixed(2)}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {item.has_sugar_level && (
@@ -79,7 +101,7 @@ function ItemModal({ item, onClose, onAdd }: { item:MenuItem; onClose:()=>void; 
           <button onClick={() => setQty(q => Math.min(item.stock_count ?? 20, q+1))} style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:TEXT, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}><Plus size={14}/></button>
         </div>
         <button onClick={() => {
-          onAdd({ itemId:item.id, itemName:item.name, unitPrice:item.base_price, qty, addonIds:[], addonTotal:0, ...(notes?{notes}:{}), ...(item.has_sugar_level?{sugarLevel:sugar}:{}), hasSugarLevel:item.has_sugar_level });
+          onAdd({ itemId:item.id, itemName:item.name, unitPrice, qty, addonIds:[], addonTotal:0, sizeId:selectedSize?.id??null, sizeLabel:selectedSize?.label??null, ...(notes?{notes}:{}), ...(item.has_sugar_level?{sugarLevel:sugar}:{}), hasSugarLevel:item.has_sugar_level });
           onClose();
         }} style={{ width:'100%', padding:'14px 0', background:GREEN, color:'#fff', border:'none', borderRadius:12, fontWeight:800, fontSize:15, cursor:'pointer' }}>
           Add {qty}× — ₱{price.toFixed(2)}
@@ -149,6 +171,10 @@ export default function TenantOrderPage({ params }: { params: { tenant: string }
       return next;
     });
   }, [tenantSlug]);
+
+  const goDelivery = useCallback(() => {
+    router.push(`/order/${tenantSlug}/delivery`);
+  }, [router, tenantSlug]);
 
   const goCheckout = useCallback(() => {
     sessionStorage.setItem('tyg_idkey', idKeyRef.current);
@@ -331,7 +357,10 @@ export default function TenantOrderPage({ params }: { params: { tenant: string }
             </div>
             <button onClick={() => { setShowCart(false); goCheckout(); }} style={{
               width:'100%', marginTop:16, padding:'14px 0', background:GREEN, border:'none', borderRadius:12, color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-            }}>Proceed to Checkout <ChevronRight size={18}/></button>
+            }}>Dine-in / Takeout <ChevronRight size={18}/></button>
+            <button onClick={() => { setShowCart(false); goDelivery(); }} style={{
+              width:'100%', marginTop:8, padding:'12px 0', background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.25)', borderRadius:12, color:'#60a5fa', fontWeight:700, fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+            }}><Bike size={15}/> Delivery Order</button>
           </div>
         </div>
       )}

@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifySuperAdmin, superAdminUnauthorized } from '@/lib/auth/superadmin';
 import { createServiceClient } from '@/lib/supabase/client';
 
-const VALID_STATUSES = ['new', 'contacted', 'qualified', 'converted', 'not_a_fit'];
+const VALID_STATUSES = ['new', 'contacted', 'qualified', 'converted', 'not_a_fit'] as const;
+type ValidStatus = typeof VALID_STATUSES[number];
 
 export async function PATCH(
   req: NextRequest,
@@ -12,25 +13,27 @@ export async function PATCH(
   if (!await verifySuperAdmin(req)) return superAdminUnauthorized();
 
   const { id } = params;
-  if (!id || typeof id !== 'string' || id.length > 100) {
+
+  // Validate UUID format
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
   }
 
-  const body = await req.json();
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+
   const updates: Record<string, string> = {};
 
   if ('status' in body) {
-    if (!VALID_STATUSES.includes(body.status)) {
-      return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
-        { status: 400 }
-      );
+    const s = String(body.status ?? '');
+    if (!VALID_STATUSES.includes(s as ValidStatus)) {
+      return NextResponse.json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 });
     }
-    updates.status = body.status;
+    updates.status = s;
   }
 
   if ('internal_assessment' in body) {
-    updates.internal_assessment = String(body.internal_assessment ?? '').trim().slice(0, 2000);
+    updates.internal_assessment = String(body.internal_assessment ?? '').slice(0, 2000);
   }
 
   if (Object.keys(updates).length === 0) {

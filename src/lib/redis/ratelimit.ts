@@ -54,3 +54,4 @@ export const paymentUploadRateLimit = makeLimiter(5, 300);   // 5/5min
 export const menuFetchRateLimit     = makeLimiter(100, 60);  // 100/1min
 export const promoValidateRateLimit = makeLimiter(20, 60);   // 20/min per IP — promo enumeration guard
 export const feedbackRateLimit      = makeLimiter(5, 300);   // 5/5min per IP — rating spam guard
+export const discoveryRateLimit     = makeLimiter(3, 3600);  // 3/1hr per IP — discovery form spam guard

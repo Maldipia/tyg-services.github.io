@@ -142,7 +142,7 @@ export default function DiscoveryAdminPage() {
           {['ALL', ...Object.keys(STATUS_C)].map(s => (
             <button key={s} onClick={() => setFilterStatus(s)}
               style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1px solid', borderColor: filterStatus === s ? BRAND : BORDER, background: filterStatus === s ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.03)', color: filterStatus === s ? BRAND : MUTED }}>
-              {s === 'ALL' ? 'All' : STATUS_C[s].label}
+              {s === 'ALL' ? 'All' : (STATUS_C[s]?.label ?? s)}
             </button>
           ))}
         </div>
@@ -158,7 +158,7 @@ export default function DiscoveryAdminPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map(row => {
-            const sc = STATUS_C[row.status] || STATUS_C.new;
+            const sc = STATUS_C[row.status] ?? STATUS_C['new'] ?? { bg: 'rgba(99,102,241,0.12)', color: '#818cf8', label: row.status };
             const isOpen = expanded === row.id;
             const suggestedPlan = PLAN_MAP[row.budget_range] || '—';
 

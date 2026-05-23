@@ -114,9 +114,9 @@ export default function DiscoveryAdminPage() {
           <p style={{ fontSize: 13, color: MUTED }}>{rows.length} total submissions</p>
         </div>
         {/* New badge */}
-        {counts.new > 0 && (
+        {(counts['new'] ?? 0) > 0 && (
           <div style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 99, padding: '6px 16px', fontSize: 13, color: '#818cf8', fontWeight: 700 }}>
-            {counts.new} new
+            {counts['new']} new
           </div>
         )}
       </div>

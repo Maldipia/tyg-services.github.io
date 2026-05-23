@@ -62,6 +62,7 @@ export default function LandingPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link href="/login?fresh=1" style={{ color: MUTED, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Sign In</Link>
+          <Link href="/discovery" style={{ color: TEXT, textDecoration: 'none', fontSize: 14, fontWeight: 600, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '7px 16px' }}>Get a Demo</Link>
           <Link href="/signup" style={{ background: BRAND, color: '#000', borderRadius: 8, padding: '8px 20px', textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>
             Start Free Trial
           </Link>

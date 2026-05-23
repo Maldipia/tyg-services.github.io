@@ -6,7 +6,7 @@ import {
   ShieldCheck, LayoutDashboard, Building2, LogOut,
   TrendingUp, Activity, Bell, Settings, ChevronRight,
   PanelLeftClose, PanelLeftOpen, Zap, Clock, Database,
-  RefreshCw, Menu, X
+  RefreshCw, Menu, X, FileText
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -35,6 +35,7 @@ const NAV_GROUPS = [
     items: [
       { href: '/superadmin/cron', label: 'Cron Jobs', icon: RefreshCw, exact: true },
       { href: '/superadmin/alerts', label: 'Alerts', icon: Bell, exact: true },
+      { href: '/superadmin/discovery', label: 'Discovery Leads', icon: FileText, exact: true },
     ],
   },
   {

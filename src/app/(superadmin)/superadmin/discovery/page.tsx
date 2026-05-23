@@ -72,8 +72,8 @@ export default function DiscoveryAdminPage() {
       .catch(() => setLoading(false));
   }, [router]);
 
-  const filtered = rows.filter(r => {
-    const matchSearch = !search || [r.business_name, r.contact_name, r.contact_email, r.location].some(v =>
+  const filtered = rows.filter((r: DiscoveryRow) => {
+    const matchSearch = !search || [r.business_name, r.contact_name, r.contact_email, r.location].some((v: string) =>
       v?.toLowerCase().includes(search.toLowerCase()));
     const matchStatus = filterStatus === 'ALL' || r.status === filterStatus;
     return matchSearch && matchStatus;
@@ -86,7 +86,7 @@ export default function DiscoveryAdminPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     }).catch(() => {});
-    setRows(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+    setRows((prev: DiscoveryRow[]) => prev.map((r: DiscoveryRow) => r.id === id ? { ...r, status } : r));
     setUpdating(null);
   };
 
@@ -96,7 +96,7 @@ export default function DiscoveryAdminPage() {
   });
 
   const counts = Object.fromEntries(
-    Object.keys(STATUS_C).map(s => [s, rows.filter(r => r.status === s).length])
+    Object.keys(STATUS_C).map((s: string) => [s, rows.filter((r: DiscoveryRow) => r.status === s).length])
   );
 
   return (
@@ -135,7 +135,7 @@ export default function DiscoveryAdminPage() {
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 240 }}>
           <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: MUTED }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by business, contact, email…"
+          <input value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} placeholder="Search by business, contact, email…"
             style={{ width: '100%', paddingLeft: 34, paddingRight: 14, height: 38, background: 'rgba(255,255,255,0.05)', border: `1px solid ${BORDER}`, borderRadius: 9, color: TEXT, fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -157,7 +157,7 @@ export default function DiscoveryAdminPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {filtered.map(row => {
+          {filtered.map((row: DiscoveryRow) => {
             const sc = STATUS_C[row.status] ?? STATUS_C['new'] ?? { bg: 'rgba(99,102,241,0.12)', color: '#818cf8', label: row.status };
             const isOpen = expanded === row.id;
             const suggestedPlan = PLAN_MAP[row.budget_range] || '—';
@@ -186,10 +186,10 @@ export default function DiscoveryAdminPage() {
                   {/* Date */}
                   <div style={{ flex: '0 0 130px', fontSize: 11, color: MUTED }}>{fmtDate(row.created_at)}</div>
                   {/* Status pill + changer */}
-                  <div onClick={e => e.stopPropagation()} style={{ flex: '0 0 130px' }}>
+                  <div onClick={(e: React.MouseEvent) => e.stopPropagation()} style={{ flex: '0 0 130px' }}>
                     <select
                       value={row.status}
-                      onChange={e => updateStatus(row.id, e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateStatus(row.id, e.target.value)}
                       disabled={updating === row.id}
                       style={{
                         background: sc.bg, color: sc.color, border: `1px solid ${sc.color}40`,
@@ -269,7 +269,7 @@ export default function DiscoveryAdminPage() {
                       <div style={{ marginTop: 16 }}>
                         <div style={{ fontSize: 12, color: MUTED, marginBottom: 8 }}>Pain Points</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                          {row.pain_points.map(p => (
+                          {row.pain_points.map((p: string) => (
                             <span key={p} style={{ background: SURFACE2, border: `1px solid ${BORDER}`, borderRadius: 6, padding: '4px 10px', fontSize: 12, color: TEXT }}>{p}</span>
                           ))}
                         </div>

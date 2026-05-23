@@ -100,13 +100,13 @@ export default function DiscoveryPage() {
   const v = (k: keyof typeof r) => r[k].current?.value.trim() ?? '';
 
   const clearE = useCallback((k: string) => {
-    setErrors(e => { if (!e[k]) return e; const n={...e}; delete n[k]; return n; });
+    setErrors((e: ErrMap) => { if (!e[k]) return e; const n={...e}; delete n[k]; return n; });
   }, []);
 
   const toggleFeat = useCallback((f: string) =>
-    setFeatures(p => p.includes(f) ? p.filter(x=>x!==f) : [...p,f]), []);
+    setFeatures((p: string[]) => p.includes(f) ? p.filter((x: string)=>x!==f) : [...p,f]), []);
   const toggleInt  = useCallback((i: string) =>
-    setInts(p => p.includes(i) ? p.filter(x=>x!==i) : [...p,i]), []);
+    setInts((p: string[]) => p.includes(i) ? p.filter((x: string)=>x!==i) : [...p,i]), []);
 
   const validate = useCallback((): boolean => {
     const e: ErrMap = {};
@@ -130,8 +130,8 @@ export default function DiscoveryPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, systemType]);
 
-  const next = useCallback(() => { if (validate()) setStep(s => s+1); }, [validate]);
-  const back = useCallback(() => { setStep(s => s-1); setErrors({}); }, []);
+  const next = useCallback(() => { if (validate()) setStep((s: number) => s+1); }, [validate]);
+  const back = useCallback(() => { setStep((s: number) => s-1); setErrors({}); }, []);
 
   const submit = useCallback(async () => {
     if (!validate()) return;

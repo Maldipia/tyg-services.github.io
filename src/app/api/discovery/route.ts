@@ -18,7 +18,7 @@ const esc = (s: string): string =>
    .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 
 // ── Valid status values (mirrors DB CHECK constraint) ────────────────────────
-const VALID_STATUS = new Set(['new', 'contacted', 'qualified', 'converted', 'not_a_fit']);
+const VALID_STATUS = ['new', 'contacted', 'qualified', 'converted', 'not_a_fit'];
 
 export async function POST(req: NextRequest) {
   try {

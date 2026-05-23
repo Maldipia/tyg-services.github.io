@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifySuperAdmin, superAdminUnauthorized } from '@/lib/auth/superadmin';
 import { createServiceClient } from '@/lib/supabase/client';
 
-const VALID_STATUSES = new Set(['new', 'contacted', 'qualified', 'converted', 'not_a_fit']);
+const VALID_STATUSES = ['new', 'contacted', 'qualified', 'converted', 'not_a_fit'];
 
 export async function PATCH(
   req: NextRequest,
@@ -17,21 +17,18 @@ export async function PATCH(
   }
 
   const body = await req.json();
-
   const updates: Record<string, string> = {};
 
-  // status: must be one of the valid enum values
   if ('status' in body) {
-    if (!VALID_STATUSES.has(body.status)) {
+    if (!VALID_STATUSES.includes(body.status)) {
       return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${[...VALID_STATUSES].join(', ')}` },
+        { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
         { status: 400 }
       );
     }
     updates.status = body.status;
   }
 
-  // internal_assessment: free text, capped at 2000 chars
   if ('internal_assessment' in body) {
     updates.internal_assessment = String(body.internal_assessment ?? '').trim().slice(0, 2000);
   }
